@@ -44,7 +44,7 @@ const categoryData = {
     description: 'Marketing and promotional materials',
     subcategories: [
       'Brochures', 'Flyers', 'Tent Card', 'Wobbler', 'Dangler',
-      'Standee', 'Flex', 'Vinyl Banner', 'Pamphlet',
+      'Standee', 'Flex Banner', 'Vinyl Banner', 'Pamphlet',
     ],
   },
   'Wide Format': {
