@@ -2,93 +2,60 @@ import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Star, ChevronRight, ChevronLeft, Minus, Plus, ShoppingCart,
-  Share2, MessageCircle, ThumbsUp, Truck, RotateCcw, Shield,
+  Star, ChevronRight, Minus, Plus, ShoppingCart,
+  Share2, MessageCircle, Truck, RotateCcw, Shield,
   Ruler, Info, ZoomIn, Heart, Loader2,
 } from 'lucide-react';
 import BulkPricingTable from '../../components/products/BulkPricingTable';
 import SizeGuide from '../../components/products/SizeGuide';
 import ReviewForm from '../../components/products/ReviewForm';
 import ReviewCard from '../../components/products/ReviewCard';
-
-const mockProduct = {
-  _id: '1',
-  name: 'Premium Matte Business Card',
-  slug: 'premium-matte-business-card',
-  category: { name: 'Business Cards', slug: 'business-cards' },
-  price: 299,
-  bulkPrice: 199,
-  bulkPricing: [
-    { min: 1, max: 49, price: 299 },
-    { min: 50, max: 99, price: 269 },
-    { min: 100, max: 249, price: 229 },
-    { min: 250, max: 499, price: 199 },
-    { min: 500, max: null, price: 149 },
-  ],
-  rating: 4.8,
-  reviewCount: 342,
-  discount: 20,
-  images: [
-    'https://images.unsplash.com/photo-1572044347786-5693577a9077?w=800',
-    'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800',
-    'https://images.unsplash.com/photo-1562408590-e32931084e23?w=800',
-    'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=800',
-  ],
-  description: 'Make a lasting impression with our Premium Matte Business Cards. Printed on 350 GSM premium cardstock with a smooth matte finish, these cards feel as good as they look. Perfect for professionals who want to stand out.',
-  shortDescription: 'Premium 350 GSM matte finish business cards with vibrant full-color printing.',
-  specifications: [
-    { label: 'Material', value: '350 GSM Premium Cardstock' },
-    { label: 'Finish', value: 'Matte Lamination' },
-    { label: 'Size', value: '3.5" x 2" (Standard)' },
-    { label: 'Printing', value: 'Full Color, Double-Sided' },
-    { label: 'Edges', value: 'Standard Cut / Rounded Available' },
-    { label: 'Turnaround', value: '3-5 Business Days' },
-    { label: 'Min Order', value: '25 Cards' },
-  ],
-  colors: [
-    { name: 'White', hex: '#FFFFFF' },
-    { name: 'Cream', hex: '#F5F0E1' },
-    { name: 'Light Grey', hex: '#E0E0E0' },
-    { name: 'Black', hex: '#000000' },
-  ],
-  sizes: ['Standard (3.5" × 2")', 'Square (2.5" × 2.5")', 'Mini (2.5" × 1.5")'],
-  printArea: { width: '3.5 inches', height: '2 inches', formats: 'AI, PDF, PNG, PSD (min 300 DPI)' },
-  reviews: [
-    { name: 'Priya Sharma', rating: 5, title: 'Excellent quality!', comment: 'The cards came out exactly as I expected. The matte finish gives them a premium look and feel. Will definitely order again.', date: '2026-01-10', helpful: 12 },
-    { name: 'Rahul Mehta', rating: 5, title: 'Perfect for my startup', comment: 'Ordered 200 cards for my new startup. The print quality is top-notch and the turnaround time was impressive. Highly recommended!', date: '2026-01-05', helpful: 8 },
-    { name: 'Ananya Patel', rating: 4, title: 'Great cards, minor issue', comment: 'The cards look amazing. Only reason for 4 stars is that one corner had a slight imperfection, but customer service handled it quickly.', date: '2025-12-28', helpful: 5 },
-    { name: 'Vikram Singh', rating: 5, title: 'Best value for money', comment: 'Compared prices across many vendors. PrintJack offers the best quality at this price point. The bulk pricing made it even more affordable.', date: '2025-12-20', helpful: 15 },
-  ],
-  relatedProducts: [
-    { _id: '2', name: 'Glossy Business Card', price: 349, image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400', rating: 4.7 },
-    { _id: '3', name: 'Square Business Card', price: 399, image: 'https://images.unsplash.com/photo-1562408590-e32931084e23?w=400', rating: 4.6 },
-    { _id: '4', name: 'Letterhead Print', price: 599, image: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400', rating: 4.5 },
-    { _id: '5', name: 'Envelope Print', price: 449, image: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400', rating: 4.4 },
-  ],
-};
+import api from '../../utils/api';
 
 export default function ProductDetailPage() {
-  const { id } = useParams();
-  const [product] = useState(mockProduct);
+  const { slug } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedSize, setSelectedSize] = useState(0);
-  const [quantity, setQuantity] = useState(25);
+  const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
   const [zoomed, setZoomed] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
-  const [loading, setLoading] = useState(true);
+  const [relatedProducts, setRelatedProducts] = useState([]);
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 400);
-    return () => clearTimeout(t);
-  }, [id]);
-
-  const p = product;
-  const discountedPrice = p.discount > 0 ? p.price - (p.price * p.discount) / 100 : p.price;
+    const fetchProduct = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data } = await api.get(`/products/${slug}`);
+        if (data.success) {
+          const p = data.product || data.data;
+          setProduct(p);
+          setSelectedImage(0);
+          setSelectedColor(0);
+          setSelectedSize(0);
+          setQuantity(p.minOrder || 1);
+          if (p.relatedProducts) {
+            setRelatedProducts(p.relatedProducts);
+          }
+        } else {
+          setError('Product not found');
+        }
+      } catch {
+        setError('Failed to load product');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (slug) fetchProduct();
+  }, [slug]);
 
   const handleImageMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -98,12 +65,6 @@ export default function ProductDetailPage() {
     });
   };
 
-  const ratingDistribution = [5, 4, 3, 2, 1].map((r) => ({
-    stars: r,
-    count: p.reviews.filter((rev) => Math.round(rev.rating) === r).length,
-  }));
-  const maxCount = Math.max(...ratingDistribution.map((d) => d.count), 1);
-
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -112,20 +73,49 @@ export default function ProductDetailPage() {
     );
   }
 
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4">
+        <p className="text-gray-500 text-lg">{error || 'Product not found'}</p>
+        <Link to="/products" className="bg-brand-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+          Browse Products
+        </Link>
+      </div>
+    );
+  }
+
+  const p = product;
+  const images = p.images && p.images.length > 0 ? p.images : ['/placeholder-product.png'];
+  const discountedPrice = p.discount > 0 ? p.price - (p.price * p.discount) / 100 : p.price;
+  const colors = p.colors || [];
+  const sizes = p.sizes || [];
+  const specs = p.specifications || [];
+  const reviews = p.reviews || [];
+
+  const ratingDistribution = [5, 4, 3, 2, 1].map((r) => ({
+    stars: r,
+    count: reviews.filter((rev) => Math.round(rev.rating) === r).length,
+  }));
+  const maxCount = Math.max(...ratingDistribution.map((d) => d.count), 1);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Breadcrumb */}
       <div className="bg-gray-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <nav className="flex items-center text-sm text-gray-500">
+          <nav className="flex items-center text-sm text-gray-500 flex-wrap gap-1">
             <Link to="/" className="hover:text-brand-500 transition-colors">Home</Link>
-            <ChevronRight size={14} className="mx-2" />
+            <ChevronRight size={14} className="mx-1" />
             <Link to="/products" className="hover:text-brand-500 transition-colors">Products</Link>
-            <ChevronRight size={14} className="mx-2" />
-            <Link to={`/products?category=${p.category.slug}`} className="hover:text-brand-500 transition-colors">
-              {p.category.name}
-            </Link>
-            <ChevronRight size={14} className="mx-2" />
+            {p.category && (
+              <>
+                <ChevronRight size={14} className="mx-1" />
+                <Link to={`/products?category=${p.category.slug || p.category._id}`} className="hover:text-brand-500 transition-colors">
+                  {typeof p.category === 'object' ? p.category.name : p.category}
+                </Link>
+              </>
+            )}
+            <ChevronRight size={14} className="mx-1" />
             <span className="text-gray-900 font-medium truncate">{p.name}</span>
           </nav>
         </div>
@@ -143,7 +133,7 @@ export default function ProductDetailPage() {
               onMouseLeave={() => setZoomed(false)}
             >
               <img
-                src={p.images[selectedImage]}
+                src={images[selectedImage]}
                 alt={p.name}
                 className="w-full h-full object-cover transition-transform duration-300"
                 style={{
@@ -157,24 +147,30 @@ export default function ProductDetailPage() {
                 </div>
               )}
             </motion.div>
-            <div className="flex gap-3 mt-4">
-              {p.images.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSelectedImage(i)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
-                    selectedImage === i ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-gray-200 hover:border-gray-400'
-                  }`}
-                >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
+            {images.length > 1 && (
+              <div className="flex gap-3 mt-4 overflow-x-auto pb-2">
+                {images.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedImage(i)}
+                    className={`w-20 h-20 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all ${
+                      selectedImage === i ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-gray-200 hover:border-gray-400'
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Right: Info */}
           <div>
-            <span className="text-sm font-medium text-navy-700/60 uppercase tracking-wider">{p.category.name}</span>
+            {p.category && (
+              <span className="text-sm font-medium text-navy-700/60 uppercase tracking-wider">
+                {typeof p.category === 'object' ? p.category.name : p.category}
+              </span>
+            )}
             <div className="flex items-start justify-between gap-4 mt-1">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">{p.name}</h1>
               <button
@@ -188,24 +184,28 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Rating */}
-            <div className="flex items-center gap-2 mt-3">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={18} className={i < Math.round(p.rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'} />
-                ))}
+            {p.rating > 0 && (
+              <div className="flex items-center gap-2 mt-3">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={18} className={i < Math.round(p.rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'} />
+                  ))}
+                </div>
+                <span className="text-sm font-medium text-gray-900">{p.rating}</span>
+                {p.reviewCount > 0 && (
+                  <button onClick={() => setActiveTab('reviews')} className="text-sm text-brand-500 hover:underline">
+                    ({p.reviewCount} reviews)
+                  </button>
+                )}
               </div>
-              <span className="text-sm font-medium text-gray-900">{p.rating}</span>
-              <button onClick={() => setActiveTab('reviews')} className="text-sm text-brand-500 hover:underline">
-                ({p.reviewCount} reviews)
-              </button>
-            </div>
+            )}
 
             {/* Price */}
             <div className="mt-5 flex items-baseline gap-3">
-              <span className="text-3xl font-extrabold text-gray-900">₹{discountedPrice}</span>
+              <span className="text-3xl font-extrabold text-gray-900">&₹;{discountedPrice}</span>
               {p.discount > 0 && (
                 <>
-                  <span className="text-lg text-gray-400 line-through">₹{p.price}</span>
+                  <span className="text-lg text-gray-400 line-through">&₹;{p.price}</span>
                   <span className="bg-brand-500/10 text-brand-500 text-sm font-bold px-2.5 py-0.5 rounded-full">
                     {p.discount}% OFF
                   </span>
@@ -213,74 +213,85 @@ export default function ProductDetailPage() {
               )}
             </div>
             {p.bulkPrice && (
-              <p className="text-sm text-emerald-600 font-medium mt-1">Bulk pricing from ₹{p.bulkPrice} per unit</p>
+              <p className="text-sm text-emerald-600 font-medium mt-1">Bulk pricing from &₹;{p.bulkPrice} per unit</p>
             )}
 
             {/* Bulk pricing */}
-            <div className="mt-4">
-              <BulkPricingTable pricing={p.bulkPricing} unit="card" />
-            </div>
+            {p.bulkPricing && p.bulkPricing.length > 0 && (
+              <div className="mt-4">
+                <BulkPricingTable pricing={p.bulkPricing} unit="unit" />
+              </div>
+            )}
 
             {/* Short description */}
-            <p className="mt-5 text-gray-600 leading-relaxed">{p.shortDescription}</p>
+            {p.shortDescription && (
+              <p className="mt-5 text-gray-600 leading-relaxed">{p.shortDescription}</p>
+            )}
+            {!p.shortDescription && p.description && (
+              <p className="mt-5 text-gray-600 leading-relaxed line-clamp-3">{p.description}</p>
+            )}
 
             {/* Color selector */}
-            <div className="mt-6">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-sm font-semibold text-gray-900">Color:</span>
-                <span className="text-sm text-gray-500">{p.colors[selectedColor].name}</span>
+            {colors.length > 0 && (
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm font-semibold text-gray-900">Color:</span>
+                  <span className="text-sm text-gray-500">{colors[selectedColor]?.name || ''}</span>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {colors.map((c, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedColor(i)}
+                      className={`w-10 h-10 rounded-full border-2 transition-all ${
+                        selectedColor === i
+                          ? 'border-navy-700 ring-2 ring-navy-700/20 scale-110'
+                          : 'border-gray-200 hover:border-gray-400'
+                      } ${c.hex === '#FFFFFF' ? 'ring-1 ring-gray-100' : ''}`}
+                      style={{ backgroundColor: c.hex }}
+                      title={c.name}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-2">
-                {p.colors.map((c, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setSelectedColor(i)}
-                    className={`w-10 h-10 rounded-full border-2 transition-all ${
-                      selectedColor === i
-                        ? 'border-navy-700 ring-2 ring-navy-700/20 scale-110'
-                        : 'border-gray-200 hover:border-gray-400'
-                    } ${c.hex === '#FFFFFF' ? 'ring-1 ring-gray-100' : ''}`}
-                    style={{ backgroundColor: c.hex }}
-                    title={c.name}
-                  />
-                ))}
-              </div>
-            </div>
+            )}
 
             {/* Size selector */}
-            <div className="mt-5">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-sm font-semibold text-gray-900">Size:</span>
-                <button
-                  onClick={() => setShowSizeGuide(true)}
-                  className="text-xs text-brand-500 hover:underline flex items-center gap-1"
-                >
-                  <Ruler size={12} /> Size Guide
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {p.sizes.map((s, i) => (
+            {sizes.length > 0 && (
+              <div className="mt-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-sm font-semibold text-gray-900">Size:</span>
                   <button
-                    key={i}
-                    onClick={() => setSelectedSize(i)}
-                    className={`px-4 py-2 text-sm rounded-xl border-2 font-medium transition-colors ${
-                      selectedSize === i
-                        ? 'border-navy-700 bg-navy-700 text-white'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                    }`}
+                    onClick={() => setShowSizeGuide(true)}
+                    className="text-xs text-brand-500 hover:underline flex items-center gap-1"
                   >
-                    {s}
+                    <Ruler size={12} /> Size Guide
                   </button>
-                ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {sizes.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedSize(i)}
+                      className={`px-4 py-2 text-sm rounded-xl border-2 font-semibold transition-colors ${
+                        selectedSize === i
+                          ? 'border-navy-700 bg-navy-700 text-white'
+                          : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                      }`}
+                    >
+                      {typeof s === 'string' ? s : s.name || s.label || s}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Quantity */}
             <div className="mt-5">
               <span className="text-sm font-semibold text-gray-900 block mb-3">Quantity:</span>
               <div className="inline-flex items-center border border-gray-200 rounded-xl overflow-hidden">
                 <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  onClick={() => setQuantity(Math.max(p.minOrder || 1, quantity - 1))}
                   className="p-3 hover:bg-gray-50 transition-colors"
                 >
                   <Minus size={16} />
@@ -296,16 +307,18 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Print area info */}
-            <div className="mt-5 bg-gray-50 rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center gap-2 mb-2">
-                <Info size={16} className="text-navy-700" />
-                <span className="text-sm font-semibold text-gray-900">Print Area</span>
+            {p.printArea && (
+              <div className="mt-5 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <Info size={16} className="text-navy-700" />
+                  <span className="text-sm font-semibold text-gray-900">Print Area</span>
+                </div>
+                <div className="text-sm text-gray-600 space-y-1">
+                  {p.printArea.width && <p>Dimensions: {p.printArea.width} {p.printArea.height ? `× ${p.printArea.height}` : ''}</p>}
+                  {p.printArea.formats && <p>Accepted Formats: {p.printArea.formats}</p>}
+                </div>
               </div>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>Dimensions: {p.printArea.width} × {p.printArea.height}</p>
-                <p>Accepted Formats: {p.printArea.formats}</p>
-              </div>
-            </div>
+            )}
 
             {/* CTA Buttons */}
             <div className="mt-6 space-y-3">
@@ -357,9 +370,9 @@ export default function ProductDetailPage() {
             <div className="flex gap-0 overflow-x-auto">
               {[
                 { key: 'description', label: 'Description' },
-                { key: 'specifications', label: 'Specifications' },
+                ...(specs.length > 0 ? [{ key: 'specifications', label: 'Specifications' }] : []),
                 { key: 'shipping', label: 'Shipping Info' },
-                { key: 'reviews', label: `Reviews (${p.reviewCount})` },
+                { key: 'reviews', label: `Reviews (${reviews.length || 0})` },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -379,37 +392,15 @@ export default function ProductDetailPage() {
           <div className="py-8">
             {activeTab === 'description' && (
               <div className="prose prose-gray max-w-none">
-                <p className="text-gray-600 leading-relaxed text-lg">{p.description}</p>
-                <div className="mt-6 grid sm:grid-cols-2 gap-6">
-                  <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-                    <h4 className="font-bold text-gray-900 mb-2">Key Features</h4>
-                    <ul className="text-sm text-gray-600 space-y-1.5">
-                      <li>• Premium 350 GSM cardstock</li>
-                      <li>• Smooth matte lamination finish</li>
-                      <li>• Full-color double-sided printing</li>
-                      <li>• Vibrant, fade-resistant inks</li>
-                      <li>• Custom sizes available</li>
-                    </ul>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-                    <h4 className="font-bold text-gray-900 mb-2">Best For</h4>
-                    <ul className="text-sm text-gray-600 space-y-1.5">
-                      <li>• Entrepreneurs & freelancers</li>
-                      <li>• Corporate professionals</li>
-                      <li>• Networking events</li>
-                      <li>• Brand identity packages</li>
-                      <li>• Startups & small businesses</li>
-                    </ul>
-                  </div>
-                </div>
+                <p className="text-gray-600 leading-relaxed text-lg">{p.description || 'No description available.'}</p>
               </div>
             )}
 
-            {activeTab === 'specifications' && (
+            {activeTab === 'specifications' && specs.length > 0 && (
               <div className="max-w-xl">
                 <table className="w-full text-sm">
                   <tbody>
-                    {p.specifications.map((spec, i) => (
+                    {specs.map((spec, i) => (
                       <tr key={i} className={`border-b border-gray-100 ${i % 2 === 0 ? 'bg-gray-50/50' : ''}`}>
                         <td className="py-3 px-4 font-semibold text-gray-700 w-1/3">{spec.label}</td>
                         <td className="py-3 px-4 text-gray-600">{spec.value}</td>
@@ -439,16 +430,15 @@ export default function ProductDetailPage() {
 
             {activeTab === 'reviews' && (
               <div>
-                {/* Rating summary */}
                 <div className="flex flex-col sm:flex-row gap-8 mb-10">
                   <div className="text-center sm:text-left">
-                    <div className="text-5xl font-extrabold text-gray-900">{p.rating}</div>
+                    <div className="text-5xl font-extrabold text-gray-900">{p.rating || '0'}</div>
                     <div className="flex justify-center sm:justify-start mt-1">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={20} className={i < Math.round(p.rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'} />
+                        <Star key={i} size={20} className={i < Math.round(p.rating || 0) ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'} />
                       ))}
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">{p.reviewCount} reviews</p>
+                    <p className="text-sm text-gray-500 mt-1">{reviews.length} reviews</p>
                   </div>
                   <div className="flex-1 space-y-2">
                     {ratingDistribution.map((d) => (
@@ -472,11 +462,12 @@ export default function ProductDetailPage() {
                   </button>
                 </div>
 
-                {/* Individual reviews */}
                 <div>
-                  {p.reviews.map((review, i) => (
+                  {reviews.length > 0 ? reviews.map((review, i) => (
                     <ReviewCard key={i} review={review} index={i} />
-                  ))}
+                  )) : (
+                    <p className="text-gray-500 text-center py-8">No reviews yet. Be the first to review!</p>
+                  )}
                 </div>
               </div>
             )}
@@ -484,30 +475,32 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Related Products */}
-        <div className="mt-16 mb-12">
-          <h2 className="text-2xl font-extrabold text-gray-900 mb-6">Related Products</h2>
-          <div className="flex gap-5 overflow-x-auto pb-4 -mx-4 px-4 snap-x">
-            {p.relatedProducts.map((rp) => (
-              <Link
-                key={rp._id}
-                to={`/products/${rp._id}`}
-                className="flex-shrink-0 w-60 snap-start bg-white rounded-2xl border border-gray-100 hover:shadow-lg transition-all overflow-hidden group"
-              >
-                <div className="aspect-square overflow-hidden bg-gray-50">
-                  <img src={rp.image} alt={rp.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 text-sm group-hover:text-brand-500 transition-colors">{rp.name}</h3>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star size={13} className="text-amber-400 fill-amber-400" />
-                    <span className="text-xs text-gray-500">{rp.rating}</span>
+        {relatedProducts.length > 0 && (
+          <div className="mt-16 mb-12">
+            <h2 className="text-2xl font-extrabold text-gray-900 mb-6">Related Products</h2>
+            <div className="flex gap-5 overflow-x-auto pb-4 -mx-4 px-4 snap-x">
+              {relatedProducts.map((rp) => (
+                <Link
+                  key={rp._id}
+                  to={`/products/${rp.slug || rp._id}`}
+                  className="flex-shrink-0 w-60 snap-start bg-white rounded-2xl border border-gray-100 hover:shadow-lg transition-all overflow-hidden group"
+                >
+                  <div className="aspect-square overflow-hidden bg-gray-50">
+                    <img src={rp.images?.[0] || rp.image || '/placeholder-product.png'} alt={rp.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   </div>
-                  <p className="mt-2 font-bold text-gray-900">₹{rp.price}</p>
-                </div>
-              </Link>
-            ))}
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-900 text-sm group-hover:text-brand-500 transition-colors">{rp.name}</h3>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Star size={13} className="text-amber-400 fill-amber-400" />
+                      <span className="text-xs text-gray-500">{rp.rating || 0}</span>
+                    </div>
+                    <p className="mt-2 font-bold text-gray-900">₹{rp.price}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Sticky mobile bar */}
@@ -525,7 +518,7 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      <SizeGuide type="tshirt" isOpen={showSizeGuide} onClose={() => setShowSizeGuide(false)} />
+      {sizes.length > 0 && <SizeGuide type="tshirt" isOpen={showSizeGuide} onClose={() => setShowSizeGuide(false)} />}
       <ReviewForm
         isOpen={showReviewForm}
         onClose={() => setShowReviewForm(false)}

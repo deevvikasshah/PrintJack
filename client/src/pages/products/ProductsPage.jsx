@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, SlidersHorizontal, Grid3X3, List, ChevronDown, X,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import ProductCard from '../../components/products/ProductCard';
 import ProductFilter from '../../components/products/ProductFilter';
+import api from '../../utils/api';
 
 const sortOptions = [
   { value: 'newest', label: 'Newest' },
@@ -14,41 +15,6 @@ const sortOptions = [
   { value: 'price-high', label: 'Price: High to Low' },
   { value: 'bestselling', label: 'Best Selling' },
   { value: 'rating', label: 'Highest Rated' },
-];
-
-const mockProducts = Array.from({ length: 24 }, (_, i) => ({
-  _id: `p${i + 1}`,
-  name: [
-    'Premium Business Card', 'Custom T-Shirt', 'Vinyl Sticker Pack', 'Roll-Up Banner',
-    'Ceramic Coffee Mug', 'A5 Flyer', 'Lanyard Print', 'Canvas Tote Bag',
-    'Notebook Cover', 'Phone Case', 'Hoodie Print', 'Keychain',
-  ][i % 12],
-  slug: `product-${i + 1}`,
-  images: [`https://picsum.photos/seed/prod${i}/400/400`],
-  category: { name: ['Business Cards', 'Apparel', 'Stickers', 'Wide Format', 'Mugs & Gifts', 'Marketing', 'Apparel', 'Apparel', 'Stickers', 'Apparel', 'Apparel', 'Mugs & Gifts'][i % 12] },
-  price: [299, 499, 149, 1299, 399, 99, 199, 349, 249, 599, 699, 179][i % 12],
-  bulkPrice: [199, 299, 79, 899, 249, 49, 129, 219, 149, 399, 449, 99][i % 12],
-  rating: [4.8, 4.6, 4.9, 4.7, 4.5, 4.4, 4.3, 4.7, 4.6, 4.8, 4.5, 4.4][i % 12],
-  reviewCount: [342, 518, 891, 156, 234, 678, 123, 456, 789, 234, 567, 345][i % 12],
-  discount: [0, 20, 30, 0, 0, 15, 0, 25, 0, 10, 0, 0][i % 12],
-  badge: [null, 'bestseller', null, null, 'new', null, null, null, 'bestseller', null, null, null][i % 12],
-}));
-
-const categoryTree = [
-  { _id: 'business-cards', name: 'Business Cards', count: 45 },
-  { _id: 'apparel', name: 'Apparel', count: 120, children: [
-    { _id: 'tshirts', name: 'T-Shirts', count: 45 },
-    { _id: 'hoodies', name: 'Hoodies', count: 30 },
-    { _id: 'caps', name: 'Caps & Hats', count: 15 },
-  ]},
-  { _id: 'stickers', name: 'Stickers', count: 80 },
-  { _id: 'marketing', name: 'Marketing Materials', count: 65, children: [
-    { _id: 'flyers', name: 'Flyers & Brochures', count: 25 },
-    { _id: 'posters', name: 'Posters', count: 20 },
-    { _id: 'banners', name: 'Banners', count: 20 },
-  ]},
-  { _id: 'wide-format', name: 'Wide Format', count: 30 },
-  { _id: 'mugs-gifts', name: 'Mugs & Gifts', count: 55 },
 ];
 
 function ProductSkeleton() {
@@ -78,55 +44,79 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [totalPages] = useState(5);
+  const [totalPages, setTotalPages] = useState(1);
   const perPage = 12;
 
+  const [categoryTree, setCategoryTree] = useState([]);
   const [filters, setFilters] = useState({
-    categories: categoryTree,
+    categories: [],
     selectedCategories: searchParams.get('category') ? [searchParams.get('category')] : [],
     priceRange: { min: '', max: '' },
     selectedColors: [],
     selectedSizes: [],
     selectedMaterials: [],
     selectedRating: null,
-    categoryTree,
+    categoryTree: [],
   });
 
   useEffect(() => {
-    setLoading(true);
-    const t = setTimeout(() => {
-      let result = [...mockProducts];
-      if (searchQuery) {
-        result = result.filter((p) =>
-          p.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+    const categoryParam = searchParams.get('category');
+    setFilters((prev) => ({
+      ...prev,
+      selectedCategories: categoryParam ? [categoryParam] : [],
+    }));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await api.get('/categories');
+        if (data.success) {
+          setCategoryTree(data.categories || data.data || []);
+          setFilters((prev) => ({ ...prev, categories: data.categories || data.data || [] }));
+        }
+      } catch {
+        console.log('Failed to load categories');
       }
-      if (filters.selectedCategories.length) {
-        result = result.filter((p) =>
-          filters.selectedCategories.includes(p.category?.name?.toLowerCase().replace(/\s+/g, '-'))
-        );
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        const flatCategories = filters.selectedCategories.length > 0
+          ? filters.selectedCategories.join(',')
+          : undefined;
+        if (flatCategories) params.set('category', flatCategories);
+        if (filters.priceRange.min) params.set('priceMin', filters.priceRange.min);
+        if (filters.priceRange.max) params.set('priceMax', filters.priceRange.max);
+        if (filters.selectedRating) params.set('rating', filters.selectedRating);
+        if (searchQuery) params.set('search', searchQuery);
+        if (sortBy) params.set('sort', sortBy);
+        params.set('page', currentPage);
+        params.set('limit', perPage);
+
+        const { data } = await api.get(`/products?${params.toString()}`);
+        if (data.success) {
+          setProducts(data.products || data.data || []);
+          const total = data.totalPages || Math.ceil((data.total || 0) / perPage);
+          setTotalPages(Math.max(1, total));
+        } else {
+          setProducts([]);
+          setTotalPages(1);
+        }
+      } catch {
+        setProducts([]);
+        setTotalPages(1);
+      } finally {
+        setLoading(false);
       }
-      if (filters.priceRange.min) {
-        result = result.filter((p) => p.price >= Number(filters.priceRange.min));
-      }
-      if (filters.priceRange.max) {
-        result = result.filter((p) => p.price <= Number(filters.priceRange.max));
-      }
-      if (filters.selectedRating) {
-        result = result.filter((p) => p.rating >= filters.selectedRating);
-      }
-      switch (sortBy) {
-        case 'price-low': result.sort((a, b) => a.price - b.price); break;
-        case 'price-high': result.sort((a, b) => b.price - a.price); break;
-        case 'bestselling': result.sort((a, b) => b.reviewCount - a.reviewCount); break;
-        case 'rating': result.sort((a, b) => b.rating - a.rating); break;
-        default: break;
-      }
-      setProducts(result);
-      setLoading(false);
-    }, 600);
-    return () => clearTimeout(t);
-  }, [sortBy, searchQuery, filters.selectedCategories, filters.priceRange, filters.selectedRating]);
+    };
+    fetchProducts();
+  }, [sortBy, searchQuery, filters.selectedCategories, filters.priceRange, filters.selectedRating, currentPage]);
 
   const handleFilterChange = useCallback((update) => {
     setFilters((prev) => ({ ...prev, ...update }));
@@ -152,9 +142,9 @@ export default function ProductsPage() {
   filters.selectedColors.forEach((c) => activeFilterTags.push({ type: 'color', value: c, label: c }));
   filters.selectedSizes.forEach((s) => activeFilterTags.push({ type: 'size', value: s, label: s }));
   filters.selectedMaterials.forEach((m) => activeFilterTags.push({ type: 'material', value: m, label: m }));
-  if (filters.selectedRating) activeFilterTags.push({ type: 'rating', value: filters.selectedRating, label: `${filters.selectedRating}★ & Up` });
-  if (filters.priceRange.min) activeFilterTags.push({ type: 'priceMin', value: 'min', label: `Min ₹${filters.priceRange.min}` });
-  if (filters.priceRange.max) activeFilterTags.push({ type: 'priceMax', value: 'max', label: `Max ₹${filters.priceRange.max}` });
+  if (filters.selectedRating) activeFilterTags.push({ type: 'rating', value: filters.selectedRating, label: `${filters.selectedRating}\u2605 & Up` });
+  if (filters.priceRange.min) activeFilterTags.push({ type: 'priceMin', value: 'min', label: `Min \u20b9${filters.priceRange.min}` });
+  if (filters.priceRange.max) activeFilterTags.push({ type: 'priceMax', value: 'max', label: `Max \u20b9${filters.priceRange.max}` });
 
   const removeTag = (tag) => {
     switch (tag.type) {
@@ -189,11 +179,10 @@ export default function ProductsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-extrabold text-gray-900">All Products</h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">All Products</h1>
               <p className="text-sm text-gray-500 mt-1">{products.length} products found</p>
             </div>
             <div className="flex items-center gap-3">
-              {/* Search */}
               <div className="relative flex-1 sm:flex-none sm:w-72">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -209,7 +198,6 @@ export default function ProductsPage() {
                   </button>
                 )}
               </div>
-              {/* Sort */}
               <div className="relative">
                 <select
                   value={sortBy}
@@ -222,16 +210,14 @@ export default function ProductsPage() {
                 </select>
                 <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
-              {/* View toggle */}
               <div className="hidden sm:flex border border-gray-200 rounded-xl overflow-hidden">
-                <button onClick={() => setView('grid')} className={`p-2.5 ${view === 'grid' ? 'bg-navy-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
+                <button onClick={() => setView('grid')} className={`p-2.5 transition-colors ${view === 'grid' ? 'bg-navy-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
                   <Grid3X3 size={16} />
                 </button>
-                <button onClick={() => setView('list')} className={`p-2.5 ${view === 'list' ? 'bg-navy-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
+                <button onClick={() => setView('list')} className={`p-2.5 transition-colors ${view === 'list' ? 'bg-navy-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
                   <List size={16} />
-                </button>
+      </button>
               </div>
-              {/* Mobile filter toggle */}
               <button
                 onClick={() => setShowFilters(true)}
                 className="lg:hidden p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50"
@@ -244,7 +230,6 @@ export default function ProductsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Active filter tags */}
         {activeFilterTags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {activeFilterTags.map((tag, i) => (
@@ -262,7 +247,6 @@ export default function ProductsPage() {
         )}
 
         <div className="flex gap-6">
-          {/* Desktop sidebar */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-24 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
               <ProductFilter
@@ -273,7 +257,6 @@ export default function ProductsPage() {
             </div>
           </aside>
 
-          {/* Mobile filter drawer */}
           <AnimatePresence>
             {showFilters && (
               <>
@@ -315,34 +298,24 @@ export default function ProductsPage() {
             )}
           </AnimatePresence>
 
-          {/* Product grid */}
           <div className="flex-1 min-w-0">
             {loading ? (
-              <div className={`grid gap-5 ${
-                view === 'grid' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
-              }`}>
-                {[...Array(8)].map((_, i) => (
-                  <ProductSkeleton key={i} />
-                ))}
+              <div className={`grid gap-5 ${view === 'grid' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+                {[...Array(8)].map((_, i) => <ProductSkeleton key={i} />)}
               </div>
             ) : products.length === 0 ? (
               <div className="text-center py-20">
                 <PackageOpen size={64} className="mx-auto text-gray-300 mb-4" />
                 <h3 className="text-xl font-bold text-gray-900 mb-2">No products found</h3>
                 <p className="text-gray-500 mb-6">Try adjusting your filters or search query</p>
-                <button
-                  onClick={clearAll}
-                  className="bg-brand-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
-                >
+                <button onClick={clearAll} className="bg-brand-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
                   Clear All Filters
                 </button>
               </div>
             ) : (
               <motion.div
                 layout
-                className={`grid gap-5 ${
-                  view === 'grid' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
-                }`}
+                className={`grid gap-5 ${view === 'grid' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}
               >
                 <AnimatePresence>
                   {products.slice((currentPage - 1) * perPage, currentPage * perPage).map((product) => (
@@ -352,8 +325,7 @@ export default function ProductsPage() {
               </motion.div>
             )}
 
-            {/* Pagination */}
-            {!loading && products.length > 0 && (
+            {!loading && products.length > 0 && totalPages > 1 && (
               <div className="mt-10 flex items-center justify-center gap-2">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -362,11 +334,11 @@ export default function ProductsPage() {
                 >
                   <ChevronLeft size={18} />
                 </button>
-                {[...Array(totalPages)].map((_, i) => (
+                {Array.from({ length: totalPages }, (_, i) => (
                   <button
                     key={i}
                     onClick={() => setCurrentPage(i + 1)}
-                    className={`w-10 h-10 rounded-xl text-sm font-medium transition-colors ${
+                    className={`w-10 h-10 rounded-xl text-sm font-semibold transition-colors ${
                       currentPage === i + 1
                         ? 'bg-navy-700 text-white'
                         : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -378,7 +350,7 @@ export default function ProductsPage() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ChevronRight size={18} />
                 </button>
