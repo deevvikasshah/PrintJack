@@ -35,6 +35,23 @@ function ProductSkeleton() {
   );
 }
 
+function normalizeProduct(p) {
+  const img = p.images && p.images[0];
+  return {
+    ...p,
+    price: p.basePrice || p.price || 0,
+    bulkPrice: p.bulkPrice || (p.bulkPricing && p.bulkPricing.length > 0 ? p.bulkPricing[0].price : null),
+    rating: p.averageRating || p.rating || 0,
+    reviewCount: p.totalReviews || p.reviewCount || 0,
+    images: p.images ? p.images.map((i) => (typeof i === 'string' ? i : i.url || i)) : [],
+    colors: p.colors ? p.colors.map((c) => ({ name: c.name || c, hex: c.hexCode || c.hex || '#ccc' })) : [],
+    sizes: p.sizes ? p.sizes.map((s) => (typeof s === 'string' ? s : s.name || s)) : [],
+    discount: p.discount || 0,
+    badge: p.badge || null,
+    minOrder: p.minimumOrderQuantity || 1,
+  };
+}
+
 export default function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
@@ -101,8 +118,10 @@ export default function ProductsPage() {
 
         const { data } = await api.get(`/products?${params.toString()}`);
         if (data.success) {
-          setProducts(data.products || data.data || []);
-          const total = data.totalPages || Math.ceil((data.total || 0) / perPage);
+          const rawProducts = data.products || data.data || [];
+          const normalized = rawProducts.map(normalizeProduct);
+          setProducts(normalized);
+          const total = data.pagination?.pages || Math.ceil((data.pagination?.total || rawProducts.length) / perPage);
           setTotalPages(Math.max(1, total));
         } else {
           setProducts([]);

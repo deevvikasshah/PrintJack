@@ -26,7 +26,8 @@ export default function ProductCard({ product }) {
     sizes = [],
   } = product;
 
-  const image = images[0] || '/placeholder-product.png';
+  const firstImage = images && images[0];
+  const image = typeof firstImage === 'string' ? firstImage : firstImage?.url || firstImage || '/placeholder-product.png';
   const discountedPrice = discount > 0 ? price - (price * discount) / 100 : price;
   const hasSizes = sizes.length > 0 || (category?.name && ['Apparel', 'T-Shirts', 'Hoodies'].includes(category.name));
 

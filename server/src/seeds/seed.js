@@ -324,7 +324,7 @@ async function seed() {
           basePrice: tmpl.basePrice,
           bulkPricing,
           images: [
-            { url: `/images/products/${tmpl.name.toLowerCase().replace(/\s+/g, '-')}.jpg`, alt: tmpl.name },
+            { url: `https://images.unsplash.com/photo-${['1572044347786-5693577a9077', '1521572163474-6864f9cf17ab', '1558618666-fcd25c85f82e', '1561070791-2526d30994b5', '1514228742587-6b1558fcca3d', '1586075010923-2dd4570fb338', '1611532736597-de2d4265fba3', '1579783902614-a3fb3927b6a5', '1512436113726-1b5a77a8bb97', '1562408590-e32931084e23', '1602617754084-d4860ae4e7f9', '1572044347786-5693577a9077'][productCount % 12]}?w=400&q=80`, alt: tmpl.name },
           ],
           colors,
           sizes,

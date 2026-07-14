@@ -12,6 +12,24 @@ import ReviewForm from '../../components/products/ReviewForm';
 import ReviewCard from '../../components/products/ReviewCard';
 import api from '../../utils/api';
 
+function normalizeProduct(p) {
+  return {
+    ...p,
+    price: p.basePrice || p.price || 0,
+    bulkPrice: p.bulkPrice || (p.bulkPricing && p.bulkPricing.length > 0 ? p.bulkPricing[0].price : null),
+    rating: p.averageRating || p.rating || 0,
+    reviewCount: p.totalReviews || p.reviewCount || 0,
+    images: p.images ? p.images.map((i) => (typeof i === 'string' ? i : i.url || i)) : [],
+    colors: p.colors ? p.colors.map((c) => ({ name: c.name || c, hex: c.hexCode || c.hex || '#ccc' })) : [],
+    sizes: p.sizes ? p.sizes.map((s) => (typeof s === 'string' ? s : s.name || s)) : [],
+    discount: p.discount || 0,
+    minOrder: p.minimumOrderQuantity || 1,
+    specifications: p.specifications
+      ? Object.entries(p.specifications).map(([label, value]) => ({ label, value }))
+      : [],
+  };
+}
+
 export default function ProductDetailPage() {
   const { slug } = useParams();
   const [product, setProduct] = useState(null);
@@ -36,14 +54,15 @@ export default function ProductDetailPage() {
       try {
         const { data } = await api.get(`/products/${slug}`);
         if (data.success) {
-          const p = data.product || data.data;
+          const raw = data.product || data.data;
+          const p = normalizeProduct(raw);
           setProduct(p);
           setSelectedImage(0);
           setSelectedColor(0);
           setSelectedSize(0);
           setQuantity(p.minOrder || 1);
-          if (p.relatedProducts) {
-            setRelatedProducts(p.relatedProducts);
+          if (raw.relatedProducts) {
+            setRelatedProducts(raw.relatedProducts.map(normalizeProduct));
           }
         } else {
           setError('Product not found');
