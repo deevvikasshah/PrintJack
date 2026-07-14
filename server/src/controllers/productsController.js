@@ -86,12 +86,10 @@ exports.getProduct = async (req, res, next) => {
     let product;
     if (idOrSlug.match(/^[0-9a-fA-F]{24}$/)) {
       product = await Product.findById(idOrSlug)
-        .populate('category', 'name slug image')
-        .populate({ path: 'reviews', populate: { path: 'user', select: 'name avatar' } });
+        .populate('category', 'name slug image');
     } else {
       product = await Product.findOne({ slug: idOrSlug, isActive: true })
-        .populate('category', 'name slug image')
-        .populate({ path: 'reviews', populate: { path: 'user', select: 'name avatar' } });
+        .populate('category', 'name slug image');
     }
 
     if (!product) {
