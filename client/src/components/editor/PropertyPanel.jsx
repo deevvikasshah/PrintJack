@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Lock, Unlock, RotateCw } from 'lucide-react';
 import { clsx } from 'clsx';
 import TextToolbar from './TextToolbar';
-import ColorPicker from './ColorPicker';
 
 export default function PropertyPanel({ selectedObject, onObjectUpdate, canvasProps }) {
   const [aspectLocked, setAspectLocked] = useState(true);

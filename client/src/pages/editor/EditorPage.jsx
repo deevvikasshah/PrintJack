@@ -487,17 +487,10 @@ export default function EditorPage() {
       active.set(props);
       active.setCoords();
       canvas.renderAll();
-      setSelectedObject({ ...active });
+      setSelectedObject(active);
       refreshObjects();
     },
     [saveCanvasState, refreshObjects]
-  );
-
-  const handleObjectSelect = useCallback(
-    (obj) => {
-      setSelectedObject(obj);
-    },
-    []
   );
 
   const handleObjectReorder = useCallback(
@@ -942,7 +935,6 @@ export default function EditorPage() {
             {activeLeftTab === 'templates' && (
               <DesignTemplates
                 onLoadTemplate={loadTemplate}
-                productCategory={product?.category}
               />
             )}
 
@@ -1130,7 +1122,7 @@ export default function EditorPage() {
                   </div>
                 )}
                 {mobilePanelOpen === 'templates' && (
-                  <DesignTemplates onLoadTemplate={(json) => { loadTemplate(json); setMobilePanelOpen(null); }} productCategory={product?.category} />
+                  <DesignTemplates onLoadTemplate={(json) => { loadTemplate(json); setMobilePanelOpen(null); }} />
                 )}
                 {mobilePanelOpen === 'clipart' && (
                   <ClipartPanel onClipartAdd={(c) => { addClipart(c); setMobilePanelOpen(null); }} />

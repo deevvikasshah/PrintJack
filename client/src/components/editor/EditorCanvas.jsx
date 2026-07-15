@@ -14,7 +14,6 @@ const EditorCanvas = forwardRef(function EditorCanvas(
     onObjectModified,
     onCanvasReady,
     onMouseMove,
-    activeObjectId,
   },
   ref
 ) {
@@ -297,16 +296,6 @@ const EditorCanvas = forwardRef(function EditorCanvas(
       canvas.renderAll();
     }, { crossOrigin: 'anonymous' });
   }, [productImageUrl, canvasWidth, canvasHeight]);
-
-  useEffect(() => {
-    if (!activeObjectId || !fabricRef.current) return;
-    const canvas = fabricRef.current;
-    const obj = canvas.getObjects().find((o) => o.id === activeObjectId);
-    if (obj) {
-      canvas.setActiveObject(obj);
-      canvas.renderAll();
-    }
-  }, [activeObjectId]);
 
   const displayW = Math.round((canvasWidth || 500) * getDisplayScale());
   const displayH = Math.round((canvasHeight || 500) * getDisplayScale());

@@ -12,7 +12,7 @@ const ACCEPTED_TYPES = {
 
 const MAX_SIZE = 10 * 1024 * 1024;
 
-export default function ImageUploader({ onImageAdd, onUploadComplete }) {
+export default function ImageUploader({ onImageAdd }) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);

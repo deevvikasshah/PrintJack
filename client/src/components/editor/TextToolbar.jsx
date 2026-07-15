@@ -112,7 +112,7 @@ export default function TextToolbar({ activeObject, onObjectUpdate }) {
               value={fontSize}
               onChange={(e) => {
                 const v = parseInt(e.target.value);
-                if (v >= 1 && v <= 500) onObjectUpdate({ fontSize: v });
+                if (v >= 1 && v <= 200) onObjectUpdate({ fontSize: v });
               }}
               className="w-14 px-2 py-1 text-sm border border-gray-200 rounded-md text-center outline-none focus:ring-1 focus:ring-brand-500"
             />
