@@ -4,10 +4,10 @@ const { AppError } = require('../middleware/errorHandler');
 
 exports.saveDesign = async (req, res, next) => {
   try {
-    const { productId, name, canvasData, previewImage, printSpecifications } = req.body;
+    const { productId, name, canvasData, canvasJSON, previewImage, printSpecifications, isDraft } = req.body;
 
-    if (!productId || !name) {
-      throw new AppError('Product ID and design name are required', 400);
+    if (!productId) {
+      throw new AppError('Product ID is required', 400);
     }
 
     const product = await Product.findById(productId);
@@ -17,22 +17,31 @@ exports.saveDesign = async (req, res, next) => {
 
     let savedPreview = '';
     if (previewImage) {
-      const result = await uploadToCloudinary(previewImage, {
-        folder: 'printjack/designs/previews',
-        width: 1200,
-        quality: 'auto',
-      });
-      savedPreview = result.secure_url;
+      try {
+        const result = await uploadToCloudinary(previewImage, {
+          folder: 'printjack/designs/previews',
+          width: 1200,
+          quality: 'auto',
+        });
+        savedPreview = result.secure_url;
+      } catch (e) {
+        console.error('Cloudinary upload failed, using data URL:', e.message);
+        savedPreview = previewImage;
+      }
     }
+
+    const designName = name || `Design - ${product.name} ${new Date().toLocaleDateString()}`;
+    const designCanvasData = canvasJSON || canvasData || null;
+    const status = isDraft === false ? 'saved' : 'draft';
 
     const design = await Design.create({
       user: req.user._id,
       product: productId,
-      name,
-      canvasData: canvasData || null,
+      name: designName,
+      canvasData: designCanvasData,
       previewImage: savedPreview,
       printSpecifications: printSpecifications || {},
-      status: 'saved',
+      status,
     });
 
     res.status(201).json({ success: true, design });
@@ -107,10 +116,10 @@ exports.updateDesign = async (req, res, next) => {
       throw new AppError('Cannot modify an approved design', 400);
     }
 
-    const { name, canvasData, previewImage, printSpecifications } = req.body;
+    const { name, canvasData, canvasJSON, previewImage, printSpecifications } = req.body;
 
     if (name) design.name = name;
-    if (canvasData) design.canvasData = canvasData;
+    if (canvasJSON || canvasData) design.canvasData = canvasJSON || canvasData;
     if (printSpecifications) design.printSpecifications = printSpecifications;
 
     if (previewImage) {

@@ -33,9 +33,10 @@ export function CartProvider({ children }) {
     try {
       setLoading(true);
       const { data } = await api.get('/cart');
-      setItems(data.items || []);
-      setCoupon(data.coupon || null);
-      setDiscount(data.discount || 0);
+      const cart = data.cart || data;
+      setItems(cart.items || []);
+      setCoupon(cart.coupon || null);
+      setDiscount(cart.discount || 0);
     } catch (err) {
       console.error('Failed to fetch cart:', err);
     } finally {
@@ -63,9 +64,10 @@ export function CartProvider({ children }) {
         color,
         designId,
       });
-      setItems(data.items);
-      setCoupon(data.coupon || null);
-      setDiscount(data.discount || 0);
+      const cart = data.cart || data;
+      setItems(cart.items || []);
+      setCoupon(cart.coupon || null);
+      setDiscount(cart.discount || 0);
       toast.success('Item added to cart');
       return data;
     } catch (err) {
@@ -81,9 +83,10 @@ export function CartProvider({ children }) {
     try {
       setLoading(true);
       const { data } = await api.put(`/cart/item/${itemId}`, { quantity, size, color });
-      setItems(data.items);
-      setCoupon(data.coupon || null);
-      setDiscount(data.discount || 0);
+      const cart = data.cart || data;
+      setItems(cart.items || []);
+      setCoupon(cart.coupon || null);
+      setDiscount(cart.discount || 0);
       return data;
     } catch (err) {
       const message = err.response?.data?.message || 'Failed to update item';
@@ -98,9 +101,10 @@ export function CartProvider({ children }) {
     try {
       setLoading(true);
       const { data } = await api.delete(`/cart/item/${itemId}`);
-      setItems(data.items);
-      setCoupon(data.coupon || null);
-      setDiscount(data.discount || 0);
+      const cart = data.cart || data;
+      setItems(cart.items || []);
+      setCoupon(cart.coupon || null);
+      setDiscount(cart.discount || 0);
       toast.success('Item removed from cart');
       return data;
     } catch (err) {
@@ -135,7 +139,6 @@ export function CartProvider({ children }) {
       const { data } = await api.post('/cart/coupon', { code });
       setCoupon(data.coupon);
       setDiscount(data.discount);
-      setItems(data.items);
       toast.success(`Coupon applied! You save ₹${data.discount}`);
       return data;
     } catch (err) {
@@ -150,12 +153,10 @@ export function CartProvider({ children }) {
   const removeCoupon = async () => {
     try {
       setLoading(true);
-      const { data } = await api.delete('/cart/coupon');
+      await api.delete('/cart/coupon');
       setCoupon(null);
       setDiscount(0);
-      setItems(data.items);
       toast.success('Coupon removed');
-      return data;
     } catch (err) {
       const message = err.response?.data?.message || 'Failed to remove coupon';
       toast.error(message);

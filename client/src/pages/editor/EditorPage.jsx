@@ -22,6 +22,7 @@ import PreviewModal from '../../components/editor/PreviewModal';
 import ZoomControls from '../../components/editor/ZoomControls';
 import KeyboardShortcuts from '../../components/editor/KeyboardShortcuts';
 import ToolbarButton from '../../components/editor/ToolbarButton';
+import { useCart } from '../../context/CartContext';
 import api from '../../utils/api';
 
 const LEFT_TABS = [
@@ -38,6 +39,7 @@ const MAX_UNDO = 50;
 export default function EditorPage() {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const { addToCart: cartAddToCart } = useCart();
 
   const canvasRef = useRef(null);
   const undoStack = useRef([]);
@@ -643,20 +645,13 @@ export default function EditorPage() {
           designId = data.design?._id || data._id;
           designIdRef.current = designId;
         }
-        const { data } = await api.post('/cart/add', {
-          productId: pid,
-          quantity,
-          size,
-          color,
-          designId,
-        });
-        toast.success('Added to cart');
+        await cartAddToCart(pid, quantity, size, color, designId);
         setShowPreview(false);
       } catch (err) {
         toast.error('Failed to add to cart');
       }
     },
-    []
+    [cartAddToCart]
   );
 
   useEffect(() => {

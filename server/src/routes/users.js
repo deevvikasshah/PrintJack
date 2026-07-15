@@ -8,6 +8,7 @@ const {
   updateUser,
   deleteUser,
   updateProfile,
+  getAddresses,
   addAddress,
   updateAddress,
   deleteAddress,
@@ -49,6 +50,8 @@ router.put(
   updateProfile
 );
 
+router.get("/addresses", protect, getAddresses);
+
 router.post(
   "/address",
   protect,
@@ -65,7 +68,7 @@ router.post(
 );
 
 router.put(
-  "/address/:index",
+  "/address/:addressId",
   protect,
   [
     body("label").optional().trim().notEmpty().withMessage("Label cannot be empty"),
@@ -79,7 +82,7 @@ router.put(
   updateAddress
 );
 
-router.delete("/address/:index", protect, deleteAddress);
+router.delete("/address/:addressId", protect, deleteAddress);
 
 router.get("/wishlist", protect, getWishlist);
 

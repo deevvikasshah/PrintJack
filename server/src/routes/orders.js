@@ -11,7 +11,21 @@ const {
   updateOrderStatus,
   approveDesign,
   cancelOrder,
+  checkoutFromCart,
+  verifyPaymentFromCheckout,
 } = require("../controllers/ordersController");
+
+router.post(
+  "/checkout",
+  protect,
+  [
+    body("shippingAddressId").notEmpty().withMessage("Shipping address is required"),
+  ],
+  validate,
+  checkoutFromCart
+);
+
+router.post("/verify-payment", protect, verifyPaymentFromCheckout);
 
 router.post(
   "/",

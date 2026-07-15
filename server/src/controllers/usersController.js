@@ -140,6 +140,15 @@ exports.updateProfile = async (req, res, next) => {
   }
 };
 
+exports.getAddresses = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('addresses');
+    res.status(200).json({ success: true, addresses: user.addresses || [] });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.addAddress = async (req, res, next) => {
   try {
     const { label, fullName, phone, street, city, state, pincode, country, isDefault } = req.body;
@@ -152,7 +161,7 @@ exports.addAddress = async (req, res, next) => {
       });
     }
 
-    user.addresses.push({ label, street, city, state, pincode, country: country || 'India', phone, isDefault: !!isDefault });
+    user.addresses.push({ label, fullName, street, city, state, pincode, country: country || 'India', phone, isDefault: !!isDefault });
 
     if (user.addresses.length === 1) {
       user.addresses[0].isDefault = true;
@@ -168,12 +177,18 @@ exports.addAddress = async (req, res, next) => {
 
 exports.updateAddress = async (req, res, next) => {
   try {
-    const { addressIndex } = req.params;
+    const { addressId } = req.params;
     const { label, fullName, phone, street, city, state, pincode, country, isDefault } = req.body;
 
     const user = await User.findById(req.user._id);
 
-    const idx = parseInt(addressIndex, 10);
+    let idx = -1;
+    if (/^[0-9a-fA-F]{24}$/.test(addressId)) {
+      idx = user.addresses.findIndex((a) => a._id.toString() === addressId);
+    } else {
+      idx = parseInt(addressId, 10);
+    }
+
     if (idx < 0 || idx >= user.addresses.length) {
       throw new AppError('Address not found', 404);
     }
@@ -186,6 +201,7 @@ exports.updateAddress = async (req, res, next) => {
 
     const addr = user.addresses[idx];
     if (label) addr.label = label;
+    if (fullName) addr.fullName = fullName;
     if (street) addr.street = street;
     if (city) addr.city = city;
     if (state) addr.state = state;
@@ -204,10 +220,16 @@ exports.updateAddress = async (req, res, next) => {
 
 exports.deleteAddress = async (req, res, next) => {
   try {
-    const { addressIndex } = req.params;
+    const { addressId } = req.params;
     const user = await User.findById(req.user._id);
 
-    const idx = parseInt(addressIndex, 10);
+    let idx = -1;
+    if (/^[0-9a-fA-F]{24}$/.test(addressId)) {
+      idx = user.addresses.findIndex((a) => a._id.toString() === addressId);
+    } else {
+      idx = parseInt(addressId, 10);
+    }
+
     if (idx < 0 || idx >= user.addresses.length) {
       throw new AppError('Address not found', 404);
     }

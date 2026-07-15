@@ -186,7 +186,7 @@ export default function AddressesPage() {
   const fetchAddresses = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await api.get('/addresses');
+      const { data } = await api.get('/users/addresses');
       setAddresses(data.addresses || data || []);
     } catch {
       setAddresses([]);
@@ -203,12 +203,12 @@ export default function AddressesPage() {
     try {
       setFormLoading(true);
       if (editingAddress) {
-        const { data } = await api.put(`/addresses/${editingAddress._id}`, formData);
-        setAddresses((prev) => prev.map((a) => (a._id === editingAddress._id ? data.address || data : a)));
+        const { data } = await api.put(`/users/address/${editingAddress._id}`, formData);
+        setAddresses((prev) => prev.map((a) => (a._id === editingAddress._id ? data.addresses.find(addr => addr._id === editingAddress._id) || data.address || data : a)));
         toast.success('Address updated');
       } else {
-        const { data } = await api.post('/addresses', formData);
-        const newAddr = data.address || data;
+        const { data } = await api.post('/users/address', formData);
+        const newAddr = data.addresses?.[data.addresses.length - 1] || data.address || data;
         setAddresses((prev) => [...prev, newAddr]);
         toast.success('Address added');
       }
@@ -224,7 +224,7 @@ export default function AddressesPage() {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this address?')) return;
     try {
-      await api.delete(`/addresses/${id}`);
+      await api.delete(`/users/address/${id}`);
       setAddresses((prev) => prev.filter((a) => a._id !== id));
       toast.success('Address deleted');
     } catch {

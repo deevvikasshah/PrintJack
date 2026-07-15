@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useState, useEffect, useRef, useContext } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Star, ChevronRight, Minus, Plus, ShoppingCart,
   Share2, MessageCircle, Truck, RotateCcw, Shield,
-  Ruler, Info, ZoomIn, Heart, Loader2,
+  Ruler, Info, ZoomIn, Heart, Loader2, Upload, FileImage,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import BulkPricingTable from '../../components/products/BulkPricingTable';
 import SizeGuide from '../../components/products/SizeGuide';
 import ReviewForm from '../../components/products/ReviewForm';
 import ReviewCard from '../../components/products/ReviewCard';
+import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 
 function normalizeProduct(p) {
@@ -32,6 +35,9 @@ function normalizeProduct(p) {
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
+  const navigate = useNavigate();
+  const { addToCart, loading: cartLoading } = useCart();
+  const { user, isAuthenticated } = useAuth();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -46,6 +52,11 @@ export default function ProductDetailPage() {
   const [zoomed, setZoomed] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [reviews, setReviews] = useState([]);
+
+  const [uploadingDesign, setUploadingDesign] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -57,6 +68,7 @@ export default function ProductDetailPage() {
           const raw = data.product || data.data;
           const p = normalizeProduct(raw);
           setProduct(p);
+          setReviews(raw.reviews || []);
           setSelectedImage(0);
           setSelectedColor(0);
           setSelectedSize(0);
@@ -84,6 +96,74 @@ export default function ProductDetailPage() {
     });
   };
 
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to add items to cart');
+      navigate('/login');
+      return;
+    }
+    setAddingToCart(true);
+    try {
+      const selectedSizeValue = sizes.length > 0 ? (typeof sizes[selectedSize] === 'string' ? sizes[selectedSize] : sizes[selectedSize]?.name) : undefined;
+      const selectedColorValue = colors.length > 0 ? colors[selectedColor]?.name : undefined;
+      await addToCart(p._id, quantity, selectedSizeValue, selectedColorValue);
+    } catch {
+      // toast already shown by CartContext
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  const handleUploadDesign = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!isAuthenticated) {
+      toast.error('Please login to upload designs');
+      navigate('/login');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+    setUploadingDesign(true);
+    try {
+      const reader = new FileReader();
+      const dataUrl = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const { data: designRes } = await api.post('/designs', {
+        productId: p._id,
+        name: file.name.replace(/\.[^/.]+$/, ''),
+        canvasData: { uploadedFile: dataUrl, fileName: file.name, fileType: file.type },
+        previewImage: dataUrl,
+      });
+
+      const designId = designRes.design?._id || designRes._id;
+
+      const selectedSizeValue = sizes.length > 0 ? (typeof sizes[selectedSize] === 'string' ? sizes[selectedSize] : sizes[selectedSize]?.name) : undefined;
+      const selectedColorValue = colors.length > 0 ? colors[selectedColor]?.name : undefined;
+      await addToCart(p._id, quantity, selectedSizeValue, selectedColorValue, designId);
+      toast.success('Design uploaded and added to cart!');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to upload design');
+    } finally {
+      setUploadingDesign(false);
+    }
+  };
+
+  const handleSubmitReview = async (reviewData) => {
+    const { data } = await api.post(`/products/${p._id}/reviews`, reviewData);
+    if (data.review) {
+      setReviews((prev) => [data.review, ...prev]);
+    }
+    toast.success('Review submitted successfully!');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -109,7 +189,6 @@ export default function ProductDetailPage() {
   const colors = p.colors || [];
   const sizes = p.sizes || [];
   const specs = p.specifications || [];
-  const reviews = p.reviews || [];
 
   const ratingDistribution = [5, 4, 3, 2, 1].map((r) => ({
     stars: r,
@@ -221,10 +300,10 @@ export default function ProductDetailPage() {
 
             {/* Price */}
             <div className="mt-5 flex items-baseline gap-3">
-              <span className="text-3xl font-extrabold text-gray-900">&₹;{discountedPrice}</span>
+              <span className="text-3xl font-extrabold text-gray-900">&#8377;{discountedPrice}</span>
               {p.discount > 0 && (
                 <>
-                  <span className="text-lg text-gray-400 line-through">&₹;{p.price}</span>
+                  <span className="text-lg text-gray-400 line-through">&#8377;{p.price}</span>
                   <span className="bg-brand-500/10 text-brand-500 text-sm font-bold px-2.5 py-0.5 rounded-full">
                     {p.discount}% OFF
                   </span>
@@ -232,7 +311,7 @@ export default function ProductDetailPage() {
               )}
             </div>
             {p.bulkPrice && (
-              <p className="text-sm text-emerald-600 font-medium mt-1">Bulk pricing from &₹;{p.bulkPrice} per unit</p>
+              <p className="text-sm text-emerald-600 font-medium mt-1">Bulk pricing from &#8377;{p.bulkPrice} per unit</p>
             )}
 
             {/* Bulk pricing */}
@@ -345,11 +424,38 @@ export default function ProductDetailPage() {
                 to={`/editor/${p._id}`}
                 className="flex items-center justify-center gap-2 w-full bg-brand-500 hover:bg-red-600 text-white font-bold py-4 rounded-xl transition-colors text-lg shadow-lg shadow-brand-500/20"
               >
-                Customize This Product
+                Create Your Design
               </Link>
-              <button className="flex items-center justify-center gap-2 w-full border-2 border-navy-700 text-navy-700 hover:bg-navy-700 hover:text-white font-bold py-4 rounded-xl transition-colors text-lg">
-                <ShoppingCart size={20} />
-                Add to Cart
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*,.pdf,.ai,.psd,.svg"
+                onChange={handleUploadDesign}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingDesign}
+                className="flex items-center justify-center gap-2 w-full border-2 border-brand-500 text-brand-500 hover:bg-brand-50 font-bold py-4 rounded-xl transition-colors text-lg disabled:opacity-50"
+              >
+                {uploadingDesign ? (
+                  <><Loader2 size={20} className="animate-spin" /> Uploading...</>
+                ) : (
+                  <><Upload size={20} /> Upload Your Design</>
+                )}
+              </button>
+
+              <button
+                onClick={handleAddToCart}
+                disabled={addingToCart || cartLoading}
+                className="flex items-center justify-center gap-2 w-full border-2 border-navy-700 text-navy-700 hover:bg-navy-700 hover:text-white font-bold py-4 rounded-xl transition-colors text-lg disabled:opacity-50"
+              >
+                {addingToCart ? (
+                  <><Loader2 size={20} className="animate-spin" /> Adding...</>
+                ) : (
+                  <><ShoppingCart size={20} /> Add to Cart</>
+                )}
               </button>
             </div>
 
@@ -363,7 +469,7 @@ export default function ProductDetailPage() {
                 f
               </button>
               <button className="w-9 h-9 rounded-full bg-sky-500 text-white flex items-center justify-center hover:bg-sky-600 transition-colors text-xs font-bold">
-                𝕏
+                X
               </button>
             </div>
 
@@ -434,11 +540,11 @@ export default function ProductDetailPage() {
               <div className="max-w-2xl space-y-6">
                 <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
                   <h4 className="font-bold text-gray-900 mb-3">Standard Shipping</h4>
-                  <p className="text-sm text-gray-600">3-5 business days after design approval. Free on orders above ₹999.</p>
+                  <p className="text-sm text-gray-600">3-5 business days after design approval. Free on orders above &#8377;999.</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
                   <h4 className="font-bold text-gray-900 mb-3">Express Shipping</h4>
-                  <p className="text-sm text-gray-600">1-2 business days after design approval. Additional ₹149 charge.</p>
+                  <p className="text-sm text-gray-600">1-2 business days after design approval. Additional &#8377;149 charge.</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
                   <h4 className="font-bold text-gray-900 mb-3">Pan India Delivery</h4>
@@ -462,7 +568,7 @@ export default function ProductDetailPage() {
                   <div className="flex-1 space-y-2">
                     {ratingDistribution.map((d) => (
                       <div key={d.stars} className="flex items-center gap-3">
-                        <span className="text-sm text-gray-600 w-8">{d.stars} ★</span>
+                        <span className="text-sm text-gray-600 w-8">{d.stars} *</span>
                         <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
                           <div
                             className="h-full bg-amber-400 rounded-full transition-all"
@@ -474,7 +580,14 @@ export default function ProductDetailPage() {
                     ))}
                   </div>
                   <button
-                    onClick={() => setShowReviewForm(true)}
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        toast.error('Please login to write a review');
+                        navigate('/login');
+                        return;
+                      }
+                      setShowReviewForm(true);
+                    }}
                     className="self-start bg-brand-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
                   >
                     Write a Review
@@ -513,7 +626,7 @@ export default function ProductDetailPage() {
                       <Star size={13} className="text-amber-400 fill-amber-400" />
                       <span className="text-xs text-gray-500">{rp.rating || 0}</span>
                     </div>
-                    <p className="mt-2 font-bold text-gray-900">₹{rp.price}</p>
+                    <p className="mt-2 font-bold text-gray-900">&#8377;{rp.price}</p>
                   </div>
                 </Link>
               ))}
@@ -531,8 +644,13 @@ export default function ProductDetailPage() {
           >
             Customize
           </Link>
-          <button className="flex-1 flex items-center justify-center gap-2 border-2 border-navy-700 text-navy-700 font-bold py-3 rounded-xl transition-colors">
-            <ShoppingCart size={18} /> Add to Cart
+          <button
+            onClick={handleAddToCart}
+            disabled={addingToCart || cartLoading}
+            className="flex-1 flex items-center justify-center gap-2 border-2 border-navy-700 text-navy-700 font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
+          >
+            {addingToCart ? <Loader2 size={18} className="animate-spin" /> : <ShoppingCart size={18} />}
+            {addingToCart ? 'Adding...' : 'Add to Cart'}
           </button>
         </div>
       </div>
@@ -542,9 +660,7 @@ export default function ProductDetailPage() {
         isOpen={showReviewForm}
         onClose={() => setShowReviewForm(false)}
         productName={p.name}
-        onSubmit={async (data) => {
-          console.log('Review submitted:', data);
-        }}
+        onSubmit={handleSubmitReview}
       />
     </div>
   );
