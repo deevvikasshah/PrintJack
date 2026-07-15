@@ -1,10 +1,18 @@
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+const hasKeys =
+  process.env.RAZORPAY_KEY_ID &&
+  process.env.RAZORPAY_KEY_ID !== 'your_razorpay_key_id' &&
+  process.env.RAZORPAY_KEY_SECRET &&
+  process.env.RAZORPAY_KEY_SECRET !== 'your_razorpay_key_secret';
+
+const razorpay = hasKeys
+  ? new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    })
+  : null;
 
 const createOrder = async (amount, currency = "INR", receipt, notes = {}) => {
   try {

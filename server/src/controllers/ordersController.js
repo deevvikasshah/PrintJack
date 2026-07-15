@@ -2,7 +2,8 @@ const { Order, Cart, Product, User, Notification } = require('../models');
 const { AppError } = require('../middleware/errorHandler');
 const { sendEmail } = require('../services/email');
 const { sendSMS } = require('../services/sms');
-const razorpayService = require('../services/razorpay');
+let razorpayService;
+try { razorpayService = require('../services/razorpay'); } catch { razorpayService = null; }
 
 exports.checkoutFromCart = async (req, res, next) => {
   try {
@@ -139,20 +140,21 @@ exports.checkoutFromCart = async (req, res, next) => {
       await Product.findByIdAndUpdate(item.product, { $inc: { totalSold: item.quantity } });
     }
 
-    let razorpayOrder;
-    try {
-      razorpayOrder = await razorpayService.createOrder(
-        totalAmount,
-        'INR',
-        order._id.toString(),
-        { orderId: order._id.toString(), userId: req.user._id.toString() }
-      );
-    } catch (e) {
-      console.error('Razorpay order creation failed:', e.message);
-      throw new AppError('Payment gateway error. Please try again.', 500);
+    if (razorpayService) {
+      try {
+        const razorpayOrder = await razorpayService.createOrder(
+          totalAmount,
+          'INR',
+          order._id.toString(),
+          { orderId: order._id.toString(), userId: req.user._id.toString() }
+        );
+        order.razorpayOrderId = razorpayOrder.orderId;
+      } catch (e) {
+        console.error('Razorpay order creation failed:', e.message);
+        throw new AppError('Payment gateway error. Please try again.', 500);
+      }
     }
 
-    order.razorpayOrderId = razorpayOrder.orderId;
     await order.save({ validateBeforeSave: false });
 
     cart.items = [];
@@ -164,9 +166,9 @@ exports.checkoutFromCart = async (req, res, next) => {
       success: true,
       _id: order._id,
       orderNumber: order.orderNumber,
-      razorpayOrderId: razorpayOrder.orderId,
-      amount: razorpayOrder.amount,
-      currency: razorpayOrder.currency,
+      razorpayOrderId: order.razorpayOrderId || null,
+      amount: order.totalAmount * 100,
+      currency: 'INR',
       key: process.env.RAZORPAY_KEY_ID,
       items: orderItems,
       totalAmount,

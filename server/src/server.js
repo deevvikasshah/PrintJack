@@ -155,7 +155,7 @@ app.use("/api/users", limiter, userRoutes);
 app.use("/api/products", limiter, productRoutes);
 app.use("/api/categories", limiter, categoryRoutes);
 app.use("/api/orders", limiter, orderRoutes);
-app.use("/api/payments", limiter, paymentRoutes);
+// app.use("/api/payments", limiter, paymentRoutes); // Razorpay not configured
 app.use("/api/designs", limiter, designRoutes);
 app.use("/api/cart", limiter, cartRoutes);
 app.use("/api/coupons", limiter, couponRoutes);
