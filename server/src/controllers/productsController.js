@@ -15,8 +15,17 @@ exports.getAllProducts = async (req, res, next) => {
       size,
       tag,
       featured,
-      sort = '-createdAt',
+      sort: sortParam = 'newest',
     } = req.query;
+
+    const sortMap = {
+      'newest': '-createdAt',
+      'price-low': 'basePrice',
+      'price-high': '-basePrice',
+      'bestselling': '-totalSold',
+      'rating': '-averageRating',
+    };
+    const sort = sortMap[sortParam] || '-createdAt';
 
     const query = { isActive: true };
 
