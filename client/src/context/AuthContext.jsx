@@ -80,10 +80,10 @@ export function AuthProvider({ children }) {
     toast.success('Logged out successfully');
   };
 
-  const googleLogin = async (idToken) => {
+  const googleLogin = async (userInfo) => {
     try {
       setError(null);
-      const { data } = await api.post('/auth/google', { idToken });
+      const { data } = await api.post('/auth/google', userInfo);
       localStorage.setItem('printjack_token', data.token);
       setToken(data.token);
       setUser(data.user);

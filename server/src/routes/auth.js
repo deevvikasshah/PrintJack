@@ -23,8 +23,8 @@ router.post(
     body("name").trim().notEmpty().withMessage("Name is required"),
     body("email").isEmail().withMessage("Valid email is required"),
     body("password")
-      .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters"),
+      .isLength({ min: 8 })
+      .withMessage("Password must be at least 8 characters"),
   ],
   validate,
   register
@@ -40,8 +40,7 @@ router.post(
   login
 );
 
-router.get("/google", googleAuth);
-router.get("/google/callback", function(req, res, next) { res.json({message:"Google callback"}); });
+router.post("/google", googleAuth);
 
 router.post(
   "/send-otp",
@@ -75,8 +74,8 @@ router.put(
   "/reset-password/:token",
   [
     body("password")
-      .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters"),
+      .isLength({ min: 8 })
+      .withMessage("Password must be at least 8 characters"),
   ],
   validate,
   resetPassword
@@ -91,8 +90,8 @@ router.put(
   [
     body("currentPassword").notEmpty().withMessage("Current password is required"),
     body("newPassword")
-      .isLength({ min: 6 })
-      .withMessage("New password must be at least 6 characters"),
+      .isLength({ min: 8 })
+      .withMessage("New password must be at least 8 characters"),
   ],
   validate,
   updatePassword

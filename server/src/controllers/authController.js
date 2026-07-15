@@ -31,7 +31,8 @@ const generateOTP = () => String(Math.floor(100000 + Math.random() * 900000));
 
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, phone, password } = req.body;
+    const { name, phone, password } = req.body;
+    const email = req.body.email?.toLowerCase();
 
     if (!name || !email || !password) {
       throw new AppError('Name, email, and password are required', 400);
@@ -66,7 +67,8 @@ exports.register = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = req.body.email?.toLowerCase();
 
     if (!email || !password) {
       throw new AppError('Please provide email and password', 400);
@@ -88,7 +90,8 @@ exports.login = async (req, res, next) => {
 
 exports.googleAuth = async (req, res, next) => {
   try {
-    const { googleId, email, name, avatar } = req.body;
+    const { googleId, name, avatar } = req.body;
+    const email = req.body.email?.toLowerCase();
 
     if (!email) {
       throw new AppError('Google authentication requires an email', 400);
@@ -198,7 +201,7 @@ exports.verifyOTP = async (req, res, next) => {
 
 exports.forgotPassword = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const email = req.body.email?.toLowerCase();
 
     if (!email) {
       throw new AppError('Please provide your email', 400);

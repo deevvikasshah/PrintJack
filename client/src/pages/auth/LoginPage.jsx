@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
@@ -11,10 +13,34 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, googleLogin: authGoogleLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/dashboard';
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const userInfo = await res.json();
+        await authGoogleLogin({
+          googleId: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name,
+          avatar: userInfo.picture,
+        });
+        navigate(from, { replace: true });
+      } catch {
+        // error handled by AuthContext
+      }
+    },
+    onError: () => {
+      toast.error('Google sign-in failed');
+    },
+    scope: 'openid email profile',
+  });
 
   const validate = () => {
     const newErrors = {};
@@ -175,6 +201,7 @@ export default function LoginPage() {
 
             <button
               type="button"
+              onClick={handleGoogleLogin}
               className="w-full py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Mail, Lock, Eye, EyeOff, User, Phone, ArrowRight, Loader2, Gift } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterPage() {
@@ -19,8 +21,32 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { register, googleLogin } = useAuth();
   const navigate = useNavigate();
+
+  const handleGoogleSignup = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const userInfo = await res.json();
+        await googleLogin({
+          googleId: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name,
+          avatar: userInfo.picture,
+        });
+        navigate('/dashboard', { replace: true });
+      } catch {
+        // error handled by AuthContext
+      }
+    },
+    onError: () => {
+      toast.error('Google sign-in failed');
+    },
+    scope: 'openid email profile',
+  });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -36,7 +62,7 @@ export default function RegisterPage() {
     if (!form.phone.trim()) newErrors.phone = 'Phone number is required';
     else if (!/^[6-9]\d{9}$/.test(form.phone.replace(/\s/g, ''))) newErrors.phone = 'Enter a valid 10-digit Indian mobile number';
     if (!form.password) newErrors.password = 'Password is required';
-    else if (form.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    else if (form.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
     if (form.password !== form.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
     if (!form.agreeTerms) newErrors.agreeTerms = 'You must agree to the terms';
     setErrors(newErrors);
@@ -284,6 +310,7 @@ export default function RegisterPage() {
 
             <button
               type="button"
+              onClick={handleGoogleSignup}
               className="w-full py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
