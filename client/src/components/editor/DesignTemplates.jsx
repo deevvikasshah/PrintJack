@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Layout, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Layout } from 'lucide-react';
 import { clsx } from 'clsx';
-import api from '../../utils/api';
 
 const BUILTIN_TEMPLATES = [
   {
@@ -233,34 +232,11 @@ const BUILTIN_TEMPLATES = [
 
 const CATEGORIES = ['All', ...new Set(BUILTIN_TEMPLATES.map((t) => t.category))];
 
-export default function DesignTemplates({ onLoadTemplate, productCategory }) {
-  const [templates, setTemplates] = useState(BUILTIN_TEMPLATES);
+export default function DesignTemplates({ onLoadTemplate }) {
   const [activeCategory, setActiveCategory] = useState('All');
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      try {
-        setLoading(true);
-        const catValue = typeof productCategory === 'string'
-          ? productCategory
-          : productCategory?.slug || productCategory?.name || productCategory?._id || '';
-        const params = catValue ? `?category=${encodeURIComponent(catValue)}` : '';
-        const { data } = await api.get(`/templates${params}`);
-        if (data.templates?.length) {
-          setTemplates([...BUILTIN_TEMPLATES, ...data.templates]);
-        }
-      } catch {
-        // Use built-in templates only
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTemplates();
-  }, [productCategory]);
-
-  const filtered = templates.filter((t) => {
+  const filtered = BUILTIN_TEMPLATES.filter((t) => {
     const matchCategory = activeCategory === 'All' || t.category === activeCategory;
     const matchSearch = !search || t.name.toLowerCase().includes(search.toLowerCase());
     return matchCategory && matchSearch;
@@ -295,12 +271,6 @@ export default function DesignTemplates({ onLoadTemplate, productCategory }) {
           </button>
         ))}
       </div>
-
-      {loading && (
-        <div className="flex items-center justify-center py-4">
-          <Loader2 className="w-5 h-5 text-brand-500 animate-spin" />
-        </div>
-      )}
 
       <div className="grid grid-cols-2 gap-2">
         {filtered.map((template) => (
