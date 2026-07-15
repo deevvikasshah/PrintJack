@@ -31,13 +31,6 @@ const protect = async (req, res, next) => {
       });
     }
 
-    if (user.changedPasswordAfter(decoded.iat)) {
-      return res.status(401).json({
-        success: false,
-        message: "User recently changed password. Please log in again.",
-      });
-    }
-
     req.user = user;
     next();
   } catch (err) {
@@ -88,7 +81,7 @@ const optionalAuth = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
 
-    if (user && !user.changedPasswordAfter(decoded.iat)) {
+    if (user) {
       req.user = user;
     }
   } catch (err) {
