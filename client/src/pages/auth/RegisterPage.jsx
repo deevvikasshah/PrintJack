@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Mail, Lock, Eye, EyeOff, User, Phone, ArrowRight, Loader2, Gift } from 'lucide-react';
@@ -23,39 +23,33 @@ export default function RegisterPage() {
   const { register, googleLogin } = useAuth();
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = useCallback(async (credential) => {
-    try {
-      const decoded = JSON.parse(atob(credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-      await googleLogin({
-        googleId: decoded.sub,
-        email: decoded.email,
-        name: decoded.name,
-        avatar: decoded.picture,
-      });
-      navigate('/dashboard', { replace: true });
-    } catch {
-      // error handled by AuthContext
-    }
-  }, [googleLogin, navigate]);
-
-  useEffect(() => {
-    const id = setTimeout(() => {
-      if (window.google?.accounts?.id) {
-        google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '386863340573-giuhhqa2sg3b8m2bg9uet3phl6l0k0it.apps.googleusercontent.com',
-          callback: (response) => handleGoogleSuccess(response.credential),
-        });
-      }
-    }, 500);
-    return () => clearTimeout(id);
-  }, [handleGoogleSuccess]);
-
   const handleGoogleSignup = () => {
-    if (window.google?.accounts?.id) {
-      google.accounts.id.prompt();
-    } else {
+    if (!window.google?.accounts?.oauth2) {
       toast.error('Google Sign-In is loading. Please try again.');
+      return;
     }
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '386863340573-giuhhqa2sg3b8m2bg9uet3phl6l0k0it.apps.googleusercontent.com',
+      scope: 'openid email profile',
+      callback: async (response) => {
+        try {
+          const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${response.access_token}` },
+          });
+          const userInfo = await res.json();
+          await googleLogin({
+            googleId: userInfo.sub,
+            email: userInfo.email,
+            name: userInfo.name,
+            avatar: userInfo.picture,
+          });
+          navigate('/dashboard', { replace: true });
+        } catch {
+          // error handled by AuthContext
+        }
+      },
+    });
+    client.requestAccessToken();
   };
 
   const handleChange = (e) => {
