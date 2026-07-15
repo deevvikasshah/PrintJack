@@ -88,9 +88,20 @@ export default function EditorPage() {
           width: prod.printWidth || 400,
           height: prod.printHeight || 400,
         };
-        setPrintArea(pa);
-        setCanvasWidth(pa.width + (pa.x || 0) * 2 || 500);
-        setCanvasHeight(pa.height + (pa.y || 0) * 2 || 500);
+
+        const INCH_TO_PX = 96;
+        const isSmallDimensions = pa.width < 20 && pa.height < 20;
+        const normalizedPA = {
+          ...pa,
+          x: (pa.x || 0) * (isSmallDimensions ? INCH_TO_PX : 1),
+          y: (pa.y || 0) * (isSmallDimensions ? INCH_TO_PX : 1),
+          width: pa.width * (isSmallDimensions ? INCH_TO_PX : 1),
+          height: pa.height * (isSmallDimensions ? INCH_TO_PX : 1),
+        };
+
+        setPrintArea(normalizedPA);
+        setCanvasWidth(normalizedPA.width + (normalizedPA.x || 0) * 2 || 500);
+        setCanvasHeight(normalizedPA.height + (normalizedPA.y || 0) * 2 || 500);
         setProductImage(prod.mockupImage || prod.image || null);
       } catch (err) {
         toast.error('Failed to load product');
