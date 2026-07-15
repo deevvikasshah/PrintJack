@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Settings, Save, Globe, CreditCard, Truck, Search as SearchIcon,
   Mail, Share2, Upload, Loader2,
@@ -21,6 +21,7 @@ export default function AdminSettings() {
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const metaRef = useRef({});
 
   useEffect(() => {
     fetchSettings();
@@ -30,7 +31,14 @@ export default function AdminSettings() {
     try {
       setLoading(true);
       const { data } = await get('/admin/settings');
-      setSettings(data.settings || data || {});
+      const flat = {};
+      const meta = {};
+      (data.settings || []).forEach((s) => {
+        flat[s.key] = s.value;
+        meta[s.key] = { description: s.description || '', category: s.category || 'general' };
+      });
+      metaRef.current = meta;
+      setSettings(data.settingsMap || flat);
     } catch (err) {
       toast.error('Failed to load settings');
     } finally {
@@ -41,7 +49,12 @@ export default function AdminSettings() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      await put('/admin/settings', settings);
+      const bulk = Object.entries(settings).map(([key, value]) => ({
+        key,
+        value,
+        ...metaRef.current[key],
+      }));
+      await put('/admin/settings/bulk', { settings: bulk });
       toast.success('Settings saved successfully');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save settings');
