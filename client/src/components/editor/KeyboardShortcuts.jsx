@@ -14,6 +14,22 @@ export default function KeyboardShortcuts({
   canUndo,
   canRedo,
 }) {
+  const nudgeObject = useCallback(
+    (dx, dy) => {
+      const canvas = canvasRef?.current;
+      if (!canvas) return;
+      const active = canvas.getActiveObject();
+      if (!active) return;
+      active.set({
+        left: active.left + dx,
+        top: active.top + dy,
+      });
+      canvas.renderAll();
+      canvas.fire('object:modified', { target: active });
+    },
+    [canvasRef]
+  );
+
   const handleKeyDown = useCallback(
     (e) => {
       const target = e.target;
@@ -101,23 +117,7 @@ export default function KeyboardShortcuts({
           break;
       }
     },
-    [onUndo, onRedo, onDelete, onCopy, onPaste, onGroup, onUngroup, onSelectAll, onDuplicate, canUndo, canRedo]
-  );
-
-  const nudgeObject = useCallback(
-    (dx, dy) => {
-      const canvas = canvasRef?.current;
-      if (!canvas) return;
-      const active = canvas.getActiveObject();
-      if (!active) return;
-      active.set({
-        left: active.left + dx,
-        top: active.top + dy,
-      });
-      canvas.renderAll();
-      canvas.fire('object:modified', { target: active });
-    },
-    [canvasRef]
+    [onUndo, onRedo, onDelete, onCopy, onPaste, onGroup, onUngroup, onSelectAll, onDuplicate, canUndo, canRedo, nudgeObject]
   );
 
   useEffect(() => {

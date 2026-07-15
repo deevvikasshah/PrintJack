@@ -303,7 +303,7 @@ export default function DesignTemplates({ onLoadTemplate }) {
         ))}
       </div>
 
-      {filtered.length === 0 && !loading && (
+      {filtered.length === 0 && (
         <p className="text-xs text-gray-400 text-center py-4">No templates found</p>
       )}
     </div>
