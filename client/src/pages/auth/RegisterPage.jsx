@@ -142,10 +142,11 @@ export default function RegisterPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                 <div className="relative">
                   <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
+                    id="name"
                     type="text"
                     name="name"
                     value={form.name}
@@ -160,10 +161,11 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <label htmlFor="reg-email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                 <div className="relative">
                   <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
+                    id="reg-email"
                     type="email"
                     name="email"
                     value={form.email}
@@ -178,10 +180,11 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                 <div className="relative">
                   <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
+                    id="phone"
                     type="tel"
                     name="phone"
                     value={form.phone}
@@ -197,10 +200,11 @@ export default function RegisterPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                  <label htmlFor="reg-password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                   <div className="relative">
                     <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
+                      id="reg-password"
                       type={showPassword ? 'text' : 'password'}
                       name="password"
                       value={form.password}
@@ -222,10 +226,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Confirm</label>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">Confirm</label>
                   <div className="relative">
                     <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
+                      id="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
                       name="confirmPassword"
                       value={form.confirmPassword}
@@ -248,13 +253,14 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700 mb-1">
                   <span className="flex items-center gap-1.5">
                     <Gift size={14} className="text-[#E63946]" />
                     Referral Code <span className="text-gray-400 font-normal">(optional)</span>
                   </span>
                 </label>
                 <input
+                  id="referralCode"
                   type="text"
                   name="referralCode"
                   value={form.referralCode}
@@ -267,6 +273,7 @@ export default function RegisterPage() {
               <div>
                 <label className="flex items-start gap-2 cursor-pointer">
                   <input
+                    id="agreeTerms"
                     type="checkbox"
                     name="agreeTerms"
                     checked={form.agreeTerms}
