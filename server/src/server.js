@@ -29,6 +29,7 @@ const blogRoutes = require("./routes/blog");
 const uploadRoutes = require("./routes/upload");
 const analyticsRoutes = require("./routes/analytics");
 const referralRoutes = require("./routes/referrals");
+const seedRoutes = require("./routes/seed");
 
 // Connect to database
 connectDB();
@@ -163,6 +164,7 @@ app.use("/api/blog", limiter, blogRoutes);
 app.use("/api/upload", limiter, uploadRoutes);
 app.use("/api/analytics", limiter, analyticsRoutes);
 app.use("/api/referrals", limiter, referralRoutes);
+app.use("/api/seed", seedRoutes);
 
 // 404 handler
 app.all("*", (req, res, next) => {

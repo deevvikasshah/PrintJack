@@ -234,17 +234,19 @@ function computeBulkPrices(basePrice, tierKey) {
   }));
 }
 
-async function seed() {
+async function seed(clearFirst = true) {
   try {
     console.log('Connecting to MongoDB...');
     await mongoose.connect(MONGO_URI);
     console.log('Connected to MongoDB');
 
-    const collections = ['users', 'categories', 'products', 'coupons', 'settings'];
-    for (const col of collections) {
-      await mongoose.connection.db.dropCollection(col).catch(() => {});
+    if (clearFirst) {
+      const collections = ['users', 'categories', 'products', 'coupons', 'settings'];
+      for (const col of collections) {
+        await mongoose.connection.db.dropCollection(col).catch(() => {});
+      }
+      console.log('Cleared existing data');
     }
-    console.log('Cleared existing data');
 
     console.log('Creating super_admin user...');
     const admin = await User.create({
