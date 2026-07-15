@@ -243,7 +243,10 @@ export default function DesignTemplates({ onLoadTemplate, productCategory }) {
     const fetchTemplates = async () => {
       try {
         setLoading(true);
-        const params = productCategory ? `?category=${productCategory}` : '';
+        const catValue = typeof productCategory === 'string'
+          ? productCategory
+          : productCategory?.slug || productCategory?.name || productCategory?._id || '';
+        const params = catValue ? `?category=${encodeURIComponent(catValue)}` : '';
         const { data } = await api.get(`/templates${params}`);
         if (data.templates?.length) {
           setTemplates([...BUILTIN_TEMPLATES, ...data.templates]);
