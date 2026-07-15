@@ -101,7 +101,7 @@ export default function CartPage() {
   return (
     <>
       <Helmet>
-        <title>Shopping Cart ({itemCount} items) | PrintJack</title>
+        <title>{`Shopping Cart (${itemCount} items) | PrintJack`}</title>
       </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Breadcrumb items={[{ label: 'Cart' }]} />

@@ -42,7 +42,7 @@ export default function BlogDetailPage() {
   return (
     <>
       <Helmet>
-        <title>{post.title} | PrintJack Blog</title>
+        <title>{`${post.title} | PrintJack Blog`}</title>
         <meta name="description" content={post.excerpt || post.title} />
         {post.featuredImage && <meta property="og:image" content={post.featuredImage} />}
         <meta property="og:title" content={post.title} />
