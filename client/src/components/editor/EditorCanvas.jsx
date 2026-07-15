@@ -113,7 +113,7 @@ const EditorCanvas = forwardRef(function EditorCanvas(
   }));
 
   useEffect(() => {
-    if (!containerRef.current || canvasRef.current) return;
+    if (!containerRef.current || fabricRef.current) return;
 
     const cw = canvasWidth || 500;
     const ch = canvasHeight || 500;
@@ -257,7 +257,7 @@ const EditorCanvas = forwardRef(function EditorCanvas(
     if (!canvas) return;
     const scale = getDisplayScale();
     canvas._editorScale = scale;
-    canvas.setZoom(scale);
+    canvas.setZoom(scale * zoom);
     canvas.setWidth(Math.round(canvasWidth * scale));
     canvas.setHeight(Math.round(canvasHeight * scale));
     drawPrintArea();

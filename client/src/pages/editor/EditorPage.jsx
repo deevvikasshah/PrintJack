@@ -46,6 +46,7 @@ export default function EditorPage() {
   const redoStack = useRef([]);
   const autoSaveTimer = useRef(null);
   const designIdRef = useRef(null);
+  const handleSaveRef = useRef(null);
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -484,9 +485,7 @@ export default function EditorPage() {
       if (!active) return;
       saveCanvasState();
       active.set(props);
-      if (props.fill || props.fontSize || props.fontFamily) {
-        active.setCoords();
-      }
+      active.setCoords();
       canvas.renderAll();
       setSelectedObject({ ...active });
       refreshObjects();
@@ -596,8 +595,8 @@ export default function EditorPage() {
       if (!canvas) return;
       setSaving(true);
       try {
-        const json = canvasRef.current.toJSON();
-        const previewUrl = canvasRef.current.toDataUrl();
+        const json = canvasRef.current?.toJSON?.();
+        const previewUrl = canvasRef.current?.toDataUrl?.();
         const payload = {
           productId,
           canvasJSON: json,
@@ -643,8 +642,8 @@ export default function EditorPage() {
   const handleAddToCart = useCallback(
     async ({ productId: pid, quantity, size, color }) => {
       try {
-        const json = canvasRef.current.toJSON();
-        const previewUrl = canvasRef.current.toDataUrl();
+        const json = canvasRef.current?.toJSON?.();
+        const previewUrl = canvasRef.current?.toDataUrl?.();
         let designId = designIdRef.current;
         if (!designId) {
           const { data } = await api.post('/designs', {
@@ -666,14 +665,20 @@ export default function EditorPage() {
   );
 
   useEffect(() => {
+    handleSaveRef.current = handleSave;
+  });
+
+  useEffect(() => {
     autoSaveTimer.current = setInterval(() => {
+      const fn = handleSaveRef.current;
+      if (!fn) return;
       const canvas = canvasRef.current?.getCanvas?.();
       if (canvas && canvas.getObjects().length > 0) {
-        handleSave(true);
+        fn(true);
       }
     }, 30000);
     return () => clearInterval(autoSaveTimer.current);
-  }, [handleSave]);
+  }, []);
 
   const handleZoomChange = useCallback((newZoom) => {
     setZoom(newZoom);
