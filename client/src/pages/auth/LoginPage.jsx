@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
@@ -18,29 +17,40 @@ export default function LoginPage() {
   const location = useLocation();
   const from = location.state?.from?.pathname || '/dashboard';
 
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+  const handleGoogleSuccess = useCallback(async (credential) => {
+    try {
+      const decoded = JSON.parse(atob(credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      await authGoogleLogin({
+        googleId: decoded.sub,
+        email: decoded.email,
+        name: decoded.name,
+        avatar: decoded.picture,
+      });
+      navigate(from, { replace: true });
+    } catch {
+      // error handled by AuthContext
+    }
+  }, [authGoogleLogin, navigate, from]);
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      if (window.google?.accounts?.id) {
+        google.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '386863340573-giuhhqa2sg3b8m2bg9uet3phl6l0k0it.apps.googleusercontent.com',
+          callback: (response) => handleGoogleSuccess(response.credential),
         });
-        const userInfo = await res.json();
-        await authGoogleLogin({
-          googleId: userInfo.sub,
-          email: userInfo.email,
-          name: userInfo.name,
-          avatar: userInfo.picture,
-        });
-        navigate(from, { replace: true });
-      } catch {
-        // error handled by AuthContext
       }
-    },
-    onError: () => {
-      toast.error('Google sign-in failed');
-    },
-    scope: 'openid email profile',
-  });
+    }, 500);
+    return () => clearTimeout(id);
+  }, [handleGoogleSuccess]);
+
+  const handleGoogleLogin = () => {
+    if (window.google?.accounts?.id) {
+      google.accounts.id.prompt();
+    } else {
+      toast.error('Google Sign-In is loading. Please try again.');
+    }
+  };
 
   const validate = () => {
     const newErrors = {};
