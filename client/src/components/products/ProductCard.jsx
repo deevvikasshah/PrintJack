@@ -1,15 +1,21 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingCart, Eye, Star, Sparkles } from 'lucide-react';
+import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 
 const quickViewSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
 export default function ProductCard({ product }) {
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
   const [wishlisted, setWishlisted] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [selectedSize, setSelectedSize] = useState(null);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [adding, setAdding] = useState(false);
 
   const {
     _id,
@@ -185,9 +191,17 @@ export default function ProductCard({ product }) {
             >
               Customize
             </Link>
-            <button className="flex items-center justify-center gap-1.5 px-4 py-2 border-2 border-gray-200 hover:border-navy-700 text-gray-700 hover:text-navy-700 text-sm font-semibold rounded-xl transition-colors">
+            <button
+              onClick={async () => {
+                if (!isAuthenticated) { navigate('/login'); return; }
+                setAdding(true);
+                try { await addToCart(_id, 1, selectedSize); } finally { setAdding(false); }
+              }}
+              disabled={adding}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 border-2 border-gray-200 hover:border-navy-700 text-gray-700 hover:text-navy-700 text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+            >
               <ShoppingCart size={15} />
-              Add
+              {adding ? '...' : 'Add'}
             </button>
           </div>
         </div>
@@ -267,9 +281,17 @@ export default function ProductCard({ product }) {
                     >
                       Customize Now
                     </Link>
-                    <button className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-gray-200 hover:border-navy-700 text-gray-700 font-semibold rounded-xl transition-colors">
+                    <button
+                      onClick={async () => {
+                        if (!isAuthenticated) { navigate('/login'); return; }
+                        setAdding(true);
+                        try { await addToCart(_id, 1, selectedSize); setQuickViewOpen(false); } finally { setAdding(false); }
+                      }}
+                      disabled={adding}
+                      className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-gray-200 hover:border-navy-700 text-gray-700 font-semibold rounded-xl transition-colors disabled:opacity-50"
+                    >
                       <ShoppingCart size={18} />
-                      Add to Cart
+                      {adding ? 'Adding...' : 'Add to Cart'}
                     </button>
                   </div>
                   <Link

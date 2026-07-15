@@ -252,7 +252,7 @@ export default function OrdersPage() {
       const statuses = STATUS_TAB_MAP[activeTab];
       const params = { page: currentPage, limit: 10 };
       if (statuses) params.status = statuses.join(',');
-      const { data } = await api.get('/orders', { params });
+      const { data } = await api.get('/orders/my', { params });
       setOrders(data.orders || data || []);
       setTotalPages(data.totalPages || Math.ceil((data.total || 0) / 10) || 1);
     } catch {

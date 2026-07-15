@@ -40,7 +40,7 @@ export default function AdminOrders() {
       if (filters.dateFrom) params.dateFrom = filters.dateFrom;
       if (filters.dateTo) params.dateTo = filters.dateTo;
 
-      const { data } = await get('/admin/orders', { params });
+      const { data } = await get('/orders', { params });
       setOrders(data.orders || data || []);
       setTotalPages(data.totalPages || 1);
       setStats(data.stats || null);
@@ -57,7 +57,7 @@ export default function AdminOrders() {
 
   const updateOrderStatus = async (orderId, status) => {
     try {
-      await patch(`/admin/orders/${orderId}/status`, { status });
+      await patch(`/orders/${orderId}/status`, { status });
       setOrders((prev) => prev.map((o) => (o._id === orderId ? { ...o, status } : o)));
       setShowStatusModal(null);
       toast.success('Order status updated');
@@ -69,7 +69,7 @@ export default function AdminOrders() {
   const handleBulkAction = async (action) => {
     if (selectedOrders.length === 0) return toast.error('Select orders first');
     try {
-      await patch('/admin/orders/bulk-update', { orderIds: selectedOrders, action });
+      await patch('/orders/bulk-update', { orderIds: selectedOrders, action });
       setSelectedOrders([]);
       fetchOrders();
       toast.success('Bulk action completed');

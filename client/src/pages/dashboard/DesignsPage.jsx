@@ -141,7 +141,7 @@ export default function DesignsPage() {
       setLoading(true);
       const params = { page: currentPage, limit: 12 };
       if (activeTab !== 'all') params.status = activeTab;
-      const { data } = await api.get('/designs', { params });
+      const { data } = await api.get('/designs/my', { params });
       setDesigns(data.designs || data || []);
       setTotalPages(data.totalPages || 1);
     } catch {
