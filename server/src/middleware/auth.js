@@ -50,7 +50,9 @@ const authorize = (...roles) => {
       });
     }
 
-    if (!roles.includes(req.user.role)) {
+    const allowed = roles.includes(req.user.role) || (roles.includes("admin") && req.user.role === "super_admin");
+
+    if (!allowed) {
       return res.status(403).json({
         success: false,
         message: `Role '${req.user.role}' is not authorized to access this route`,
