@@ -44,9 +44,6 @@ router.post("/google", googleAuth);
 
 router.post(
   "/send-otp",
-  [
-    body("email").isEmail().withMessage("Valid email is required"),
-  ],
   validate,
   sendOTP
 );
@@ -54,7 +51,6 @@ router.post(
 router.post(
   "/verify-otp",
   [
-    body("email").isEmail().withMessage("Valid email is required"),
     body("otp").isLength({ min: 4, max: 6 }).withMessage("OTP must be 4-6 digits"),
   ],
   validate,

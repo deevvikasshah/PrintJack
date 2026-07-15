@@ -6,7 +6,7 @@ const compression = require("compression");
 const cookieParser = require("cookie-parser");
 const passport = require("passport");
 const mongoSanitize = require("express-mongo-sanitize");
-const xss = require("xss-clean");
+const xss = require("xss");
 const hpp = require("hpp");
 const rateLimit = require("express-rate-limit");
 require("dotenv").config();
@@ -105,7 +105,21 @@ if (process.env.NODE_ENV === "development") {
 
 // Data sanitization
 app.use(mongoSanitize());
-app.use(xss());
+app.use((req, _res, next) => {
+  const sanitize = (val) => {
+    if (typeof val === 'string') return xss(val);
+    if (val && typeof val === 'object') {
+      for (const key of Object.keys(val)) {
+        val[key] = sanitize(val[key]);
+      }
+    }
+    return val;
+  };
+  if (req.body) req.body = sanitize(req.body);
+  if (req.query) req.query = sanitize(req.query);
+  if (req.params) req.params = sanitize(req.params);
+  next();
+});
 
 // Prevent HTTP parameter pollution
 app.use(

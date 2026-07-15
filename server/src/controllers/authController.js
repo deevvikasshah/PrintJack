@@ -123,7 +123,8 @@ exports.googleAuth = async (req, res, next) => {
 
 exports.sendOTP = async (req, res, next) => {
   try {
-    const { identifier, method } = req.body;
+    const { method } = req.body;
+    const identifier = req.body.email || req.body.phone;
 
     if (!identifier) {
       throw new AppError('Email or phone number is required', 400);
@@ -164,10 +165,11 @@ exports.sendOTP = async (req, res, next) => {
 
 exports.verifyOTP = async (req, res, next) => {
   try {
-    const { identifier, code } = req.body;
+    const { code } = req.body;
+    const identifier = req.body.email || req.body.phone;
 
     if (!identifier || !code) {
-      throw new AppError('Identifier and OTP code are required', 400);
+      throw new AppError('Email/phone and OTP code are required', 400);
     }
 
     const user = await User.findOne({
