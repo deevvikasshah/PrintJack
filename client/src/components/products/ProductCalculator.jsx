@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Ruler, Calculator, RefreshCw, ChevronDown, ChevronUp, Palette } from 'lucide-react';
+import { Ruler, Calculator, RefreshCw, ChevronDown, ChevronUp, Palette, Truck } from 'lucide-react';
 import api from '../../utils/api';
 
 function ProductCalculator({ productId, product }) {
@@ -26,6 +26,13 @@ function ProductCalculator({ productId, product }) {
     lamination: 'none',
     specialEffects: 'none',
     complexity: 'standard',
+    paperType: 'standard',
+    cutType: 'straight',
+    designType: 'logo',
+    sizeOption: 'standard',
+    rushOrder: false,
+    proofRequired: false,
+    revisionCount: 0,
   });
 
   useEffect(() => {
@@ -300,6 +307,114 @@ function ProductCalculator({ productId, product }) {
                   <option value="complex">Complex</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Design Type
+                </label>
+                <select
+                  value={designOptions.designType}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, designType: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                >
+                  <option value="text-only">Text Only</option>
+                  <option value="logo">Logo</option>
+                  <option value="illustration">Illustration</option>
+                  <option value="photo">Photo</option>
+                  <option value="pattern">Pattern</option>
+                  <option value="mixed">Mixed</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Paper Type
+                </label>
+                <select
+                  value={designOptions.paperType}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, paperType: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                >
+                  <option value="standard">Standard</option>
+                  <option value="premium">Premium</option>
+                  <option value="recycled">Recycled</option>
+                  <option value="art-paper">Art Paper</option>
+                  <option value="glossy-photo">Glossy Photo</option>
+                  <option value="canvas">Canvas</option>
+                  <option value="waterproof">Waterproof</option>
+                  <option value="craft">Craft</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Cut Type
+                </label>
+                <select
+                  value={designOptions.cutType}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, cutType: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                >
+                  <option value="straight">Straight Cut</option>
+                  <option value="die-cut">Die Cut</option>
+                  <option value="kiss-cut">Kiss Cut</option>
+                  <option value="rounded-corners">Rounded Corners</option>
+                  <option value="custom-shape">Custom Shape</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Print Size
+                </label>
+                <select
+                  value={designOptions.sizeOption}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, sizeOption: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                >
+                  <option value="standard">Standard</option>
+                  <option value="large">Large</option>
+                  <option value="extra-large">Extra Large</option>
+                  <option value="all-over">All Over Print</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Revision Count
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={10}
+                  value={designOptions.revisionCount}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, revisionCount: parseInt(e.target.value) || 0 }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                />
+                <p className="text-xs text-gray-400 mt-1">₹15 per revision</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={designOptions.rushOrder}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, rushOrder: e.target.checked }))}
+                  className="w-4 h-4 rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]"
+                />
+                <span className="text-sm text-gray-600">Rush Order (+₹100, 1-2 day delivery)</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={designOptions.proofRequired}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, proofRequired: e.target.checked }))}
+                  className="w-4 h-4 rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]"
+                />
+                <span className="text-sm text-gray-600">Print Proof (+₹25)</span>
+              </label>
             </div>
           </div>
 
@@ -442,6 +557,16 @@ function ProductCalculator({ productId, product }) {
                   <span className="text-sm font-medium opacity-90">{currency}{calculation.priceBreakdown.perUnitPrice}</span>
                 </div>
               </div>
+
+              {calculation.deliveryEstimate && (
+                <div className="mt-4 flex items-center gap-2 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <Truck className="w-4 h-4 text-[#E63946]" />
+                  <span>
+                    Estimated delivery: <span className="font-semibold">{calculation.deliveryEstimate.minDays}-{calculation.deliveryEstimate.maxDays} days</span>
+                    {calculation.deliveryEstimate.rushOrder && <span className="text-amber-600 font-medium ml-1">(Rush)</span>}
+                  </span>
+                </div>
+              )}
 
               {calculation.bulkPricing && calculation.bulkPricing.length > 0 && (
                 <div className="mt-4">

@@ -34,6 +34,37 @@ const DESIGN_COST_MULTIPLIERS = {
     'spot-uv': 30,
     'glow-in-dark': 35,
   },
+  paperType: {
+    standard: 0,
+    premium: 20,
+    'recycled': 25,
+    'art-paper': 30,
+    'glossy-photo': 40,
+    'canvas': 60,
+    'waterproof': 35,
+    'craft': 15,
+  },
+  cutType: {
+    'straight': 0,
+    'die-cut': 30,
+    'kiss-cut': 25,
+    'rounded-corners': 10,
+    'custom-shape': 50,
+  },
+  designType: {
+    'text-only': 0.8,
+    'logo': 1.0,
+    'illustration': 1.3,
+    'photo': 1.2,
+    'pattern': 1.4,
+    'mixed': 1.5,
+  },
+  sizeOption: {
+    standard: 1.0,
+    large: 1.3,
+    'extra-large': 1.6,
+    'all-over': 2.0,
+  },
 };
 
 exports.calculatePrice = async (req, res, next) => {
@@ -181,7 +212,40 @@ exports.calculatePrice = async (req, res, next) => {
     const complexityMultiplier = designComplexity === 'simple' ? 0.8 : designComplexity === 'complex' ? 1.5 : 1.0;
     designFactors.complexity = { name: designComplexity, multiplier: complexityMultiplier };
 
-    const designMultiplier = methodMultiplier * finishMultiplier * sideMultiplier * complexityMultiplier;
+    const paperType = designOptions.paperType || 'standard';
+    const paperCost = DESIGN_COST_MULTIPLIERS.paperType[paperType] || 0;
+    totalPaperCost += paperCost * Math.max(calcQuantity, 1) * 0.05;
+    designFactors.paperType = { name: paperType, cost: paperCost };
+
+    const cutType = designOptions.cutType || 'straight';
+    const cutCost = DESIGN_COST_MULTIPLIERS.cutType[cutType] || 0;
+    totalFinishingCost += cutCost;
+    designFactors.cutType = { name: cutType, cost: cutCost };
+
+    const designType = designOptions.designType || 'logo';
+    const designTypeMultiplier = DESIGN_COST_MULTIPLIERS.designType[designType] || 1.0;
+    designFactors.designType = { name: designType, multiplier: designTypeMultiplier };
+
+    const sizeOption = designOptions.sizeOption || 'standard';
+    const sizeMultiplier = DESIGN_COST_MULTIPLIERS.sizeOption[sizeOption] || 1.0;
+    designFactors.sizeOption = { name: sizeOption, multiplier: sizeMultiplier };
+
+    const rushOrder = designOptions.rushOrder || false;
+    const rushSurcharge = rushOrder ? 100 : 0;
+    totalSetupCost += rushSurcharge;
+    designFactors.rushOrder = { enabled: rushOrder, cost: rushSurcharge };
+
+    const proofRequired = designOptions.proofRequired || false;
+    const proofCost = proofRequired ? 25 : 0;
+    totalSetupCost += proofCost;
+    designFactors.proofRequired = { enabled: proofRequired, cost: proofCost };
+
+    const revisionCount = Math.min(Math.max(parseInt(designOptions.revisionCount || 0, 10), 0), 10);
+    const revisionCost = revisionCount * 15;
+    totalSetupCost += revisionCost;
+    designFactors.revisionCount = { count: revisionCount, cost: revisionCost };
+
+    const designMultiplier = methodMultiplier * finishMultiplier * sideMultiplier * complexityMultiplier * designTypeMultiplier * sizeMultiplier;
     totalInkCost *= designMultiplier;
     totalSetupCost += methodMultiplier * 20;
 
@@ -222,6 +286,11 @@ exports.calculatePrice = async (req, res, next) => {
       quantity: calcQuantity,
       variables: variableResults,
       designFactors,
+      deliveryEstimate: {
+        minDays: rushOrder ? 1 : 3,
+        maxDays: rushOrder ? 2 : 7,
+        rushOrder: rushOrder || false,
+      },
       priceBreakdown,
       bulkPricing: product.bulkPricing && product.bulkPricing.length > 0
         ? product.bulkPricing.map((tier) => ({
