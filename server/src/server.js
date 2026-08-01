@@ -46,6 +46,10 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://printjack.in",
   "https://www.printjack.in",
+  "https://print-jack.vercel.app",
+  "https://client-navy-ten-73.vercel.app",
+  "https://client-idsp7wpad-markivs.vercel.app",
+  "https://client-lyv6xipft-markivs.vercel.app",
 ].filter(Boolean);
 
 // Connect to database
