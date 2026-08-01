@@ -5,6 +5,16 @@ import { useAuth } from './AuthContext';
 
 const CartContext = createContext(null);
 
+const normalizeItem = (item) => ({
+  ...item,
+  price: item.unitPrice ?? item.price ?? item.product?.basePrice ?? 0,
+});
+
+const normalizeCart = (cart) => ({
+  ...cart,
+  items: (cart.items || []).map(normalizeItem),
+});
+
 export function useCart() {
   const context = useContext(CartContext);
   if (!context) throw new Error('useCart must be used within CartProvider');
@@ -33,8 +43,8 @@ export function CartProvider({ children }) {
     try {
       setLoading(true);
       const { data } = await api.get('/cart');
-      const cart = data.cart || data;
-      setItems(cart.items || []);
+      const cart = normalizeCart(data.cart || data);
+      setItems(cart.items);
       setCoupon(cart.coupon || null);
       setDiscount(cart.discount || 0);
     } catch (err) {
@@ -64,8 +74,8 @@ export function CartProvider({ children }) {
         color,
         designId,
       });
-      const cart = data.cart || data;
-      setItems(cart.items || []);
+      const cart = normalizeCart(data.cart || data);
+      setItems(cart.items);
       setCoupon(cart.coupon || null);
       setDiscount(cart.discount || 0);
       toast.success('Item added to cart');
@@ -83,8 +93,8 @@ export function CartProvider({ children }) {
     try {
       setLoading(true);
       const { data } = await api.put(`/cart/item/${itemId}`, { quantity, size, color });
-      const cart = data.cart || data;
-      setItems(cart.items || []);
+      const cart = normalizeCart(data.cart || data);
+      setItems(cart.items);
       setCoupon(cart.coupon || null);
       setDiscount(cart.discount || 0);
       return data;
@@ -101,8 +111,8 @@ export function CartProvider({ children }) {
     try {
       setLoading(true);
       const { data } = await api.delete(`/cart/item/${itemId}`);
-      const cart = data.cart || data;
-      setItems(cart.items || []);
+      const cart = normalizeCart(data.cart || data);
+      setItems(cart.items);
       setCoupon(cart.coupon || null);
       setDiscount(cart.discount || 0);
       toast.success('Item removed from cart');
