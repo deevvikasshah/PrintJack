@@ -77,7 +77,7 @@ router.post(
 
 router.get("/:id/templates", getTemplates);
 
-router.get("/:id/calculate", calculatePrice);
+router.post("/:id/calculate", calculatePrice);
 router.get("/:id/calculator-config", getCalculatorConfig);
 
 module.exports = router;

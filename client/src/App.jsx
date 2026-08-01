@@ -31,6 +31,16 @@ const ReferralsPage = lazy(() => import('./pages/dashboard/ReferralsPage'));
 const ProfilePage = lazy(() => import('./pages/dashboard/ProfilePage'));
 const SettingsPage = lazy(() => import('./pages/dashboard/SettingsPage'));
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
+const AdminOverview = lazy(() => import('./pages/admin/AdminOverview'));
+const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'));
+const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
+const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'));
+const AdminDesignApprovals = lazy(() => import('./pages/admin/AdminDesignApprovals'));
+const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'));
+const AdminBlog = lazy(() => import('./pages/admin/AdminBlog'));
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
+const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 const BlogListPage = lazy(() => import('./pages/blog/BlogListPage'));
 const BlogDetailPage = lazy(() => import('./pages/blog/BlogDetailPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
@@ -111,13 +121,24 @@ export default function App() {
 
         {/* Admin routes */}
         <Route
-          path="/admin/*"
+          path="/admin"
           element={
             <AdminRoute>
               <AdminLayout />
             </AdminRoute>
           }
-        />
+        >
+          <Route index element={<AdminOverview />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="categories" element={<AdminCategories />} />
+          <Route path="designs" element={<AdminDesignApprovals />} />
+          <Route path="coupons" element={<AdminCoupons />} />
+          <Route path="blog" element={<AdminBlog />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="settings" element={<AdminSettings />} />
+        </Route>
 
         {/* 404 */}
         <Route path="*" element={<PublicLayout><NotFoundPage /></PublicLayout>} />

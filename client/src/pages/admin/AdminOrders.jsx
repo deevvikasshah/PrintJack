@@ -4,7 +4,7 @@ import {
   CheckCircle, XCircle, RefreshCw, ChevronLeft, ChevronRight, Calendar,
   MoreVertical, FileText,
 } from 'lucide-react';
-import { get, patch } from '../../utils/api';
+import { get, put } from '../../utils/api';
 import { formatPrice, formatDate, getStatusColor, getStatusLabel } from '../../utils/formatters';
 import { ORDER_STATUSES, PAYMENT_STATUSES } from '../../utils/constants';
 import Pagination from '../../components/common/Pagination';
@@ -40,7 +40,7 @@ export default function AdminOrders() {
       if (filters.dateFrom) params.dateFrom = filters.dateFrom;
       if (filters.dateTo) params.dateTo = filters.dateTo;
 
-      const { data } = await get('/orders', { params });
+      const { data } = await get('/admin/orders', { params });
       setOrders(data.orders || data || []);
       setTotalPages(data.totalPages || 1);
       setStats(data.stats || null);
@@ -57,8 +57,8 @@ export default function AdminOrders() {
 
   const updateOrderStatus = async (orderId, status) => {
     try {
-      await patch(`/orders/${orderId}/status`, { status });
-      setOrders((prev) => prev.map((o) => (o._id === orderId ? { ...o, status } : o)));
+      await put(`/admin/orders/${orderId}/status`, { status });
+      setOrders((prev) => prev.map((o) => (o._id === orderId ? { ...o, orderStatus: status } : o)));
       setShowStatusModal(null);
       toast.success('Order status updated');
     } catch (err) {
@@ -69,7 +69,10 @@ export default function AdminOrders() {
   const handleBulkAction = async (action) => {
     if (selectedOrders.length === 0) return toast.error('Select orders first');
     try {
-      await patch('/orders/bulk-update', { orderIds: selectedOrders, action });
+      const statusMap = { mark_shipped: 'shipped', mark_delivered: 'delivered', cancel: 'cancelled' };
+      const status = statusMap[action];
+      if (!status) return toast.error('Unknown bulk action');
+      await Promise.all(selectedOrders.map((orderId) => put(`/admin/orders/${orderId}/status`, { status })));
       setSelectedOrders([]);
       fetchOrders();
       toast.success('Bulk action completed');
@@ -87,7 +90,7 @@ export default function AdminOrders() {
       o.items?.length || 0,
       o.totalAmount,
       o.paymentStatus,
-      o.status,
+      o.orderStatus,
       new Date(o.createdAt).toISOString(),
     ]);
     const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
@@ -283,8 +286,8 @@ export default function AdminOrders() {
                             </span>
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                              {getStatusLabel(order.status)}
+                            <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.orderStatus)}`}>
+                              {getStatusLabel(order.orderStatus)}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-gray-400 text-xs">{formatDate(order.createdAt)}</td>
@@ -301,7 +304,7 @@ export default function AdminOrders() {
                                 <button
                                   onClick={() => {
                                     setShowStatusModal(showStatusModal === order._id ? null : order._id);
-                                    setNewStatus(order.status);
+                                    setNewStatus(order.orderStatus);
                                   }}
                                   className="p-1.5 text-gray-400 hover:text-[#1D3557] hover:bg-gray-100 rounded-lg transition-colors"
                                   title="Update Status"
@@ -415,7 +418,7 @@ export default function AdminOrders() {
                                             {item.size && `Size: ${item.size}`} {item.color && `Color: ${item.color}`} &middot; Qty: {item.quantity}
                                           </p>
                                         </div>
-                                        <p className="text-sm font-semibold text-[#1D3557]">{formatPrice(item.price * item.quantity)}</p>
+                                        <p className="text-sm font-semibold text-[#1D3557]">{formatPrice(item.totalPrice || item.unitPrice * item.quantity)}</p>
                                         {item.designImage && (
                                           <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                                             <img src={item.designImage} alt="Design" className="w-full h-full object-cover" />

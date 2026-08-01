@@ -8,6 +8,7 @@ const {
   getOrderStats,
   getAllOrders,
   getOrder,
+  getInvoice,
   updateOrderStatus,
   approveDesign,
   cancelOrder,
@@ -47,6 +48,8 @@ router.post(
 router.get("/my", protect, getMyOrders);
 
 router.get("/stats", protect, authorize("admin"), getOrderStats);
+
+router.get("/:id/invoice", protect, getInvoice);
 
 router.get("/", protect, authorize("admin"), getAllOrders);
 

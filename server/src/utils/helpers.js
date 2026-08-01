@@ -279,8 +279,8 @@ const generateInvoice = (order) => {
       <td style="padding: 8px 12px; border-bottom: 1px solid #E0E0E0; font-size: 13px;">${i + 1}</td>
       <td style="padding: 8px 12px; border-bottom: 1px solid #E0E0E0; font-size: 13px;">${item.product?.name || item.name || "N/A"}</td>
       <td style="padding: 8px 12px; border-bottom: 1px solid #E0E0E0; font-size: 13px; text-align: center;">${item.quantity}</td>
-      <td style="padding: 8px 12px; border-bottom: 1px solid #E0E0E0; font-size: 13px; text-align: right;">₹${Number(item.price).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
-      <td style="padding: 8px 12px; border-bottom: 1px solid #E0E0E0; font-size: 13px; text-align: right;">₹${Number(item.quantity * item.price).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #E0E0E0; font-size: 13px; text-align: right;">₹${Number(item.unitPrice ?? item.price).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #E0E0E0; font-size: 13px; text-align: right;">₹${Number((item.unitPrice ?? item.price) * item.quantity).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
     </tr>`
     )
     .join("");

@@ -22,11 +22,9 @@ import toast from 'react-hot-toast';
 const TIMELINE_STAGES = [
   { key: 'pending', label: 'Order Placed' },
   { key: 'confirmed', label: 'Confirmed' },
-  { key: 'processing', label: 'Processing' },
-  { key: 'printing', label: 'Printing' },
+  { key: 'in_production', label: 'In Production' },
   { key: 'quality_check', label: 'Quality Check' },
   { key: 'shipped', label: 'Shipped' },
-  { key: 'out_for_delivery', label: 'Out for Delivery' },
   { key: 'delivered', label: 'Delivered' },
 ];
 
@@ -115,7 +113,7 @@ export default function OrderDetailPage() {
   const handleCancelOrder = async () => {
     try {
       setCancelling(true);
-      await api.post(`/orders/${orderId}/cancel`);
+      await api.put(`/orders/${orderId}/cancel`);
       toast.success('Order cancelled successfully');
       setShowCancelModal(false);
       fetchOrder();
@@ -128,23 +126,25 @@ export default function OrderDetailPage() {
 
   const handleDownloadInvoice = async () => {
     try {
-      const response = await api.get(`/orders/${orderId}/invoice`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const response = await api.get(`/orders/${orderId}/invoice`);
+      const html = typeof response.data === 'string' ? response.data : response.data?.html || '';
+      if (!html) throw new Error('Empty invoice');
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `PrintJack-Invoice-${order.orderNumber || orderId}.pdf`);
+      link.setAttribute('download', `PrintJack-Invoice-${order.orderNumber || orderId}.html`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      toast.success('Invoice downloaded');
     } catch {
       toast.error('Failed to download invoice');
     }
   };
 
-  const canCancel = ['pending', 'confirmed', 'processing'].includes(order?.status);
+  const canCancel = ['pending', 'confirmed'].includes(order?.orderStatus);
 
   if (loading) {
     return <Loading fullPage={false} />;
@@ -171,10 +171,10 @@ export default function OrderDetailPage() {
         <div className="ml-auto">
           <span
             className={`text-xs font-bold px-3 py-1.5 rounded-full ${getStatusColor(
-              order.status
+              order.orderStatus
             )}`}
           >
-            {getStatusLabel(order.status)}
+            {getStatusLabel(order.orderStatus)}
           </span>
         </div>
       </div>
@@ -185,7 +185,7 @@ export default function OrderDetailPage() {
           {/* Status Timeline */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <h2 className="font-semibold text-[#1D3557] mb-4">Order Status</h2>
-            <StatusTimeline currentStatus={order.status} />
+            <StatusTimeline currentStatus={order.orderStatus} />
           </div>
 
           {/* Items */}
@@ -240,7 +240,7 @@ export default function OrderDetailPage() {
                       )}
                     </div>
                     <p className="font-bold text-[#1D3557] flex-shrink-0">
-                      {formatPrice(item.price * item.quantity)}
+                      {formatPrice(item.totalPrice ?? item.unitPrice * item.quantity)}
                     </p>
                   </div>
                 );

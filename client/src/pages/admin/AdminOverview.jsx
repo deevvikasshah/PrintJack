@@ -9,7 +9,7 @@ import {
   ArcElement, Tooltip, Legend, Filler,
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
-import { get } from '../../utils/api';
+import { get, put } from '../../utils/api';
 import { formatPrice, formatDate, getStatusColor, getStatusLabel } from '../../utils/formatters';
 import Loading from '../../components/common/Loading';
 
@@ -40,7 +40,7 @@ export default function AdminOverview() {
         get('/analytics/top-products?limit=5'),
       ]);
 
-      if (statsRes.status === 'fulfilled') setStats(statsRes.value.data);
+      if (statsRes.status === 'fulfilled') setStats(statsRes.value.data.stats);
       if (revenueRes.status === 'fulfilled') setRevenueChart(revenueRes.value.data);
       if (ordersRes.status === 'fulfilled') setOrdersChart(ordersRes.value.data);
       if (recentOrdersRes.status === 'fulfilled') setRecentOrders(recentOrdersRes.value.data.orders || recentOrdersRes.value.data || []);
@@ -55,7 +55,7 @@ export default function AdminOverview() {
 
   const handleDesignAction = async (designId, action, notes = '') => {
     try {
-      await get(`/admin/designs/${designId}/${action}`, { params: { notes } });
+      await put(`/admin/designs/${designId}/${action}`, { notes });
       setPendingDesigns((prev) => prev.filter((d) => d._id !== designId));
     } catch (err) {
       console.error('Failed to update design', err);
@@ -215,8 +215,8 @@ export default function AdminOverview() {
                       <td className="px-6 py-3 text-gray-600">{order.user?.name || order.shippingAddress?.name || 'N/A'}</td>
                       <td className="px-6 py-3 text-gray-600 font-medium">{formatPrice(order.totalAmount)}</td>
                       <td className="px-6 py-3">
-                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                          {getStatusLabel(order.status)}
+                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.orderStatus)}`}>
+                          {getStatusLabel(order.orderStatus)}
                         </span>
                       </td>
                       <td className="px-6 py-3 text-gray-400">{formatDate(order.createdAt)}</td>

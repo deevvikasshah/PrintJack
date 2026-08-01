@@ -17,6 +17,7 @@ const {
   getAllUsers,
   updateUser,
   deleteUser,
+  sendUserMessage,
 } = require("../controllers/usersController");
 
 const {
@@ -64,6 +65,7 @@ router.get("/orders/stats", getOrderStats);
 router.get("/users", getAllUsers);
 router.put("/users/:id", updateUser);
 router.delete("/users/:id", deleteUser);
+router.post("/users/:id/message", sendUserMessage);
 
 // Coupons
 router.get("/coupons", getAllCoupons);
@@ -85,9 +87,15 @@ router.delete("/categories/:id", deleteCategory);
 
 // Designs
 router.get("/designs", getPendingApprovals);
-router.put("/designs/:id/approve", approveDesign);
+router.put("/designs/:id/approve", (req, res, next) => {
+  req.body.status = "approved";
+  if (req.body.notes && !req.body.adminNotes) req.body.adminNotes = req.body.notes;
+  return approveDesign(req, res, next);
+});
 router.put("/designs/:id/reject", (req, res, next) => {
   req.body.status = "rejected";
+  if (req.body.reason && !req.body.adminNotes) req.body.adminNotes = req.body.reason;
+  if (req.body.notes && !req.body.adminNotes) req.body.adminNotes = req.body.notes;
   return approveDesign(req, res, next);
 });
 router.get("/designs/:id/export", exportDesign);

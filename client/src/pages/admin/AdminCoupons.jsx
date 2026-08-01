@@ -89,6 +89,7 @@ export default function AdminCoupons() {
       setSaving(true);
       const payload = {
         ...form,
+        isActive: form.active,
         discountValue: Number(form.discountValue),
         minimumOrderAmount: Number(form.minimumOrderAmount) || 0,
         maximumDiscountAmount: Number(form.maximumDiscountAmount) || 0,
@@ -124,7 +125,7 @@ export default function AdminCoupons() {
 
   const toggleActive = async (coupon) => {
     try {
-      await put(`/admin/coupons/${coupon._id}`, { active: !coupon.active });
+      await put(`/admin/coupons/${coupon._id}`, { isActive: !coupon.active });
       fetchCoupons();
     } catch (err) {
       toast.error('Failed to update coupon');

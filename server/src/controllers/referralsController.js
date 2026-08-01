@@ -130,3 +130,35 @@ exports.getPendingRewards = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getReferralHistory = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+
+    const query = {
+      $or: [{ referrer: req.user._id }, { referredUser: req.user._id }],
+    };
+
+    const total = await Referral.countDocuments(query);
+    const referrals = await Referral.find(query)
+      .populate('referredUser', 'name email')
+      .populate('referrer', 'name email')
+      .sort('-createdAt')
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      referrals,
+      pagination: {
+        total,
+        pages: Math.max(1, Math.ceil(total / limit)),
+        page,
+        limit,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};

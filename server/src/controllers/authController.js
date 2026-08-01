@@ -337,3 +337,19 @@ exports.updatePassword = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.deleteAccount = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    user.isActive = false;
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({ success: true, message: 'Account deleted successfully' });
+  } catch (err) {
+    next(err);
+  }
+};

@@ -153,7 +153,7 @@ export function AuthProvider({ children }) {
   const resetPassword = async (token, password) => {
     try {
       setError(null);
-      const { data } = await api.post(`/auth/reset-password/${token}`, { password });
+      const { data } = await api.put(`/auth/reset-password/${token}`, { password });
       toast.success('Password reset successful! Please login.');
       return data;
     } catch (err) {

@@ -220,7 +220,7 @@ export default function DesignsPage() {
   const handleSubmit = async (id) => {
     try {
       setActionLoading(id);
-      await api.post(`/designs/${id}/submit`);
+      await api.put(`/designs/${id}/submit`);
       toast.success('Design submitted for print review');
       fetchDesigns();
     } catch {
@@ -232,7 +232,7 @@ export default function DesignsPage() {
 
   const handleVersions = async (id) => {
     try {
-      const { data } = await api.get(`/designs/${id}/versions`);
+      const { data } = await api.get(`/versions/${id}/versions`);
       setVersionHistory(data.versions || []);
       setSelectedDesignId(id);
       setShowVersions(true);
@@ -254,7 +254,7 @@ export default function DesignsPage() {
 
   const handleCalculate = async (id) => {
     try {
-      const { data } = await api.get(`/products/${id}/calculate`);
+      const { data } = await api.post(`/products/${id}/calculate`, {});
       setCalculation(data.calculation);
       setSelectedDesignId(id);
       setShowCalculator(true);

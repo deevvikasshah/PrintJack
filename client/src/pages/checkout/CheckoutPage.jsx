@@ -444,7 +444,7 @@ function AddressStep({ onSelectAddress, selectedAddressId }) {
   );
 }
 
-function PaymentStep({ onBack, onPaymentSuccess }) {
+function PaymentStep({ onBack, onPaymentSuccess, selectedAddress }) {
   const { items, totalAmount, discount, coupon } = useCart();
   const { user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
@@ -454,15 +454,17 @@ function PaymentStep({ onBack, onPaymentSuccess }) {
   const [appliedDiscount, setAppliedDiscount] = useState(discount);
   const [processing, setProcessing] = useState(false);
 
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
   const shippingCost =
     shippingMethod === 'express'
       ? SHIPPING_METHODS.find((m) => m.id === 'express').price
-      : totalAmount >= FREE_SHIPPING_THRESHOLD
+      : subtotal >= FREE_SHIPPING_THRESHOLD
       ? 0
       : SHIPPING_COST;
 
-  const gstAmount = totalAmount * GST_RATE;
-  const grandTotal = totalAmount - appliedDiscount + shippingCost + gstAmount;
+  const gstAmount = subtotal * GST_RATE;
+  const grandTotal = subtotal - appliedDiscount + shippingCost + gstAmount;
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -494,11 +496,17 @@ function PaymentStep({ onBack, onPaymentSuccess }) {
     setProcessing(true);
     try {
       const orderData = {
-        shippingAddressId: null,
+        shippingAddressId: selectedAddress?._id,
         paymentMethod: 'razorpay',
         shippingMethod,
         couponCode: appliedCoupon?.code || undefined,
       };
+
+      if (!selectedAddress?._id) {
+        toast.error('Please select a shipping address');
+        setProcessing(false);
+        return;
+      }
 
       const { data: order } = await api.post('/orders/checkout', orderData);
 
@@ -561,8 +569,13 @@ function PaymentStep({ onBack, onPaymentSuccess }) {
   const handleCODPayment = async () => {
     setProcessing(true);
     try {
+      if (!selectedAddress?._id) {
+        toast.error('Please select a shipping address');
+        setProcessing(false);
+        return;
+      }
       const { data: order } = await api.post('/orders/checkout', {
-        shippingAddressId: null,
+        shippingAddressId: selectedAddress._id,
         paymentMethod: 'cod',
         shippingMethod,
         couponCode: appliedCoupon?.code || undefined,
@@ -748,7 +761,7 @@ function PaymentStep({ onBack, onPaymentSuccess }) {
         <div className="space-y-2.5 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">Subtotal</span>
-            <span className="font-medium">{formatPrice(totalAmount)}</span>
+            <span className="font-medium">{formatPrice(subtotal)}</span>
           </div>
           {appliedDiscount > 0 && (
             <div className="flex justify-between text-green-600">
@@ -970,6 +983,7 @@ export default function CheckoutPage() {
               <PaymentStep
                 onBack={() => setStep(1)}
                 onPaymentSuccess={handlePaymentSuccess}
+                selectedAddress={selectedAddress}
               />
             )}
 
@@ -1015,7 +1029,7 @@ export default function CheckoutPage() {
                   {cartCoupon && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>-{formatPrice(useCart().discount)}</span>
+                      <span>-{formatPrice(cartDiscount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
@@ -1057,7 +1071,7 @@ export default function CheckoutPage() {
                 <p className="text-xs text-gray-500">Total</p>
                 <p className="text-lg font-bold text-[#E63946]">
                   {formatPrice(
-                    items.reduce((s, i) => s + i.price * i.quantity, 0) * (1 + GST_RATE)
+                    Math.max(items.reduce((s, i) => s + i.price * i.quantity, 0) - cartDiscount, 0) * (1 + GST_RATE)
                   )}
                 </p>
               </div>

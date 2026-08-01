@@ -22,7 +22,7 @@ router.post(
   upload.single("image"),
   [
     body("name").trim().notEmpty().withMessage("Category name is required"),
-    body("slug").trim().notEmpty().withMessage("Slug is required"),
+    body("slug").optional().trim(),
   ],
   validate,
   createCategory
@@ -35,7 +35,7 @@ router.put(
   upload.single("image"),
   [
     body("name").optional().trim().notEmpty().withMessage("Name cannot be empty"),
-    body("slug").optional().trim().notEmpty().withMessage("Slug cannot be empty"),
+    body("slug").optional().trim(),
   ],
   validate,
   updateCategory

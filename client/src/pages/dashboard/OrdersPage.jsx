@@ -19,8 +19,8 @@ const TABS = [
 
 const STATUS_TAB_MAP = {
   all: null,
-  processing: ['pending', 'confirmed', 'processing', 'printing', 'quality_check'],
-  shipped: ['shipped', 'out_for_delivery'],
+  processing: ['pending', 'confirmed', 'in_production', 'quality_check'],
+  shipped: ['shipped'],
   delivered: ['delivered'],
   cancelled: ['cancelled', 'returned'],
 };
@@ -28,11 +28,9 @@ const STATUS_TAB_MAP = {
 const TIMELINE_STAGES = [
   'pending',
   'confirmed',
-  'processing',
-  'printing',
+  'in_production',
   'quality_check',
   'shipped',
-  'out_for_delivery',
   'delivered',
 ];
 
@@ -119,10 +117,10 @@ function OrderCard({ order, onReorder }) {
                 </p>
                 <span
                   className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${getStatusColor(
-                    order.status
+                    order.orderStatus
                   )}`}
                 >
-                  {getStatusLabel(order.status)}
+                  {getStatusLabel(order.orderStatus)}
                 </span>
               </div>
               <p className="text-xs text-gray-500 mt-1">
@@ -149,7 +147,7 @@ function OrderCard({ order, onReorder }) {
       {expanded && (
         <div className="border-t border-gray-100 p-4 sm:p-5 bg-gray-50">
           {/* Status Timeline */}
-          <StatusTimeline currentStatus={order.status} />
+          <StatusTimeline currentStatus={order.orderStatus} />
 
           {/* Items List */}
           <div className="mt-5 space-y-3">
@@ -185,7 +183,7 @@ function OrderCard({ order, onReorder }) {
                     )}
                   </div>
                   <p className="text-sm font-semibold text-[#1D3557] flex-shrink-0">
-                    {formatPrice(item.price * item.quantity)}
+                    {formatPrice(item.totalPrice ?? item.unitPrice * item.quantity)}
                   </p>
                 </div>
               );
@@ -224,7 +222,7 @@ function OrderCard({ order, onReorder }) {
               <Eye size={14} />
               View Details
             </Link>
-            {order.status === 'delivered' && (
+            {order.orderStatus === 'delivered' && (
               <button
                 onClick={() => onReorder(order)}
                 className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors"

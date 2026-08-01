@@ -22,6 +22,7 @@ import { formatPrice } from '../../utils/formatters';
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_COST, GST_RATE } from '../../utils/constants';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import EmptyState from '../../components/common/EmptyState';
+import toast from 'react-hot-toast';
 
 export default function CartPage() {
   const {
@@ -35,6 +36,7 @@ export default function CartPage() {
     removeItem,
     applyCoupon,
     removeCoupon,
+    moveToWishlist,
   } = useCart();
 
   const [couponCode, setCouponCode] = useState('');
@@ -74,11 +76,11 @@ export default function CartPage() {
   );
 
   const saveForLater = useCallback(
-    async (itemId) => {
-      setSavingLaterItemId(itemId);
+    async (item) => {
+      setSavingLaterItemId(item._id);
       try {
-        await moveToWishlist(itemId);
-        toast.success('Saved for later');
+        await moveToWishlist(item);
+        toast.success('Saved to wishlist');
       } catch {
         toast.error('Failed to save for later');
       } finally {
@@ -242,7 +244,7 @@ export default function CartPage() {
                           )}
                         </button>
                         <button
-                          onClick={() => saveForLater(item._id)}
+                          onClick={() => saveForLater(item)}
                           disabled={savingLaterItemId === item._id}
                           className="p-1.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors flex-shrink-0 disabled:opacity-50"
                           title="Save for later"
@@ -402,9 +404,9 @@ export default function CartPage() {
                       <div>
                         <span className="text-sm text-green-700 font-semibold">{coupon.code}</span>
                         <p className="text-xs text-green-600">
-                          {coupon.type === 'percentage'
-                            ? `${coupon.value}% off`
-                            : `${formatPrice(coupon.value)} off`}
+                          {coupon.discountType === 'percentage'
+                            ? `${coupon.discountValue}% off`
+                            : `${formatPrice(coupon.discountValue)} off`}
                         </p>
                       </div>
                     </div>

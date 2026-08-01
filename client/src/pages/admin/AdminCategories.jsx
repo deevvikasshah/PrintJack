@@ -61,7 +61,7 @@ export default function AdminCategories() {
     e.preventDefault();
     try {
       setSaving(true);
-      const payload = { ...form, sortOrder: Number(form.sortOrder) };
+      const payload = { ...form, isActive: form.active, sortOrder: Number(form.sortOrder) };
 
       if (editingCategory) {
         await put(`/admin/categories/${editingCategory._id}`, payload);
@@ -92,7 +92,7 @@ export default function AdminCategories() {
 
   const toggleActive = async (category) => {
     try {
-      await put(`/admin/categories/${category._id}`, { active: !category.active });
+      await put(`/admin/categories/${category._id}`, { isActive: !category.active });
       fetchCategories();
     } catch (err) {
       toast.error('Failed to update status');

@@ -20,8 +20,8 @@ export default function TrackOrderPage() {
 
   const statuses = [
     { key: 'confirmed', label: 'Order Confirmed', icon: CheckCircle },
-    { key: 'processing', label: 'Processing', icon: Clock },
-    { key: 'printing', label: 'Printing', icon: Package },
+    { key: 'in_production', label: 'In Production', icon: Clock },
+    { key: 'quality_check', label: 'Quality Check', icon: Package },
     { key: 'shipped', label: 'Shipped', icon: Truck },
     { key: 'delivered', label: 'Delivered', icon: MapPin },
   ];

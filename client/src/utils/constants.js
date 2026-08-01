@@ -4,24 +4,20 @@ export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test
 export const ORDER_STATUSES = [
   'pending',
   'confirmed',
-  'processing',
-  'printing',
+  'in_production',
   'quality_check',
   'shipped',
-  'out_for_delivery',
   'delivered',
   'cancelled',
   'returned',
-  'refunded',
 ];
 
 export const PAYMENT_STATUSES = [
   'pending',
-  'processing',
-  'completed',
+  'authorized',
+  'captured',
   'failed',
   'refunded',
-  'partially_refunded',
 ];
 
 export const PRODUCT_CATEGORIES = [

@@ -63,6 +63,25 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0,
   },
+  loyaltyHistory: [{
+    description: { type: String, default: '' },
+    points: { type: Number, default: 0 },
+    type: { type: String, enum: ['earned', 'redeemed', 'bonus'], default: 'earned' },
+    createdAt: { type: Date, default: Date.now },
+  }],
+  preferences: {
+    language: { type: String, default: 'en' },
+    currency: { type: String, default: 'INR' },
+    notifications: {
+      emailOrderUpdates: { type: Boolean, default: true },
+      emailPromotions: { type: Boolean, default: true },
+      emailNewsletter: { type: Boolean, default: false },
+      smsOrderUpdates: { type: Boolean, default: true },
+      smsPromotions: { type: Boolean, default: false },
+      whatsappOrderUpdates: { type: Boolean, default: true },
+      whatsappPromotions: { type: Boolean, default: false },
+    },
+  },
   referralCode: {
     type: String,
     unique: true,

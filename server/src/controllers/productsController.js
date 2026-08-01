@@ -126,13 +126,13 @@ exports.createProduct = async (req, res, next) => {
       isFeatured, metaTitle, metaDescription,
     };
 
-    if (bulkPricing) productData.bulkPricing = JSON.parse(bulkPricing);
-    if (colors) productData.colors = JSON.parse(colors);
-    if (sizes) productData.sizes = JSON.parse(sizes);
-    if (printAreas) productData.printAreas = JSON.parse(printAreas);
+    if (bulkPricing) productData.bulkPricing = typeof bulkPricing === 'string' ? JSON.parse(bulkPricing) : bulkPricing;
+    if (colors) productData.colors = typeof colors === 'string' ? JSON.parse(colors) : colors;
+    if (sizes) productData.sizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes;
+    if (printAreas) productData.printAreas = typeof printAreas === 'string' ? JSON.parse(printAreas) : printAreas;
     if (tags) productData.tags = typeof tags === 'string' ? JSON.parse(tags) : tags;
-    if (specifications) productData.specifications = JSON.parse(specifications);
-    if (templates) productData.templates = JSON.parse(templates);
+    if (specifications) productData.specifications = typeof specifications === 'string' ? JSON.parse(specifications) : specifications;
+    if (templates) productData.templates = typeof templates === 'string' ? JSON.parse(templates) : templates;
 
     if (req.files && req.files.length > 0) {
       const images = [];

@@ -13,11 +13,16 @@ const {
   addAddress,
   updateAddress,
   deleteAddress,
+  setDefaultAddress,
   getWishlist,
   toggleWishlist,
   getNotifications,
   markNotificationRead,
   getLoyaltyPoints,
+  getLoyaltyHistory,
+  redeemLoyaltyPoints,
+  getUserSettings,
+  updateUserSettings,
 } = require("../controllers/usersController");
 
 router.get("/", protect, authorize("admin"), getAllUsers);
@@ -40,23 +45,6 @@ router.post(
   addAddress
 );
 
-router.get("/:id", protect, authorize("admin"), getUser);
-
-router.put(
-  "/:id",
-  protect,
-  authorize("admin"),
-  [
-    body("name").optional().trim().notEmpty().withMessage("Name cannot be empty"),
-    body("email").optional().isEmail().withMessage("Valid email is required"),
-    body("role").optional().isIn(["customer", "admin", "super_admin"]).withMessage("Invalid role"),
-  ],
-  validate,
-  updateUser
-);
-
-router.delete("/:id", protect, authorize("admin"), deleteUser);
-
 router.put(
   "/address/:addressId",
   protect,
@@ -74,6 +62,8 @@ router.put(
 
 router.delete("/address/:addressId", protect, deleteAddress);
 
+router.put("/address/:addressId/default", protect, setDefaultAddress);
+
 router.get("/wishlist", protect, getWishlist);
 
 router.post("/wishlist/:productId", protect, toggleWishlist);
@@ -83,5 +73,15 @@ router.get("/notifications", protect, getNotifications);
 router.put("/notifications/:id/read", protect, markNotificationRead);
 
 router.get("/loyalty", protect, getLoyaltyPoints);
+
+router.get("/loyalty/history", protect, getLoyaltyHistory);
+
+router.post("/loyalty/redeem", protect, redeemLoyaltyPoints);
+
+router.get("/settings", protect, getUserSettings);
+
+router.put("/settings", protect, updateUserSettings);
+
+router.get("/:id", protect, authorize("admin"), getUser);
 
 module.exports = router;

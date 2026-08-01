@@ -74,7 +74,7 @@ export default function SettingsPage() {
 
   const fetchSettings = async () => {
     try {
-      const { data } = await api.get('/user/settings');
+      const { data } = await api.get('/users/settings');
       if (data.notifications) setNotifications(data.notifications);
       if (data.language) setLanguage(data.language);
       if (data.currency) setCurrency(data.currency);
@@ -86,7 +86,7 @@ export default function SettingsPage() {
   const handleSaveNotifications = async () => {
     try {
       setSaving(true);
-      await api.put('/user/settings/notifications', notifications);
+      await api.put('/users/settings', notifications);
       toast.success('Notification preferences saved');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save preferences');
@@ -98,7 +98,7 @@ export default function SettingsPage() {
   const handleSavePreferences = async () => {
     try {
       setSaving(true);
-      await api.put('/user/settings/preferences', { language, currency });
+      await api.put('/users/settings', { language, currency });
       toast.success('Preferences saved');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save preferences');

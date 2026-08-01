@@ -66,7 +66,7 @@ export default function ProfilePage() {
       setSaving(true);
       const formData = new FormData();
       formData.append('avatar', avatarFile);
-      await api.put('/auth/avatar', formData, {
+      await api.put('/auth/profile', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setAvatarFile(null);
@@ -114,7 +114,7 @@ export default function ProfilePage() {
     }
     try {
       setSaving(true);
-      await api.put('/auth/password', {
+      await api.put('/auth/update-password', {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
       });

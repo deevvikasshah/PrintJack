@@ -16,6 +16,7 @@ const {
   logout,
   getMe,
   updatePassword,
+  deleteAccount,
 } = controller;
 
 const { updateProfile } = require("../controllers/usersController");
@@ -107,5 +108,7 @@ router.put(
   validate,
   updatePassword
 );
+
+router.delete("/account", protect, deleteAccount);
 
 module.exports = router;

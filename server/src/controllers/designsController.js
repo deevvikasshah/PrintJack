@@ -185,6 +185,33 @@ exports.deleteDesign = async (req, res, next) => {
   }
 };
 
+exports.duplicateDesign = async (req, res, next) => {
+  try {
+    const design = await Design.findById(req.params.id);
+    if (!design) {
+      throw new AppError('Design not found', 404);
+    }
+
+    if (design.user.toString() !== req.user._id.toString()) {
+      throw new AppError('Not authorized to duplicate this design', 403);
+    }
+
+    const copy = await Design.create({
+      user: req.user._id,
+      product: design.product,
+      name: `${design.name} (Copy)`,
+      canvasData: design.canvasData,
+      previewImage: design.previewImage,
+      printSpecifications: design.printSpecifications || {},
+      status: 'draft',
+    });
+
+    res.status(201).json({ success: true, design: copy });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.submitForPrint = async (req, res, next) => {
   try {
     const design = await Design.findById(req.params.id);
@@ -215,10 +242,17 @@ exports.submitForPrint = async (req, res, next) => {
 
 exports.getPendingApprovals = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, status } = req.query;
+
+    const query = {};
+    if (status && status !== 'all') {
+      query.status = status === 'pending' ? 'submitted' : status;
+    } else if (!status) {
+      query.status = 'submitted';
+    }
 
     const designs = await Design.paginate(
-      { status: 'submitted' },
+      query,
       {
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),

@@ -3,7 +3,7 @@ import {
   PenTool, Check, X as XIcon, Download, Eye, Filter, CheckCircle2,
   XCircle, Clock, Image as ImageIcon, Package, ChevronDown,
 } from 'lucide-react';
-import { get, post } from '../../utils/api';
+import { get, put } from '../../utils/api';
 import { formatDate } from '../../utils/formatters';
 import Modal from '../../components/common/Modal';
 import Loading from '../../components/common/Loading';
@@ -45,7 +45,7 @@ export default function AdminDesignApprovals() {
 
   const handleApprove = async (designId) => {
     try {
-      await post(`/admin/designs/${designId}/approve`, {
+      await put(`/admin/designs/${designId}/approve`, {
         printSpecifications: printSpecs,
         notes: approveNotes,
       });
@@ -62,7 +62,7 @@ export default function AdminDesignApprovals() {
   const handleReject = async (designId) => {
     if (!rejectReason.trim()) return toast.error('Rejection reason is required');
     try {
-      await post(`/admin/designs/${designId}/reject`, { reason: rejectReason });
+      await put(`/admin/designs/${designId}/reject`, { reason: rejectReason });
       setDesigns((prev) => prev.filter((d) => d._id !== designId));
       setRejectModal(null);
       setRejectReason('');
@@ -74,7 +74,7 @@ export default function AdminDesignApprovals() {
 
   const handleApproveAndDownload = async (designId) => {
     try {
-      const { data } = await post(`/admin/designs/${designId}/approve`, {
+      const { data } = await put(`/admin/designs/${designId}/approve`, {
         printSpecifications: printSpecs,
         notes: approveNotes,
         exportPrintFile: true,

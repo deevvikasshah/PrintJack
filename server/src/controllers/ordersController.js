@@ -2,6 +2,7 @@ const { Order, Cart, Product, User, Notification } = require('../models');
 const { AppError } = require('../middleware/errorHandler');
 const { sendEmail } = require('../services/email');
 const { sendSMS } = require('../services/sms');
+const { generateInvoice } = require('../utils/helpers');
 let razorpayService;
 try { razorpayService = require('../services/razorpay'); } catch { razorpayService = null; }
 
@@ -136,10 +137,6 @@ exports.checkoutFromCart = async (req, res, next) => {
       orderStatus: 'pending',
     });
 
-    for (const item of orderItems) {
-      await Product.findByIdAndUpdate(item.product, { $inc: { totalSold: item.quantity } });
-    }
-
     if (razorpayService) {
       try {
         const razorpayOrder = await razorpayService.createOrder(
@@ -151,16 +148,12 @@ exports.checkoutFromCart = async (req, res, next) => {
         order.razorpayOrderId = razorpayOrder.orderId;
       } catch (e) {
         console.error('Razorpay order creation failed:', e.message);
+        await Order.findByIdAndDelete(order._id);
         throw new AppError('Payment gateway error. Please try again.', 500);
       }
     }
 
     await order.save({ validateBeforeSave: false });
-
-    cart.items = [];
-    cart.coupon = undefined;
-    cart.discount = 0;
-    await cart.save();
 
     res.status(201).json({
       success: true,
@@ -212,6 +205,15 @@ exports.verifyPaymentFromCheckout = async (req, res, next) => {
     order.paymentStatus = 'captured';
     order.orderStatus = 'confirmed';
     await order.save();
+
+    for (const item of order.items) {
+      await Product.findByIdAndUpdate(item.product, { $inc: { totalSold: item.quantity } });
+    }
+
+    await Cart.updateOne(
+      { user: order.user },
+      { $set: { items: [], coupon: undefined, discount: 0 } }
+    );
 
     await Notification.create({
       user: order.user,
@@ -340,12 +342,22 @@ exports.getMyOrders = async (req, res, next) => {
     const { page = 1, limit = 10, status } = req.query;
 
     const query = { user: req.user._id };
-    if (status) query.orderStatus = status;
+    if (status) {
+      const statusList = String(status).split(',').filter(Boolean);
+      if (statusList.length > 1) {
+        query.orderStatus = { $in: statusList };
+      } else {
+        query.orderStatus = statusList[0];
+      }
+    }
 
     const orders = await Order.paginate(query, {
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
       sort: '-createdAt',
+      populate: [
+        { path: 'items.product', select: 'name slug images' },
+      ],
     });
 
     res.status(200).json({
@@ -424,6 +436,13 @@ exports.getAllOrders = async (req, res, next) => {
       ],
     });
 
+    const statusCounts = await Order.aggregate([
+      { $match: query },
+      { $group: { _id: '$orderStatus', count: { $sum: 1 } } },
+    ]);
+    const countsByStatus = {};
+    statusCounts.forEach((s) => { countsByStatus[s._id] = s.count; });
+
     res.status(200).json({
       success: true,
       orders: orders.docs,
@@ -432,6 +451,16 @@ exports.getAllOrders = async (req, res, next) => {
         pages: orders.totalPages,
         page: orders.page,
         limit: orders.limit,
+      },
+      stats: {
+        total: orders.totalDocs,
+        pending: countsByStatus.pending || 0,
+        confirmed: countsByStatus.confirmed || 0,
+        processing: (countsByStatus.in_production || 0) + (countsByStatus.quality_check || 0),
+        shipped: countsByStatus.shipped || 0,
+        delivered: countsByStatus.delivered || 0,
+        cancelled: countsByStatus.cancelled || 0,
+        returned: countsByStatus.returned || 0,
       },
     });
   } catch (err) {
@@ -587,6 +616,30 @@ exports.cancelOrder = async (req, res, next) => {
     });
 
     res.status(200).json({ success: true, message: 'Order cancelled successfully', order });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getInvoice = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('items.product', 'name')
+      .populate('user', 'name email phone');
+
+    if (!order) {
+      throw new AppError('Order not found', 404);
+    }
+
+    if (req.user.role === 'customer' && order.user._id.toString() !== req.user._id.toString()) {
+      throw new AppError('Not authorized to view this invoice', 403);
+    }
+
+    const html = generateInvoice(order);
+
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Disposition', `inline; filename="PrintJack-Invoice-${order.orderNumber}.html"`);
+    res.status(200).send(html);
   } catch (err) {
     next(err);
   }

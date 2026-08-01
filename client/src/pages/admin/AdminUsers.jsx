@@ -47,7 +47,7 @@ export default function AdminUsers() {
 
   const updateRole = async (userId) => {
     try {
-      await put(`/admin/users/${userId}/role`, { role: newRole });
+      await put(`/admin/users/${userId}`, { role: newRole });
       setUsers((prev) => prev.map((u) => (u._id === userId ? { ...u, role: newRole } : u)));
       setShowRoleModal(null);
       toast.success('Role updated');
@@ -58,7 +58,7 @@ export default function AdminUsers() {
 
   const toggleActive = async (user) => {
     try {
-      await put(`/admin/users/${user._id}/toggle-active`);
+      await put(`/admin/users/${user._id}`, { isActive: user.active === false });
       fetchUsers();
     } catch (err) {
       toast.error('Failed to update user status');

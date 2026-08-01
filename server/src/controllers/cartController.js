@@ -20,6 +20,7 @@ exports.getCart = async (req, res, next) => {
     }
 
     cart.items = cart.items.filter((item) => item.product && item.product.isActive);
+    cart.totalAmount = cart.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
 
     res.status(200).json({
       success: true,

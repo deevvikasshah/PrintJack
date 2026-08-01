@@ -56,6 +56,19 @@ exports.getDashboardStats = async (req, res, next) => {
       ]),
     ]);
 
+    const [totalProducts, prevMonthOrders, prevMonthRevenue] = await Promise.all([
+      Product.countDocuments({ isActive: true }),
+      Order.countDocuments({ createdAt: { $gte: startOfMonth, $lt: new Date(now) } }),
+      Order.aggregate([
+        { $match: { paymentStatus: 'captured', createdAt: { $gte: new Date(now.getFullYear(), now.getMonth() - 1, 1), $lt: startOfMonth } } },
+        { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+      ]),
+    ]);
+
+    const revenueChange = prevMonthRevenue[0]?.total > 0 ? Math.round(((monthRevenue[0]?.total || 0) - prevMonthRevenue[0].total) / prevMonthRevenue[0].total * 100) : 0;
+    const ordersChange = monthOrders > 0 && prevMonthOrders > 0 ? Math.round(((monthOrders - prevMonthOrders) / prevMonthOrders) * 100) : 0;
+    const usersChange = newUsersMonth > 0 ? Math.round((newUsersToday / Math.max(newUsersMonth, 1)) * 100) : 0;
+
     const topProducts = await Order.aggregate([
       { $match: { paymentStatus: 'captured' } },
       { $unwind: '$items' },
@@ -102,11 +115,16 @@ exports.getDashboardStats = async (req, res, next) => {
         weekRevenue: weekRevenue[0]?.total || 0,
         todayRevenue: todayRevenue[0]?.total || 0,
         totalUsers,
+        activeUsers: totalUsers,
         newUsersToday,
         newUsersWeek,
         newUsersMonth,
         pendingOrders,
         pendingApprovals,
+        totalProducts,
+        revenueChange,
+        ordersChange,
+        usersChange,
         topProducts,
       },
     });
@@ -310,6 +328,8 @@ exports.getTopProducts = async (req, res, next) => {
           slug: '$productDetails.slug',
           images: '$productDetails.images',
           category: '$productDetails.category',
+          price: '$productDetails.basePrice',
+          averageRating: '$productDetails.averageRating',
         },
       },
     ]);
@@ -320,13 +340,219 @@ exports.getTopProducts = async (req, res, next) => {
   }
 };
 
+exports.getMetrics = async (req, res, next) => {
+  try {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const [totalRevenue, monthRevenue, prevMonthRevenue, todayRevenue] = await Promise.all([
+      Order.aggregate([{ $match: { paymentStatus: 'captured' } }, { $group: { _id: null, total: { $sum: '$totalAmount' } } }]),
+      Order.aggregate([{ $match: { paymentStatus: 'captured', createdAt: { $gte: startOfMonth } } }, { $group: { _id: null, total: { $sum: '$totalAmount' } } }]),
+      Order.aggregate([{ $match: { paymentStatus: 'captured', createdAt: { $gte: prevMonthStart, $lt: startOfMonth } } }, { $group: { _id: null, total: { $sum: '$totalAmount' } } }]),
+      Order.aggregate([{ $match: { paymentStatus: 'captured', createdAt: { $gte: startOfDay } } }, { $group: { _id: null, total: { $sum: '$totalAmount' } } }]),
+    ]);
+
+    const totalRev = totalRevenue[0]?.total || 0;
+    const monthRev = monthRevenue[0]?.total || 0;
+    const prevRev = prevMonthRevenue[0]?.total || 0;
+    const revenueChange = prevRev > 0 ? Math.round(((monthRev - prevRev) / prevRev) * 100) : 0;
+
+    const [totalOrders, monthOrders, prevMonthOrders] = await Promise.all([
+      Order.countDocuments(),
+      Order.countDocuments({ createdAt: { $gte: startOfMonth } }),
+      Order.countDocuments({ createdAt: { $gte: prevMonthStart, $lt: startOfMonth } }),
+    ]);
+    const ordersChange = prevMonthOrders > 0 ? Math.round(((monthOrders - prevMonthOrders) / prevMonthOrders) * 100) : 0;
+
+    const [totalUsers, usersWithOrders, repeatUsers] = await Promise.all([
+      User.countDocuments(),
+      Order.aggregate([{ $match: { paymentStatus: 'captured' } }, { $group: { _id: '$user' } }, { $count: 'n' }]),
+      Order.aggregate([
+        { $match: { paymentStatus: 'captured' } },
+        { $group: { _id: '$user', orders: { $sum: 1 } } },
+        { $match: { orders: { $gt: 1 } } },
+        { $count: 'n' },
+      ]),
+    ]);
+
+    const conversionRate = totalUsers > 0 ? Math.round((usersWithOrders[0]?.n || 0) / totalUsers * 100) : 0;
+    const repeatCustomerRate = totalUsers > 0 ? Math.round((repeatUsers[0]?.n || 0) / totalUsers * 100) : 0;
+    const aov = totalOrders > 0 ? totalRev / totalOrders : 0;
+
+    res.status(200).json({
+      success: true,
+      totalRevenue: totalRev,
+      revenueChange,
+      aov,
+      aovChange: 0,
+      conversionRate,
+      conversionChange: 0,
+      repeatCustomerRate,
+      repeatChange: 0,
+      todayRevenue: todayRevenue[0]?.total || 0,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getOrdersByStatus = async (req, res, next) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const match = { paymentStatus: 'captured' };
+    if (startDate || endDate) {
+      match.createdAt = {};
+      if (startDate) match.createdAt.$gte = new Date(startDate);
+      if (endDate) match.createdAt.$lte = new Date(endDate + 'T23:59:59.999Z');
+    }
+
+    const breakdown = await Order.aggregate([
+      { $match: match },
+      { $group: { _id: '$orderStatus', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      labels: breakdown.map((b) => b._id),
+      data: breakdown.map((b) => b.count),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getCategoryPerformance = async (req, res, next) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const match = { paymentStatus: 'captured' };
+    if (startDate || endDate) {
+      match.createdAt = {};
+      if (startDate) match.createdAt.$gte = new Date(startDate);
+      if (endDate) match.createdAt.$lte = new Date(endDate + 'T23:59:59.999Z');
+    }
+
+    const result = await Order.aggregate([
+      { $match: match },
+      { $unwind: '$items' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.product',
+          foreignField: '_id',
+          as: 'product',
+        },
+      },
+      { $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'product.category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+      {
+        $group: {
+          _id: '$category.slug',
+          name: { $first: '$category.name' },
+          totalRevenue: { $sum: '$items.totalPrice' },
+        },
+      },
+      { $sort: { totalRevenue: -1 } },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      labels: result.map((c) => c.name || c._id || 'Uncategorized'),
+      data: result.map((c) => c.totalRevenue),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getCustomerAcquisition = async (req, res, next) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const match = {};
+    if (startDate || endDate) {
+      match.createdAt = {};
+      if (startDate) match.createdAt.$gte = new Date(startDate);
+      if (endDate) match.createdAt.$lte = new Date(endDate + 'T23:59:59.999Z');
+    }
+
+    const newUsers = await User.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+            day: { $dayOfMonth: '$createdAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } },
+    ]);
+
+    const last30 = new Date();
+    last30.setDate(last30.getDate() - 30);
+    const recent = newUsers.filter((u) => {
+      const d = new Date(u._id.year, u._id.month - 1, u._id.day);
+      return d >= last30;
+    });
+
+    res.status(200).json({
+      success: true,
+      labels: recent.map((u) => `${u._id.year}-${String(u._id.month).padStart(2, '0')}-${String(u._id.day).padStart(2, '0')}`),
+      data: recent.map((u) => u.count),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getExportReport = async (req, res, next) => {
+  try {
+    const orders = await Order.find({})
+      .populate('user', 'name email')
+      .sort('-createdAt')
+      .limit(1000);
+
+    const rows = [
+      ['Order #', 'Date', 'Customer', 'Email', 'Total', 'Payment Status', 'Order Status'],
+      ...orders.map((o) => [
+        o.orderNumber || o._id.toString(),
+        o.createdAt ? o.createdAt.toISOString() : '',
+        o.user?.name || o.shippingAddress?.name || '',
+        o.user?.email || '',
+        o.totalAmount || 0,
+        o.paymentStatus || '',
+        o.orderStatus || '',
+      ]),
+    ];
+
+    const csv = rows.map((r) => r.map((c) => `"${String(c ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="analytics-report.csv"');
+    res.send(csv);
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getRevenueChart = async (req, res, next) => {
   try {
     const { period = '30days' } = req.query;
-
     let startDate, groupId, dateFormat;
 
-    if (period === '12months') {
+    if (period === '12months' || period === 'monthly') {
       startDate = new Date();
       startDate.setFullYear(startDate.getFullYear() - 1);
       groupId = {
@@ -382,6 +608,8 @@ exports.getRevenueChart = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      labels: formattedData.map((d) => d.date),
+      data: formattedData.map((d) => d.revenue),
       chart: {
         period,
         dateFormat,

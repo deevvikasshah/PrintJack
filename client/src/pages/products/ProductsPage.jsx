@@ -108,8 +108,8 @@ export default function ProductsPage() {
           ? filters.selectedCategories.join(',')
           : undefined;
         if (flatCategories) params.set('category', flatCategories);
-        if (filters.priceRange.min) params.set('priceMin', filters.priceRange.min);
-        if (filters.priceRange.max) params.set('priceMax', filters.priceRange.max);
+        if (filters.priceRange.min) params.set('minPrice', filters.priceRange.min);
+        if (filters.priceRange.max) params.set('maxPrice', filters.priceRange.max);
         if (filters.selectedRating) params.set('rating', filters.selectedRating);
         if (searchQuery) params.set('search', searchQuery);
         if (sortBy) params.set('sort', sortBy);

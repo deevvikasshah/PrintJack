@@ -90,18 +90,19 @@ export default function ReferralsPage() {
 
       if (statsRes.status === 'fulfilled') {
         const s = statsRes.value.data;
+        const st = s.stats || s;
         setStats({
-          totalReferrals: s.totalReferrals || s.total || 0,
-          successfulReferrals: s.successfulReferrals || s.successful || 0,
-          pendingReferrals: s.pendingReferrals || s.pending || 0,
-          rewardsEarned: s.rewardsEarned || s.rewards || 0,
+          totalReferrals: st.totalReferrals || 0,
+          successfulReferrals: st.completedReferrals || st.successfulReferrals || 0,
+          pendingReferrals: st.pendingReferrals || 0,
+          rewardsEarned: st.totalRewardAmount || st.rewardsEarned || 0,
         });
       }
 
       if (historyRes.status === 'fulfilled') {
         const h = historyRes.value.data;
         setHistory(h.referrals || h.history || h || []);
-        setTotalPages(h.totalPages || 1);
+        setTotalPages(h.pagination?.pages || h.totalPages || 1);
       }
     } catch {
       // silent
@@ -259,7 +260,7 @@ export default function ReferralsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-700 truncate">
-                      {ref.referredEmail || ref.friendEmail || ref.email || 'Friend'}
+                      {ref.referredUser?.name || ref.referredUser?.email || ref.referredEmail || ref.friendEmail || 'Friend'}
                     </p>
                     <p className="text-xs text-gray-400">{formatDate(ref.createdAt)}</p>
                   </div>
@@ -273,8 +274,8 @@ export default function ReferralsPage() {
                     >
                       {ref.status === 'completed' ? 'Completed' : 'Pending'}
                     </span>
-                    {ref.reward && (
-                      <p className="text-xs text-gray-500 mt-1">+{ref.reward} pts</p>
+                    {ref.rewardAmount > 0 && (
+                      <p className="text-xs text-gray-500 mt-1">+{ref.rewardAmount} pts</p>
                     )}
                   </div>
                 </div>

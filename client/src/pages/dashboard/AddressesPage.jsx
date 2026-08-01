@@ -234,7 +234,7 @@ export default function AddressesPage() {
 
   const handleSetDefault = async (id) => {
     try {
-      await api.put(`/addresses/${id}/default`);
+      await api.put(`/users/address/${id}/default`);
       setAddresses((prev) =>
         prev.map((a) => ({ ...a, isDefault: a._id === id }))
       );

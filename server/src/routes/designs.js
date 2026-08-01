@@ -9,6 +9,7 @@ const {
   getDesign,
   updateDesign,
   deleteDesign,
+  duplicateDesign,
   submitForPrint,
   approveDesign,
   exportDesign,
@@ -41,6 +42,8 @@ router.put(
 );
 
 router.delete("/:id", protect, deleteDesign);
+
+router.post("/:id/duplicate", protect, duplicateDesign);
 
 router.put("/:id/submit", protect, submitForPrint);
 router.put("/:id/approve", protect, authorize("admin"), approveDesign);

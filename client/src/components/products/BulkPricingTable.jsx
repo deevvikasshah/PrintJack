@@ -48,7 +48,7 @@ export default function BulkPricingTable({ pricing = [], unit = 'piece' }) {
                       className="border-b border-gray-50 last:border-0 hover:bg-emerald-50/50 transition-colors"
                     >
                       <td className="px-4 py-2.5 text-gray-700 font-medium">
-                        {tier.min}{tier.max ? ` - ${tier.max}` : '+'} {unit}s
+                        {tier.minQty ?? tier.min}{tier.maxQty ?? tier.max ? ` - ${tier.maxQty ?? tier.max}` : '+'} {unit}s
                       </td>
                       <td className="px-4 py-2.5 text-right font-bold text-emerald-700">
                         ₹{tier.price}

@@ -104,6 +104,32 @@ exports.deleteUser = async (req, res, next) => {
   }
 };
 
+exports.sendUserMessage = async (req, res, next) => {
+  try {
+    const { message } = req.body;
+    if (!message || !message.trim()) {
+      throw new AppError('Message is required', 400);
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    await Notification.create({
+      user: user._id,
+      type: 'system',
+      title: 'Message from PrintJack',
+      message: message.trim(),
+      data: { fromAdmin: true },
+    });
+
+    res.status(200).json({ success: true, message: 'Message sent' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.updateProfile = async (req, res, next) => {
   try {
     const { name, phone, avatar } = req.body;
@@ -249,6 +275,28 @@ exports.deleteAddress = async (req, res, next) => {
   }
 };
 
+exports.setDefaultAddress = async (req, res, next) => {
+  try {
+    const { addressId } = req.params;
+    const user = await User.findById(req.user._id);
+
+    const address = user.addresses.id(addressId);
+    if (!address) {
+      throw new AppError('Address not found', 404);
+    }
+
+    user.addresses.forEach((addr) => {
+      addr.isDefault = addr._id.toString() === addressId;
+    });
+
+    await user.save();
+
+    res.status(200).json({ success: true, addresses: user.addresses });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getWishlist = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).populate({
@@ -267,7 +315,7 @@ exports.toggleWishlist = async (req, res, next) => {
     const { productId } = req.params;
     const user = await User.findById(req.user._id);
 
-    const index = user.wishlist.indexOf(productId);
+    const index = user.wishlist.findIndex((id) => id && id.toString() === productId.toString());
     let action;
 
     if (index > -1) {
@@ -345,6 +393,118 @@ exports.getLoyaltyPoints = async (req, res, next) => {
     res.status(200).json({
       success: true,
       loyaltyPoints: user.loyaltyPoints,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getLoyaltyHistory = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 15;
+
+    const user = await User.findById(req.user._id).select('loyaltyHistory loyaltyPoints');
+    const history = user.loyaltyHistory || [];
+    const sorted = [...history].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const start = (page - 1) * limit;
+    const paged = sorted.slice(start, start + limit);
+
+    res.status(200).json({
+      success: true,
+      history: paged,
+      loyaltyPoints: user.loyaltyPoints,
+      pagination: {
+        total: sorted.length,
+        pages: Math.max(1, Math.ceil(sorted.length / limit)),
+        page,
+        limit,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.redeemLoyaltyPoints = async (req, res, next) => {
+  try {
+    const { points } = req.body;
+
+    const redeemOptions = { 100: 50, 250: 150, 500: 350, 1000: 750 };
+
+    if (!points || !redeemOptions[points]) {
+      throw new AppError('Invalid redemption amount', 400);
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    if ((user.loyaltyPoints || 0) < points) {
+      throw new AppError('Insufficient loyalty points', 400);
+    }
+
+    user.loyaltyPoints -= points;
+    user.loyaltyHistory = user.loyaltyHistory || [];
+    user.loyaltyHistory.push({
+      description: `Redeemed ${points} points for ₹${redeemOptions[points]} off`,
+      points: -points,
+      type: 'redeemed',
+      createdAt: new Date(),
+    });
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: 'Points redeemed successfully',
+      loyaltyPoints: user.loyaltyPoints,
+      rewardValue: redeemOptions[points],
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getUserSettings = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select('preferences');
+    const preferences = user.preferences || {};
+
+    res.status(200).json({
+      success: true,
+      notifications: preferences.notifications || {},
+      language: preferences.language || 'en',
+      currency: preferences.currency || 'INR',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateUserSettings = async (req, res, next) => {
+  try {
+    const { notifications, language, currency } = req.body;
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    user.preferences = user.preferences || {};
+    if (notifications) user.preferences.notifications = { ...(user.preferences.notifications || {}), ...notifications };
+    if (language) user.preferences.language = language;
+    if (currency) user.preferences.currency = currency;
+
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: 'Settings updated successfully',
+      notifications: user.preferences.notifications || {},
+      language: user.preferences.language || 'en',
+      currency: user.preferences.currency || 'INR',
     });
   } catch (err) {
     next(err);

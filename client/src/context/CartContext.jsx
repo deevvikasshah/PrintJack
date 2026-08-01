@@ -126,16 +126,26 @@ export function CartProvider({ children }) {
     }
   };
 
-  const moveToWishlist = async (itemId) => {
+  const moveToWishlist = async (item) => {
     try {
       setLoading(true);
+      const productId = item.product?._id || item.productId || item.product;
+      const itemId = item._id;
+      if (!productId || !itemId) {
+        throw new Error('Invalid item');
+      }
+      try {
+        await api.post(`/users/wishlist/${productId}`);
+      } catch (e) {
+        console.error('Failed to add to wishlist:', e.message);
+      }
       await api.delete(`/cart/item/${itemId}`);
       const { data } = await api.get('/cart');
       const cart = data.cart || data;
       setItems(cart.items || []);
       setCoupon(cart.coupon || null);
       setDiscount(cart.discount || 0);
-      toast.success('Saved for later');
+      toast.success('Saved to wishlist');
     } catch (err) {
       const message = err.response?.data?.message || 'Failed to save for later';
       toast.error(message);

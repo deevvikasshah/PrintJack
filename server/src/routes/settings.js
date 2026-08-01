@@ -8,7 +8,7 @@ const {
   bulkUpdateSettings,
 } = require("../controllers/settingsController");
 
-router.use(protect, authorize("super_admin"));
+router.use(protect, authorize("admin", "super_admin"));
 
 router.get("/", getSettings);
 

@@ -7,10 +7,12 @@ const {
   getReferralStats,
   applyReferral,
   getPendingRewards,
+  getReferralHistory,
 } = require("../controllers/referralsController");
 
 router.get("/code", protect, getMyReferralCode);
 router.get("/stats", protect, getReferralStats);
+router.get("/history", protect, getReferralHistory);
 
 router.post(
   "/apply",

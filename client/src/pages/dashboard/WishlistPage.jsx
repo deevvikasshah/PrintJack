@@ -20,7 +20,7 @@ export default function WishlistPage() {
   const fetchWishlist = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await api.get('/wishlist', { params: { page: currentPage, limit: 12 } });
+      const { data } = await api.get('/users/wishlist', { params: { page: currentPage, limit: 12 } });
       setItems(data.wishlist || data.items || data || []);
       setTotalPages(data.totalPages || 1);
     } catch {
@@ -34,11 +34,11 @@ export default function WishlistPage() {
     fetchWishlist();
   }, [fetchWishlist]);
 
-  const handleRemove = async (itemId) => {
+  const handleRemove = async (productId) => {
     try {
-      setRemovingId(itemId);
-      await api.delete(`/wishlist/${itemId}`);
-      setItems((prev) => prev.filter((item) => item._id !== itemId));
+      setRemovingId(productId);
+      await api.post(`/users/wishlist/${productId}`);
+      setItems((prev) => prev.filter((item) => (item._id || item.product?._id) !== productId));
       toast.success('Removed from wishlist');
     } catch {
       toast.error('Failed to remove from wishlist');
@@ -52,7 +52,7 @@ export default function WishlistPage() {
       setAddingToCart(item._id);
       const product = item.product || item;
       await addToCart(product._id || item.productId, 1, product.sizes?.[0] || 'M', product.colors?.[0] || null);
-      await api.delete(`/wishlist/${item._id}`);
+      await api.post(`/users/wishlist/${product._id || item.productId}`);
       setItems((prev) => prev.filter((i) => i._id !== item._id));
       toast.success('Moved to cart');
     } catch {
