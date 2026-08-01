@@ -16,7 +16,7 @@ router.post(
   "/apply",
   protect,
   [
-    body("code").trim().notEmpty().withMessage("Referral code is required"),
+    body("referralCode").trim().notEmpty().withMessage("Referral code is required"),
   ],
   validate,
   applyReferral

@@ -294,7 +294,7 @@ exports.createOrder = async (req, res, next) => {
     const shippingCost = subtotal >= 999 ? 0 : 99;
     const taxRate = 0.18;
     const tax = Math.round(subtotal * taxRate);
-    const discount = couponDiscount || 0;
+    const discount = cart.discount || couponDiscount || 0;
     const totalAmount = subtotal + shippingCost + tax - discount;
 
     const order = await Order.create({

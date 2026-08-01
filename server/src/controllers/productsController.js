@@ -137,7 +137,7 @@ exports.createProduct = async (req, res, next) => {
     if (req.files && req.files.length > 0) {
       const images = [];
       for (const file of req.files) {
-        const result = await uploadToCloudinary(file.path, {
+        const result = await uploadToCloudinary(file, {
           folder: 'printjack/products',
           width: 1000,
           height: 1000,
@@ -185,7 +185,7 @@ exports.updateProduct = async (req, res, next) => {
     if (req.files && req.files.length > 0) {
       const images = product.images ? [...product.images] : [];
       for (const file of req.files) {
-        const result = await uploadToCloudinary(file.path, {
+        const result = await uploadToCloudinary(file, {
           folder: 'printjack/products',
           width: 1000,
           height: 1000,

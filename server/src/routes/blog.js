@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { body } = require("express-validator");
 const { protect, authorize } = require("../middleware/auth");
+const { upload } = require("../middleware/upload");
 const validate = require("../middleware/validate");
 const {
   getAllPosts,
@@ -19,6 +20,7 @@ router.post(
   "/",
   protect,
   authorize("admin"),
+  upload.single("image"),
   [
     body("title").trim().notEmpty().withMessage("Title is required"),
     body("slug").trim().notEmpty().withMessage("Slug is required"),
@@ -32,6 +34,7 @@ router.put(
   "/:id",
   protect,
   authorize("admin"),
+  upload.single("image"),
   [
     body("title").optional().trim().notEmpty().withMessage("Title cannot be empty"),
     body("content").optional().trim().notEmpty().withMessage("Content cannot be empty"),

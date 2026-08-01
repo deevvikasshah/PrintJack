@@ -43,6 +43,12 @@ export function AuthProvider({ children }) {
     try {
       setError(null);
       const { data } = await api.post('/auth/login', { email, password });
+      if (data.mustChangePassword) {
+        localStorage.setItem('printjack_token', data.token || '');
+        setToken(data.token || '');
+        setUser(data.user);
+        return { mustChangePassword: true, user: data.user };
+      }
       localStorage.setItem('printjack_token', data.token);
       setToken(data.token);
       setUser(data.user);
@@ -158,6 +164,23 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      setError(null);
+      const { data } = await api.put('/auth/update-password', { currentPassword, newPassword });
+      localStorage.setItem('printjack_token', data.token);
+      setToken(data.token);
+      setUser(data.user);
+      toast.success('Password changed successfully!');
+      return data;
+    } catch (err) {
+      const message = err.response?.data?.message || 'Password change failed';
+      setError(message);
+      toast.error(message);
+      throw err;
+    }
+  };
+
   const updateProfile = async (profileData) => {
     try {
       setError(null);
@@ -187,6 +210,7 @@ export function AuthProvider({ children }) {
     verifyOTP,
     forgotPassword,
     resetPassword,
+    changePassword,
     updateProfile,
     loadUser,
   };

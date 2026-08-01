@@ -61,8 +61,12 @@ export default function LoginPage() {
     if (!validate()) return;
     setIsLoading(true);
     try {
-      await login(email, password);
-      navigate(from, { replace: true });
+      const result = await login(email, password);
+      if (result?.mustChangePassword) {
+        navigate('/change-password', { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     } catch {
       // error handled by AuthContext
     } finally {

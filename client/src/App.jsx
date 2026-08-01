@@ -19,6 +19,7 @@ const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
+const ChangePasswordPage = lazy(() => import('./pages/auth/ChangePasswordPage'));
 const DashboardLayout = lazy(() => import('./pages/dashboard/DashboardLayout'));
 const OrdersPage = lazy(() => import('./pages/dashboard/OrdersPage'));
 const OrderDetailPage = lazy(() => import('./pages/dashboard/OrderDetailPage'));
@@ -75,6 +76,7 @@ export default function App() {
         <Route path="/register" element={<PublicLayout><RegisterPage /></PublicLayout>} />
         <Route path="/forgot-password" element={<PublicLayout><ForgotPasswordPage /></PublicLayout>} />
         <Route path="/reset-password/:token" element={<PublicLayout><ResetPasswordPage /></PublicLayout>} />
+        <Route path="/change-password" element={<PublicLayout><ChangePasswordPage /></PublicLayout>} />
 
         {/* Protected checkout */}
         <Route

@@ -38,6 +38,13 @@ const templatesRoutes = require("./routes/templates");
 const collaborationRoutes = require("./routes/collaboration");
 const versionsRoutes = require("./routes/versions");
 const calculatorRoutes = require("./routes/calculator");
+const adminRoutes = require("./routes/admin");
+
+// Fail fast if critical environment variables are missing
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your_jwt_secret_here') {
+  console.error('FATAL: JWT_SECRET is not set. Refusing to start without a JWT secret.');
+  process.exit(1);
+}
 
 // CORS origins
 const allowedOrigins = [
@@ -50,7 +57,9 @@ const allowedOrigins = [
   "https://client-navy-ten-73.vercel.app",
   "https://client-idsp7wpad-markivs.vercel.app",
   "https://client-lyv6xipft-markivs.vercel.app",
-].filter(Boolean);
+]
+  .filter(Boolean)
+  .map((o) => o.replace(/\/+$/, ""));
 
 // Connect to database
 connectDB();
@@ -119,11 +128,18 @@ app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true);
+      // Same-origin requests and non-browser tools have no `origin` header.
+      // Allow them only in non-production environments to avoid accidental exposure.
+      if (!origin) {
+        if (process.env.NODE_ENV !== "production") return callback(null, true);
+        return callback(new Error("Not allowed by CORS"));
       }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS: " + origin));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -221,7 +237,7 @@ app.use("/api/users", limiter, userRoutes);
 app.use("/api/products", limiter, productRoutes);
 app.use("/api/categories", limiter, categoryRoutes);
 app.use("/api/orders", limiter, orderRoutes);
-// app.use("/api/payments", limiter, paymentRoutes); // Razorpay not configured
+app.use("/api/payments", limiter, paymentRoutes);
 app.use("/api/designs", limiter, designRoutes);
 app.use("/api/cart", limiter, cartRoutes);
 app.use("/api/coupons", limiter, couponRoutes);
@@ -229,6 +245,7 @@ app.use("/api/blog", limiter, blogRoutes);
 app.use("/api/upload", limiter, uploadRoutes);
 app.use("/api/analytics", limiter, analyticsRoutes);
 app.use("/api/referrals", limiter, referralRoutes);
+app.use("/api/admin", limiter, adminRoutes);
 app.use("/api/admin/settings", limiter, settingsRoutes);
 app.use("/api/seed", seedRoutes);
 app.use("/api/calculator", limiter, calculatorRoutes);

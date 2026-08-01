@@ -53,7 +53,7 @@ exports.createCategory = async (req, res, next) => {
 
     if (req.file) {
       const { uploadToCloudinary } = require('../utils/cloudinary');
-      const result = await uploadToCloudinary(req.file.path, {
+      const result = await uploadToCloudinary(req.file, {
         folder: 'printjack/categories',
         width: 500,
         height: 500,
@@ -103,7 +103,7 @@ exports.updateCategory = async (req, res, next) => {
           console.error('Failed to delete old image:', e.message);
         }
       }
-      const result = await uploadToCloudinary(req.file.path, {
+      const result = await uploadToCloudinary(req.file, {
         folder: 'printjack/categories',
         width: 500,
         height: 500,

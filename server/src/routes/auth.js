@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { body } = require("express-validator");
 const { protect } = require("../middleware/auth");
+const { upload } = require("../middleware/upload");
 const validate = require("../middleware/validate");
 const controller = require("../controllers/authController");
 
@@ -16,6 +17,8 @@ const {
   getMe,
   updatePassword,
 } = controller;
+
+const { updateProfile } = require("../controllers/usersController");
 
 router.post(
   "/register",
@@ -51,7 +54,7 @@ router.post(
 router.post(
   "/verify-otp",
   [
-    body("otp").isLength({ min: 4, max: 6 }).withMessage("OTP must be 4-6 digits"),
+    body("code").isLength({ min: 4, max: 6 }).withMessage("OTP must be 4-6 digits"),
   ],
   validate,
   verifyOTP
@@ -79,6 +82,18 @@ router.put(
 
 router.post("/logout", protect, logout);
 router.get("/me", protect, getMe);
+
+router.put(
+  "/profile",
+  protect,
+  upload.single("avatar"),
+  [
+    body("name").optional().trim().notEmpty().withMessage("Name cannot be empty"),
+    body("phone").optional().trim().notEmpty().withMessage("Phone cannot be empty"),
+  ],
+  validate,
+  updateProfile
+);
 
 router.put(
   "/update-password",

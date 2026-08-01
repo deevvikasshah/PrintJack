@@ -13,21 +13,21 @@ router.use(protect, authorize("super_admin"));
 router.get("/", getSettings);
 
 router.put(
+  "/bulk",
+  [
+    body("settings").isArray({ min: 1 }).withMessage("Settings must be a non-empty array"),
+  ],
+  validate,
+  bulkUpdateSettings
+);
+
+router.put(
   "/:key",
   [
     body("value").exists().withMessage("Value is required"),
   ],
   validate,
   updateSetting
-);
-
-router.put(
-  "/bulk",
-  [
-    body("settings").isObject().withMessage("Settings must be an object"),
-  ],
-  validate,
-  bulkUpdateSettings
 );
 
 module.exports = router;

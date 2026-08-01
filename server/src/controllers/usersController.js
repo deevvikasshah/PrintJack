@@ -121,7 +121,7 @@ exports.updateProfile = async (req, res, next) => {
           console.error('Failed to delete old avatar:', e.message);
         }
       }
-      const result = await uploadToCloudinary(req.file.path, {
+      const result = await uploadToCloudinary(req.file, {
         folder: 'printjack/avatars',
         width: 300,
         height: 300,

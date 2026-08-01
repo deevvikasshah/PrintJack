@@ -31,12 +31,9 @@ router.post(
   "/",
   protect,
   [
-    body("items").isArray({ min: 1 }).withMessage("At least one item is required"),
-    body("items.*.product").notEmpty().withMessage("Product ID is required"),
-    body("items.*.quantity")
-      .isInt({ min: 1 })
-      .withMessage("Quantity must be at least 1"),
     body("shippingAddress").isObject().withMessage("Shipping address is required"),
+    body("shippingAddress.fullName").trim().notEmpty().withMessage("Full name is required"),
+    body("shippingAddress.phone").trim().notEmpty().withMessage("Phone is required"),
     body("shippingAddress.street").trim().notEmpty().withMessage("Street is required"),
     body("shippingAddress.city").trim().notEmpty().withMessage("City is required"),
     body("shippingAddress.state").trim().notEmpty().withMessage("State is required"),
@@ -64,13 +61,12 @@ router.put(
       .isIn([
         "pending",
         "confirmed",
-        "processing",
-        "design_pending",
-        "design_approved",
-        "printing",
+        "in_production",
+        "quality_check",
         "shipped",
         "delivered",
         "cancelled",
+        "returned",
       ])
       .withMessage("Invalid order status"),
   ],

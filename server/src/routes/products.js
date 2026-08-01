@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { body, param } = require("express-validator");
 const { protect, authorize } = require("../middleware/auth");
+const { upload } = require("../middleware/upload");
 const validate = require("../middleware/validate");
 const {
   getAllProducts,
@@ -27,12 +28,12 @@ router.post(
   "/",
   protect,
   authorize("admin"),
+  upload.array("images", 10),
   [
     body("name").trim().notEmpty().withMessage("Product name is required"),
-    body("slug").trim().notEmpty().withMessage("Slug is required"),
-    body("price")
+    body("basePrice")
       .isFloat({ min: 0 })
-      .withMessage("Price must be a positive number"),
+      .withMessage("Base price must be a positive number"),
     body("category").notEmpty().withMessage("Category is required"),
   ],
   validate,
@@ -43,12 +44,13 @@ router.put(
   "/:id",
   protect,
   authorize("admin"),
+  upload.array("images", 10),
   [
     body("name").optional().trim().notEmpty().withMessage("Name cannot be empty"),
-    body("price")
+    body("basePrice")
       .optional()
       .isFloat({ min: 0 })
-      .withMessage("Price must be a positive number"),
+      .withMessage("Base price must be a positive number"),
   ],
   validate,
   updateProduct

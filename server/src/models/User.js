@@ -6,6 +6,7 @@ const mongoosePaginate = require('mongoose-paginate-v2');
 
 const addressSchema = new mongoose.Schema({
   label: { type: String, enum: ['Home', 'Office', 'Other'], default: 'Home' },
+  fullName: { type: String },
   street: { type: String, required: true },
   city: { type: String, required: true },
   state: { type: String, required: true },
@@ -88,6 +89,10 @@ const userSchema = new mongoose.Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  mustChangePassword: {
+    type: Boolean,
+    default: false,
+  },
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
@@ -121,7 +126,11 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 userSchema.methods.getSignedJwtToken = function () {
-  return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET || 'printjack_jwt_secret', {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+  return jwt.sign({ id: this._id, role: this.role }, secret, {
     expiresIn: process.env.JWT_EXPIRE || '30d',
   });
 };

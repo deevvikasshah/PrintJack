@@ -27,7 +27,8 @@ exports.getSettings = async (req, res, next) => {
 
 exports.updateSetting = async (req, res, next) => {
   try {
-    const { key, value, description, category } = req.body;
+    const { value, description, category } = req.body;
+    const key = req.params.key;
 
     if (!key || value === undefined) {
       throw new AppError('Key and value are required', 400);

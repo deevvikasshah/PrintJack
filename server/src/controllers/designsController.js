@@ -329,3 +329,63 @@ exports.exportDesign = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.batchApprove = async (req, res, next) => {
+  try {
+    const { designIds, adminNotes, printFile } = req.body;
+
+    if (!designIds || !Array.isArray(designIds) || designIds.length === 0) {
+      throw new AppError('designIds array is required', 400);
+    }
+
+    const results = await Promise.allSettled(
+      designIds.map(async (designId) => {
+        const design = await Design.findById(designId);
+        if (!design) {
+          throw new AppError(`Design ${designId} not found`, 404);
+        }
+
+        if (design.status !== 'submitted') {
+          throw new AppError(`Design ${designId} is not in submitted status`, 400);
+        }
+
+        design.status = 'approved';
+        if (adminNotes) design.adminNotes = adminNotes;
+
+        if (printFile) {
+          const result = await uploadToCloudinary(printFile, {
+            folder: 'printjack/designs/printfiles',
+            quality: 'highest',
+          });
+          design.printFile = result.secure_url;
+        }
+
+        await design.save({ validateBeforeSave: false });
+
+        await Notification.create({
+          user: design.user,
+          type: 'design_update',
+          title: 'Design Approved',
+          message: `Your design "${design.name}" has been approved and is ready for printing.`,
+          data: { designId: design._id, designName: design.name, status: 'approved' },
+        });
+
+        return design;
+      })
+    );
+
+    const successful = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
+    const failed = results
+      .filter((r) => r.status === 'rejected')
+      .map((r) => ({ error: r.reason?.message || 'Unknown error' }));
+
+    res.status(200).json({
+      success: true,
+      message: `${successful.length} design(s) approved, ${failed.length} failed`,
+      approved: successful,
+      failed,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

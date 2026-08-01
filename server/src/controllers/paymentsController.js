@@ -12,6 +12,10 @@ exports.createRazorpayOrder = async (req, res, next) => {
       throw new AppError('Valid amount is required', 400);
     }
 
+    if (!razorpay) {
+      throw new AppError('Razorpay is not configured on the server', 503);
+    }
+
     const options = {
       amount: Math.round(amount * 100),
       currency: 'INR',
@@ -53,7 +57,10 @@ exports.verifyPayment = async (req, res, next) => {
       .update(body)
       .digest('hex');
 
-    if (expectedSignature !== razorpay_signature) {
+    const signatureBuffer = Buffer.from(expectedSignature, 'utf8');
+    const providedBuffer = Buffer.from(razorpay_signature, 'utf8');
+
+    if (signatureBuffer.length !== providedBuffer.length || !crypto.timingSafeEqual(signatureBuffer, providedBuffer)) {
       throw new AppError('Payment verification failed: Invalid signature', 400);
     }
 
@@ -94,11 +101,14 @@ exports.handleWebhook = async (req, res, next) => {
     const body = JSON.stringify(req.body);
 
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET)
+      .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
       .update(body)
       .digest('hex');
 
-    if (webhookSignature !== expectedSignature) {
+    const webhookSigBuffer = Buffer.from(webhookSignature, 'utf8');
+    const expectedSigBuffer = Buffer.from(expectedSignature, 'utf8');
+
+    if (webhookSigBuffer.length !== expectedSigBuffer.length || !crypto.timingSafeEqual(webhookSigBuffer, expectedSigBuffer)) {
       return res.status(400).json({ success: false, message: 'Invalid webhook signature' });
     }
 
@@ -165,10 +175,15 @@ exports.handleWebhook = async (req, res, next) => {
 exports.refundPayment = async (req, res, next) => {
   try {
     const { orderId, amount, reason } = req.body;
+    const resolvedOrderId = req.params.orderId || orderId;
 
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(resolvedOrderId);
     if (!order) {
       throw new AppError('Order not found', 404);
+    }
+
+    if (!razorpay) {
+      throw new AppError('Razorpay is not configured on the server', 503);
     }
 
     if (order.paymentStatus !== 'captured') {

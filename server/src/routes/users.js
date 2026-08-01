@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { body, param } = require("express-validator");
 const { protect, authorize } = require("../middleware/auth");
+const { upload } = require("../middleware/upload");
 const validate = require("../middleware/validate");
 const {
   getAllUsers,
@@ -21,35 +22,6 @@ const {
 
 router.get("/", protect, authorize("admin"), getAllUsers);
 
-router.get("/:id", protect, authorize("admin"), getUser);
-
-router.put(
-  "/:id",
-  protect,
-  authorize("admin"),
-  [
-    body("name").optional().trim().notEmpty().withMessage("Name cannot be empty"),
-    body("email").optional().isEmail().withMessage("Valid email is required"),
-    body("role").optional().isIn(["user", "admin", "super_admin"]).withMessage("Invalid role"),
-  ],
-  validate,
-  updateUser
-);
-
-router.delete("/:id", protect, authorize("admin"), deleteUser);
-
-router.put(
-  "/profile/update",
-  protect,
-  [
-    body("name").optional().trim().notEmpty().withMessage("Name cannot be empty"),
-    body("email").optional().isEmail().withMessage("Valid email is required"),
-    body("phone").optional().trim().notEmpty().withMessage("Phone cannot be empty"),
-  ],
-  validate,
-  updateProfile
-);
-
 router.get("/addresses", protect, getAddresses);
 
 router.post(
@@ -57,6 +29,7 @@ router.post(
   protect,
   [
     body("label").trim().notEmpty().withMessage("Address label is required"),
+    body("fullName").trim().notEmpty().withMessage("Full name is required"),
     body("street").trim().notEmpty().withMessage("Street address is required"),
     body("city").trim().notEmpty().withMessage("City is required"),
     body("state").trim().notEmpty().withMessage("State is required"),
@@ -66,6 +39,23 @@ router.post(
   validate,
   addAddress
 );
+
+router.get("/:id", protect, authorize("admin"), getUser);
+
+router.put(
+  "/:id",
+  protect,
+  authorize("admin"),
+  [
+    body("name").optional().trim().notEmpty().withMessage("Name cannot be empty"),
+    body("email").optional().isEmail().withMessage("Valid email is required"),
+    body("role").optional().isIn(["customer", "admin", "super_admin"]).withMessage("Invalid role"),
+  ],
+  validate,
+  updateUser
+);
+
+router.delete("/:id", protect, authorize("admin"), deleteUser);
 
 router.put(
   "/address/:addressId",

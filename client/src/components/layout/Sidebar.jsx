@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Package, PenTool, MapPin, Heart, Star, Users, User, Settings, ChevronLeft, ChevronRight, Award } from 'lucide-react';
+import { Package, PenTool, MapPin, Heart, Star, Users, User, Settings, ChevronLeft, ChevronRight, Award, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getInitials } from '../../utils/formatters';
 
@@ -76,8 +76,20 @@ export default function Sidebar() {
         </NavLink>
       )}
 
+      {/* Back to Website */}
+      <div className="p-2 border-t border-gray-100">
+        <Link
+          to="/"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-[#1D3557] transition-all"
+          title={collapsed ? 'Back to Website' : undefined}
+        >
+          <ArrowLeft size={18} />
+          {!collapsed && <span>Back to Website</span>}
+        </Link>
+      </div>
+
       {/* Collapse Toggle */}
-      <div className="p-2 border-t border-gray-100 hidden lg:block">
+      <div className="p-2 hidden lg:block">
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-500 hover:text-[#1D3557] hover:bg-gray-50 rounded-xl transition-colors"
