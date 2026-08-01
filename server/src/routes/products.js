@@ -14,6 +14,10 @@ const {
   addProductReview,
   getTemplates,
 } = require("../controllers/productsController");
+const {
+  calculatePrice,
+  getCalculatorConfig,
+} = require("../controllers/calculatorController");
 
 router.get("/", getAllProducts);
 router.get("/featured", getFeaturedProducts);
@@ -70,5 +74,8 @@ router.post(
 );
 
 router.get("/:id/templates", getTemplates);
+
+router.get("/:id/calculate", calculatePrice);
+router.get("/:id/calculator-config", getCalculatorConfig);
 
 module.exports = router;

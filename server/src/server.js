@@ -9,6 +9,8 @@ const mongoSanitize = require("express-mongo-sanitize");
 const xss = require("xss");
 const hpp = require("hpp");
 const rateLimit = require("express-rate-limit");
+const http = require("http");
+const { Server } = require("socket.io");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
@@ -31,19 +33,13 @@ const analyticsRoutes = require("./routes/analytics");
 const referralRoutes = require("./routes/referrals");
 const seedRoutes = require("./routes/seed");
 const settingsRoutes = require("./routes/settings");
+const suggestionsRoutes = require("./routes/suggestions");
+const templatesRoutes = require("./routes/templates");
+const collaborationRoutes = require("./routes/collaboration");
+const versionsRoutes = require("./routes/versions");
+const calculatorRoutes = require("./routes/calculator");
 
-// Connect to database
-connectDB();
-
-const app = express();
-
-// Trust proxy (for rate limiter behind reverse proxy)
-app.set("trust proxy", 1);
-
-// Security headers
-app.use(helmet());
-
-// CORS
+// CORS origins
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:5173",
@@ -52,6 +48,70 @@ const allowedOrigins = [
   "https://www.printjack.in",
 ].filter(Boolean);
 
+// Connect to database
+connectDB();
+
+const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
+  },
+});
+
+app.set("trust proxy", 1);
+app.set("io", io);
+
+io.on("connection", (socket) => {
+  console.log(`Socket connected: ${socket.id}`);
+
+  socket.on("join-design", (designId, userId) => {
+    socket.join(`design-${designId}`);
+    socket.to(`design-${designId}`).emit("user-joined", { userId, socketId: socket.id });
+  });
+
+  socket.on("design-update", (designId, data) => {
+    socket.to(`design-${designId}`).emit("design-changed", {
+      ...data,
+      userId: socket.handshake.auth.userId,
+      socketId: socket.id,
+    });
+  });
+
+  socket.on("cursor-update", (designId, data) => {
+    socket.to(`design-${designId}`).emit("cursor-moved", {
+      ...data,
+      userId: socket.handshake.auth.userId,
+      socketId: socket.id,
+    });
+  });
+
+  socket.on("leave-design", (designId) => {
+    socket.leave(`design-${designId}`);
+    socket.to(`design-${designId}`).emit("user-left", { socketId: socket.id });
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`Socket disconnected: ${socket.id}`);
+  });
+});
+
+// Trust proxy (for rate limiter behind reverse proxy)
+app.set("trust proxy", 1);
+
+// Security headers
+app.use(helmet());
+
+// CORS
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -69,7 +129,7 @@ app.use(
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
   message: {
     success: false,
@@ -167,6 +227,11 @@ app.use("/api/analytics", limiter, analyticsRoutes);
 app.use("/api/referrals", limiter, referralRoutes);
 app.use("/api/admin/settings", limiter, settingsRoutes);
 app.use("/api/seed", seedRoutes);
+app.use("/api/calculator", limiter, calculatorRoutes);
+app.use("/api/suggestions", limiter, suggestionsRoutes);
+app.use("/api/templates", limiter, templatesRoutes);
+app.use("/api/collaboration", limiter, collaborationRoutes);
+app.use("/api/versions", limiter, versionsRoutes);
 
 // 404 handler
 app.all("*", (req, res, next) => {
@@ -178,10 +243,10 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(
     `PrintJack server running in ${process.env.NODE_ENV} mode on port ${PORT}`
   );
 });
 
-module.exports = app;
+module.exports = { app, io };

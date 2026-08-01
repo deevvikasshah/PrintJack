@@ -30,6 +30,43 @@ const sizeSchema = new mongoose.Schema({
   additionalPrice: { type: Number, default: 0 },
 }, { _id: true });
 
+const calculatorVariableSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  label: { type: String, required: true },
+  type: { type: String, enum: ['number', 'select', 'checkbox', 'range'], required: true },
+  unit: { type: String, default: '' },
+  defaultValue: { type: mongoose.Schema.Types.Mixed, default: 0 },
+  options: [{ type: String }],
+  min: { type: Number, default: 0 },
+  max: { type: Number, default: 1000 },
+  step: { type: Number, default: 1 },
+  pricePerUnit: { type: Number, default: 0 },
+  isRequired: { type: Boolean, default: false },
+  description: { type: String, default: '' },
+}, { _id: false });
+
+const calculatorConfigSchema = new mongoose.Schema({
+  enabled: { type: Boolean, default: false },
+  baseFormula: { type: String, default: 'basePrice' },
+  variables: [calculatorVariableSchema],
+  priceBreakdown: {
+    inkCost: { type: Number, default: 0 },
+    paperCost: { type: Number, default: 0 },
+    laminationCost: { type: Number, default: 0 },
+    finishingCost: { type: Number, default: 0 },
+    setupCost: { type: Number, default: 0 },
+    shippingCost: { type: Number, default: 0 },
+    totalCost: { type: Number, default: 0 },
+    margin: { type: Number, default: 0 },
+    finalPrice: { type: Number, default: 0 },
+  },
+  currency: { type: String, default: '₹' },
+  allowCustomDimensions: { type: Boolean, default: true },
+  defaultWidth: { type: Number, default: 0 },
+  defaultHeight: { type: Number, default: 0 },
+  dimensionUnit: { type: String, enum: ['cm', 'inch', 'mm'], default: 'cm' },
+}, { _id: false });
+
 const templateSchema = new mongoose.Schema({
   name: { type: String, required: true },
   url: { type: String, required: true },
@@ -97,6 +134,7 @@ const productSchema = new mongoose.Schema({
     type: Map,
     of: String,
   },
+  calculatorConfig: calculatorConfigSchema,
   templates: [templateSchema],
   minimumOrderQuantity: {
     type: Number,

@@ -8,6 +8,34 @@ const printSpecificationsSchema = new mongoose.Schema({
   colorMode: { type: String, enum: ['CMYK', 'RGB'], default: 'CMYK' },
 }, { _id: false });
 
+const designVersionSchema = new mongoose.Schema({
+  versionNumber: { type: Number, required: true },
+  canvasData: { type: mongoose.Schema.Types.Mixed },
+  previewImage: { type: String },
+  printSpecifications: printSpecificationsSchema,
+  changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  changeNote: { type: String, default: '' },
+}, { _id: true, timestamps: { createdAt: true, updatedAt: false } });
+
+const collaborationSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  role: { type: String, enum: ['owner', 'editor', 'viewer'], default: 'editor' },
+  joinedAt: { type: Date, default: Date.now },
+  lastActive: { type: Date, default: Date.now },
+  isActive: { type: Boolean, default: true },
+}, { _id: false });
+
+const designSuggestionSchema = new mongoose.Schema({
+  productType: { type: String, required: true },
+  layout: { type: String, enum: ['center', 'left', 'right', 'wrap-around', 'all-over', 'pocket', 'sleeve', 'back'], required: true },
+  placement: { type: String, enum: ['center', 'top-left', 'top-right', 'bottom-center', 'full-front', 'full-back'], default: 'center' },
+  recommendedWidth: { type: Number },
+  recommendedHeight: { type: Number },
+  suggestedElements: [{ type: String }],
+  confidence: { type: Number, min: 0, max: 1, default: 0.5 },
+  reason: { type: String },
+}, { _id: false });
+
 const designSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -47,6 +75,12 @@ const designSchema = new mongoose.Schema({
     default: '',
   },
   printSpecifications: printSpecificationsSchema,
+  collaborators: [collaborationSchema],
+  versions: [designVersionSchema],
+  suggestions: [designSuggestionSchema],
+  currentVersion: { type: Number, default: 1 },
+  isTemplate: { type: Boolean, default: false },
+  templateUsed: { type: mongoose.Schema.Types.ObjectId, ref: 'Template' },
 }, {
   timestamps: { createdAt: true, updatedAt: false },
 });
@@ -55,5 +89,7 @@ designSchema.plugin(mongoosePaginate);
 
 designSchema.index({ user: 1, status: 1 });
 designSchema.index({ product: 1 });
+designSchema.index({ 'collaborators.user': 1 });
+designSchema.index({ isTemplate: 1 });
 
 module.exports = mongoose.model('Design', designSchema);

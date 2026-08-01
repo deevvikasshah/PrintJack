@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import BulkPricingTable from '../../components/products/BulkPricingTable';
 import SizeGuide from '../../components/products/SizeGuide';
 import ReviewForm from '../../components/products/ReviewForm';
+import ProductCalculator from '../../components/products/ProductCalculator';
 import ReviewCard from '../../components/products/ReviewCard';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -314,14 +315,17 @@ export default function ProductDetailPage() {
               <p className="text-sm text-emerald-600 font-medium mt-1">Bulk pricing from &#8377;{p.bulkPrice} per unit</p>
             )}
 
-            {/* Bulk pricing */}
-            {p.bulkPricing && p.bulkPricing.length > 0 && (
-              <div className="mt-4">
-                <BulkPricingTable pricing={p.bulkPricing} unit="unit" />
-              </div>
-            )}
+{/* Bulk pricing */}
+             {p.bulkPricing && p.bulkPricing.length > 0 && (
+               <div className="mt-4">
+                 <BulkPricingTable pricing={p.bulkPricing} unit="unit" />
+               </div>
+             )}
 
-            {/* Short description */}
+             {/* Price Calculator */}
+             <ProductCalculator productId={p._id} product={p} />
+
+             {/* Short description */}
             {p.shortDescription && (
               <p className="mt-5 text-gray-600 leading-relaxed">{p.shortDescription}</p>
             )}

@@ -10,6 +10,7 @@ const Referral = require('./Referral');
 const Address = require('./Address');
 const Notification = require('./Notification');
 const Setting = require('./Setting');
+const Template = require('./Template');
 
 module.exports = {
   User,
@@ -24,4 +25,5 @@ module.exports = {
   Address,
   Notification,
   Setting,
+  Template,
 };
