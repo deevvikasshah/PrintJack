@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Ruler, Calculator, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Ruler, Calculator, RefreshCw, ChevronDown, ChevronUp, Palette } from 'lucide-react';
 import api from '../../utils/api';
 
 function ProductCalculator({ productId, product }) {
@@ -16,6 +16,17 @@ function ProductCalculator({ productId, product }) {
   });
 
   const [variables, setVariables] = useState({});
+
+  const [designOptions, setDesignOptions] = useState({
+    colorCount: 1,
+    printCoverage: 100,
+    printMethod: 'screen-printing',
+    printSide: 'front',
+    finish: 'none',
+    lamination: 'none',
+    specialEffects: 'none',
+    complexity: 'standard',
+  });
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -53,6 +64,7 @@ function ProductCalculator({ productId, product }) {
         height: dimensions.height,
         quantity: dimensions.quantity,
         variables,
+        design: designOptions,
       });
 
       if (data.success) {
@@ -63,8 +75,7 @@ function ProductCalculator({ productId, product }) {
     } finally {
       setLoading(false);
     }
-  }, [productId, dimensions, variables, config]);
-
+  }, [productId, dimensions, variables, config, designOptions]);
   useEffect(() => {
     const timer = setTimeout(() => {
       calculate();
@@ -143,6 +154,152 @@ function ProductCalculator({ productId, product }) {
                 onChange={(e) => setDimensions((prev) => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
               />
+            </div>
+          </div>
+
+          {/* Design Options */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <Palette className="w-4 h-4 text-[#E63946]" />
+              Design Options
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Number of Colors
+                </label>
+                <input
+                  type="range"
+                  min={1}
+                  max={8}
+                  step={1}
+                  value={designOptions.colorCount}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, colorCount: parseInt(e.target.value) }))}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span>1 color</span>
+                  <span className="font-semibold text-[#E63946]">{designOptions.colorCount} colors</span>
+                  <span>8 colors</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Print Coverage ({designOptions.printCoverage}%)
+                </label>
+                <input
+                  type="range"
+                  min={1}
+                  max={100}
+                  step={1}
+                  value={designOptions.printCoverage}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, printCoverage: parseInt(e.target.value) }))}
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Print Method
+                </label>
+                <select
+                  value={designOptions.printMethod}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, printMethod: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                >
+                  <option value="screen-printing">Screen Printing</option>
+                  <option value="dtg">DTG (Direct to Garment)</option>
+                  <option value="sublimation">Sublimation</option>
+                  <option value="vinyl">Vinyl Cutting</option>
+                  <option value="embroidery">Embroidery</option>
+                  <option value="heat-transfer">Heat Transfer</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Print Side
+                </label>
+                <select
+                  value={designOptions.printSide}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, printSide: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                >
+                  <option value="front">Front Only</option>
+                  <option value="back">Back Only</option>
+                  <option value="both">Front & Back</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Finish
+                </label>
+                <select
+                  value={designOptions.finish}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, finish: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                >
+                  <option value="none">None</option>
+                  <option value="matte">Matte</option>
+                  <option value="glossy">Glossy</option>
+                  <option value="satin">Satin</option>
+                  <option value="soft-touch">Soft Touch</option>
+                  <option value="uv-spot">UV Spot</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Lamination
+                </label>
+                <select
+                  value={designOptions.lamination}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, lamination: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                >
+                  <option value="none">None</option>
+                  <option value="matte">Matte Lamination</option>
+                  <option value="glossy">Glossy Lamination</option>
+                  <option value="soft-touch">Soft Touch</option>
+                  <option value="hot-foil">Hot Foil</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Special Effects
+                </label>
+                <select
+                  value={designOptions.specialEffects}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, specialEffects: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                >
+                  <option value="none">None</option>
+                  <option value="gold-foil">Gold Foil</option>
+                  <option value="silver-foil">Silver Foil</option>
+                  <option value="embossing">Embossing</option>
+                  <option value="debossing">Debossing</option>
+                  <option value="spot-uv">Spot UV</option>
+                  <option value="glow-in-dark">Glow in Dark</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Design Complexity
+                </label>
+                <select
+                  value={designOptions.complexity}
+                  onChange={(e) => setDesignOptions((prev) => ({ ...prev, complexity: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                >
+                  <option value="simple">Simple</option>
+                  <option value="standard">Standard</option>
+                  <option value="complex">Complex</option>
+                </select>
+              </div>
             </div>
           </div>
 
