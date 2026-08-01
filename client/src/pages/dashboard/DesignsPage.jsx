@@ -10,6 +10,13 @@ import {
   ExternalLink,
   Filter,
   Loader2,
+  Clock,
+  Users,
+  Calculator,
+  ChevronDown,
+  ChevronUp,
+  RotateCcw,
+  Plus,
 } from 'lucide-react';
 import api from '../../utils/api';
 import { formatDate } from '../../utils/formatters';
@@ -35,7 +42,7 @@ const STATUS_COLORS = {
   rejected: 'bg-red-100 text-red-700',
 };
 
-function DesignCard({ design, onDelete, onDuplicate, onSubmit }) {
+function DesignCard({ design, onDelete, onDuplicate, onSubmit, onVersions, onCollaborate, onCalculate }) {
   const previewImage = design.previewImage || design.thumbnail || '/placeholder-design.png';
   const productName = design.product?.name || design.productName || 'Custom Product';
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -122,11 +129,164 @@ function DesignCard({ design, onDelete, onDuplicate, onSubmit }) {
           >
             <Trash2 size={12} />
           </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+          <button
+            onClick={() => onVersions(design._id)}
+            className="flex items-center justify-center px-3 py-2 border border-gray-200 text-gray-400 text-xs rounded-lg hover:text-blue-500 hover:border-blue-200 hover:bg-blue-50 transition-colors"
+            title="Version History"
+          >
+            <Clock size={12} />
+          </button>
+          <button
+            onClick={() => onCollaborate(design._id)}
+            className="flex items-center justify-center px-3 py-2 border border-gray-200 text-gray-400 text-xs rounded-lg hover:text-green-500 hover:border-green-200 hover:bg-green-50 transition-colors"
+            title="Collaborate"
+          >
+            <Users size={12} />
+          </button>
+          <button
+            onClick={() => onCalculate(design._id)}
+            className="flex items-center justify-center px-3 py-2 border border-gray-200 text-gray-400 text-xs rounded-lg hover:text-[#E63946] hover:border-[#E63946]/20 hover:bg-red-50 transition-colors"
+            title="Price Calculator"
+          >
+            <Calculator size={12} />
+          </button>
+</div>
+       )}
+
+       {/* Version History Modal */}
+       <Modal isOpen={showVersions} onClose={() => setShowVersions(false)} title="Version History">
+         <div className="space-y-3 max-h-96 overflow-y-auto">
+           {versionHistory.length === 0 ? (
+             <p className="text-sm text-gray-500 text-center py-4">No versions yet</p>
+           ) : (
+             versionHistory.map((v) => (
+               <div key={v.versionNumber} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                 <div>
+                   <p className="text-sm font-medium text-gray-900">Version {v.versionNumber}</p>
+                   <p className="text-xs text-gray-500">{formatDate(v.createdAt)}</p>
+                   {v.changeNote && <p className="text-xs text-gray-400 mt-1">{v.changeNote}</p>}
+                 </div>
+                 <button
+                   onClick={() => {
+                     toast.info(`Reverting to version ${v.versionNumber}`);
+                     setShowVersions(false);
+                   }}
+                   className="p-2 text-gray-400 hover:text-[#E63946] hover:bg-red-50 rounded-lg transition-colors"
+                   title="Revert to this version"
+                 >
+                   <RotateCcw size={16} />
+                 </button>
+               </div>
+             ))
+           )}
+         </div>
+       </Modal>
+
+       {/* Collaborators Modal */}
+       <Modal isOpen={showCollaborators} onClose={() => setShowCollaborators(false)} title="Collaborators">
+         <div className="space-y-3 max-h-96 overflow-y-auto">
+           {collaborators.length === 0 ? (
+             <p className="text-sm text-gray-500 text-center py-4">No collaborators yet</p>
+           ) : (
+             collaborators.map((c) => (
+               <div key={c.user?._id || c.user} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                 <div className="flex items-center gap-3">
+                   <div className="w-8 h-8 bg-[#E63946] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                     {(c.user?.name || 'U')[0].toUpperCase()}
+                   </div>
+                   <div>
+                     <p className="text-sm font-medium text-gray-900">{c.user?.name || 'Unknown'}</p>
+                     <p className="text-xs text-gray-500 capitalize">{c.role}</p>
+                   </div>
+                 </div>
+                 <span className={`w-2 h-2 rounded-full ${c.isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
+               </div>
+             ))
+           )}
+           <div className="pt-3 border-t border-gray-200">
+             <div className="flex gap-2">
+               <input
+                 type="text"
+                 placeholder="User ID to add"
+                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none"
+                 onKeyDown={async (e) => {
+                   if (e.key === 'Enter' && e.target.value.trim()) {
+                     try {
+                       await api.post(`/collaboration/${selectedDesignId}/collaborators`, { userId: e.target.value.trim(), role: 'editor' });
+                       toast.success('Collaborator added');
+                       setShowCollaborators(false);
+                     } catch {
+                       toast.error('Failed to add collaborator');
+                     }
+                   }
+                 }}
+               />
+               <button
+                 onClick={async () => {
+                   try {
+                     await api.post(`/collaboration/${selectedDesignId}/collaborators`, { role: 'editor' });
+                     toast.success('Collaborator added');
+                     setShowCollaborators(false);
+                   } catch {
+                     toast.error('Failed to add collaborator');
+                   }
+                 }}
+                 className="px-4 py-2 bg-[#E63946] text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+               >
+                 <Plus size={14} />
+               </button>
+             </div>
+           </div>
+         </div>
+       </Modal>
+
+       {/* Calculator Modal */}
+       <Modal isOpen={showCalculator} onClose={() => setShowCalculator(false)} title="Price Calculator">
+         {calculation ? (
+           <div className="space-y-3 max-h-96 overflow-y-auto">
+             <div className="grid grid-cols-2 gap-3">
+               <div className="p-3 bg-gray-50 rounded-xl">
+                 <p className="text-xs text-gray-500">Base Price</p>
+                 <p className="text-lg font-bold text-gray-900">₹{calculation.priceBreakdown.basePrice}</p>
+               </div>
+               <div className="p-3 bg-gray-50 rounded-xl">
+                 <p className="text-xs text-gray-500">Dimensions</p>
+                 <p className="text-lg font-bold text-gray-900">{calculation.dimensions.width}x{calculation.dimensions.height}{calculation.dimensions.unit}</p>
+               </div>
+             </div>
+             {calculation.priceBreakdown.inkCost > 0 && (
+               <div className="flex justify-between text-sm"><span className="text-gray-600">Ink Cost</span><span className="font-medium">₹{calculation.priceBreakdown.inkCost}</span></div>
+             )}
+             {calculation.priceBreakdown.paperCost > 0 && (
+               <div className="flex justify-between text-sm"><span className="text-gray-600">Paper Cost</span><span className="font-medium">₹{calculation.priceBreakdown.paperCost}</span></div>
+             )}
+             {calculation.priceBreakdown.laminationCost > 0 && (
+               <div className="flex justify-between text-sm"><span className="text-gray-600">Lamination</span><span className="font-medium">₹{calculation.priceBreakdown.laminationCost}</span></div>
+             )}
+             {calculation.priceBreakdown.finishingCost > 0 && (
+               <div className="flex justify-between text-sm"><span className="text-gray-600">Finishing</span><span className="font-medium">₹{calculation.priceBreakdown.finishingCost}</span></div>
+             )}
+             {calculation.priceBreakdown.setupCost > 0 && (
+               <div className="flex justify-between text-sm"><span className="text-gray-600">Setup</span><span className="font-medium">₹{calculation.priceBreakdown.setupCost}</span></div>
+             )}
+             {calculation.priceBreakdown.shippingCost > 0 && (
+               <div className="flex justify-between text-sm"><span className="text-gray-600">Shipping</span><span className="font-medium">₹{calculation.priceBreakdown.shippingCost}</span></div>
+             )}
+             <div className="border-t border-gray-200 pt-2 flex justify-between">
+               <span className="font-semibold">Total</span>
+               <span className="font-bold text-[#E63946]">₹{calculation.priceBreakdown.finalPrice}</span>
+             </div>
+             {calculation.deliveryEstimate && (
+               <p className="text-xs text-gray-500 text-center">Est. delivery: {calculation.deliveryEstimate.minDays}-{calculation.deliveryEstimate.maxDays} days</p>
+             )}
+           </div>
+         ) : (
+           <p className="text-sm text-gray-500 text-center py-4">Select a design to see pricing</p>
+         )}
+       </Modal>
+     </div>
+   );
+ }
 
 export default function DesignsPage() {
   const [designs, setDesigns] = useState([]);
@@ -135,6 +295,13 @@ export default function DesignsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [actionLoading, setActionLoading] = useState(null);
+  const [showVersions, setShowVersions] = useState(false);
+  const [versionHistory, setVersionHistory] = useState([]);
+  const [showCollaborators, setShowCollaborators] = useState(false);
+  const [collaborators, setCollaborators] = useState([]);
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [calculation, setCalculation] = useState(null);
+  const [selectedDesignId, setSelectedDesignId] = useState(null);
 
   const fetchDesigns = useCallback(async () => {
     try {
@@ -192,6 +359,39 @@ export default function DesignsPage() {
       toast.error('Failed to submit design');
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleVersions = async (id) => {
+    try {
+      const { data } = await api.get(`/designs/${id}/versions`);
+      setVersionHistory(data.versions || []);
+      setSelectedDesignId(id);
+      setShowVersions(true);
+    } catch {
+      toast.error('Failed to load version history');
+    }
+  };
+
+  const handleCollaborate = async (id) => {
+    try {
+      const { data } = await api.get(`/collaboration/${id}/collaborators`);
+      setCollaborators(data.collaborators || []);
+      setSelectedDesignId(id);
+      setShowCollaborators(true);
+    } catch {
+      toast.error('Failed to load collaborators');
+    }
+  };
+
+  const handleCalculate = async (id) => {
+    try {
+      const { data } = await api.get(`/products/${id}/calculate`);
+      setCalculation(data.calculation);
+      setSelectedDesignId(id);
+      setShowCalculator(true);
+    } catch {
+      toast.error('Failed to calculate price');
     }
   };
 
@@ -257,6 +457,9 @@ export default function DesignsPage() {
                   onDelete={handleDelete}
                   onDuplicate={handleDuplicate}
                   onSubmit={handleSubmit}
+                  onVersions={handleVersions}
+                  onCollaborate={handleCollaborate}
+                  onCalculate={handleCalculate}
                 />
               </div>
             ))}

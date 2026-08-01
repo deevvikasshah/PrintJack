@@ -126,6 +126,25 @@ export function CartProvider({ children }) {
     }
   };
 
+  const moveToWishlist = async (itemId) => {
+    try {
+      setLoading(true);
+      await api.delete(`/cart/item/${itemId}`);
+      const { data } = await api.get('/cart');
+      const cart = data.cart || data;
+      setItems(cart.items || []);
+      setCoupon(cart.coupon || null);
+      setDiscount(cart.discount || 0);
+      toast.success('Saved for later');
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to save for later';
+      toast.error(message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const clearCart = async () => {
     try {
       setLoading(true);
@@ -205,6 +224,7 @@ export function CartProvider({ children }) {
     addToCart,
     updateItem,
     removeItem,
+    moveToWishlist,
     clearCart,
     applyCoupon,
     removeCoupon,

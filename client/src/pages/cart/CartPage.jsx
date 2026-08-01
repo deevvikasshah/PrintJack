@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShoppingCart,
   Trash2,
+  Clock,
   Plus,
   Minus,
   ArrowRight,
@@ -39,6 +40,7 @@ export default function CartPage() {
   const [couponCode, setCouponCode] = useState('');
   const [updatingItemId, setUpdatingItemId] = useState(null);
   const [removingItemId, setRemovingItemId] = useState(null);
+  const [savingLaterItemId, setSavingLaterItemId] = useState(null);
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = totalAmount >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
@@ -69,6 +71,21 @@ export default function CartPage() {
       }
     },
     [removeItem]
+  );
+
+  const saveForLater = useCallback(
+    async (itemId) => {
+      setSavingLaterItemId(itemId);
+      try {
+        await moveToWishlist(itemId);
+        toast.success('Saved for later');
+      } catch {
+        toast.error('Failed to save for later');
+      } finally {
+        setSavingLaterItemId(null);
+      }
+    },
+    [moveToWishlist]
   );
 
   const handleApplyCoupon = async (e) => {
@@ -212,7 +229,7 @@ export default function CartPage() {
                             </Link>
                           )}
                         </div>
-                        <button
+                          <button
                           onClick={() => handleRemove(item._id)}
                           disabled={isRemoving}
                           className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0 disabled:opacity-50"
@@ -222,6 +239,18 @@ export default function CartPage() {
                             <Loader2 size={16} className="animate-spin" />
                           ) : (
                             <Trash2 size={16} />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => saveForLater(item._id)}
+                          disabled={savingLaterItemId === item._id}
+                          className="p-1.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors flex-shrink-0 disabled:opacity-50"
+                          title="Save for later"
+                        >
+                          {savingLaterItemId === item._id ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <Clock size={16} />
                           )}
                         </button>
                       </div>
