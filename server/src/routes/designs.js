@@ -19,7 +19,7 @@ router.post(
   protect,
   [
     body("name").optional().trim().notEmpty().withMessage("Design name is required"),
-    body("template").optional().notEmpty().withMessage("Template ID is required"),
+    body("productId").optional().notEmpty().withMessage("Product ID is required"),
   ],
   validate,
   saveDesign

@@ -82,6 +82,25 @@ exports.login = async (req, res, next) => {
     user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
 
+    if (user.mustChangePassword) {
+      const token = user.getSignedJwtToken();
+      return res.status(200).json({
+        success: true,
+        token,
+        mustChangePassword: true,
+        message: 'You must change your password before continuing',
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          avatar: user.avatar,
+          referralCode: user.referralCode,
+        },
+      });
+    }
+
     sendTokenResponse(user, 200, res);
   } catch (err) {
     next(err);
@@ -124,7 +143,7 @@ exports.googleAuth = async (req, res, next) => {
 exports.sendOTP = async (req, res, next) => {
   try {
     const { method } = req.body;
-    const identifier = req.body.email || req.body.phone;
+    const identifier = req.body.emailOrPhone || req.body.email || req.body.phone;
 
     if (!identifier) {
       throw new AppError('Email or phone number is required', 400);
@@ -166,7 +185,7 @@ exports.sendOTP = async (req, res, next) => {
 exports.verifyOTP = async (req, res, next) => {
   try {
     const { code } = req.body;
-    const identifier = req.body.email || req.body.phone;
+    const identifier = req.body.emailOrPhone || req.body.email || req.body.phone;
 
     if (!identifier || !code) {
       throw new AppError('Email/phone and OTP code are required', 400);
@@ -310,6 +329,7 @@ exports.updatePassword = async (req, res, next) => {
     }
 
     user.password = newPassword;
+    user.mustChangePassword = false;
     await user.save();
 
     sendTokenResponse(user, 200, res);

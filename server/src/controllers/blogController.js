@@ -87,7 +87,7 @@ exports.createPost = async (req, res, next) => {
     };
 
     if (req.file) {
-      const result = await uploadToCloudinary(req.file.path, {
+      const result = await uploadToCloudinary(req.file, {
         folder: 'printjack/blog',
         width: 1200,
         height: 630,
@@ -130,7 +130,7 @@ exports.updatePost = async (req, res, next) => {
           console.error('Failed to delete old featured image:', e.message);
         }
       }
-      const result = await uploadToCloudinary(req.file.path, {
+      const result = await uploadToCloudinary(req.file, {
         folder: 'printjack/blog',
         width: 1200,
         height: 630,

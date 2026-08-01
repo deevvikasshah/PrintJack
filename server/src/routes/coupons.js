@@ -21,10 +21,10 @@ router.post(
   protect,
   [
     body("code").trim().notEmpty().withMessage("Coupon code is required"),
-    body("cartTotal")
+    body("cartAmount")
       .optional()
       .isFloat({ min: 0 })
-      .withMessage("Cart total must be a positive number"),
+      .withMessage("Cart amount must be a positive number"),
   ],
   validate,
   validateCoupon
@@ -39,12 +39,13 @@ router.post(
   [
     body("code").trim().notEmpty().withMessage("Coupon code is required"),
     body("discountType")
-      .isIn(["percentage", "fixed"])
-      .withMessage("Discount type must be percentage or fixed"),
+      .isIn(["percentage", "fixed", "free_shipping"])
+      .withMessage("Discount type must be percentage, fixed, or free_shipping"),
     body("discountValue")
       .isFloat({ min: 0 })
       .withMessage("Discount value must be a positive number"),
-    body("expiryDate").isISO8601().withMessage("Valid expiry date is required"),
+    body("validFrom").isISO8601().withMessage("Valid from date is required"),
+    body("validTill").isISO8601().withMessage("Valid till date is required"),
   ],
   validate,
   createCoupon
@@ -58,13 +59,14 @@ router.put(
     body("code").optional().trim().notEmpty().withMessage("Code cannot be empty"),
     body("discountType")
       .optional()
-      .isIn(["percentage", "fixed"])
-      .withMessage("Discount type must be percentage or fixed"),
+      .isIn(["percentage", "fixed", "free_shipping"])
+      .withMessage("Discount type must be percentage, fixed, or free_shipping"),
     body("discountValue")
       .optional()
       .isFloat({ min: 0 })
       .withMessage("Discount value must be a positive number"),
-    body("expiryDate").optional().isISO8601().withMessage("Valid expiry date is required"),
+    body("validFrom").optional().isISO8601().withMessage("Valid from date is required"),
+    body("validTill").optional().isISO8601().withMessage("Valid till date is required"),
   ],
   validate,
   updateCoupon

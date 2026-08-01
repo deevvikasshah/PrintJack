@@ -1,5 +1,6 @@
 const { User, Category, Product, Coupon, Setting } = require('../models');
 const { AppError } = require('../middleware/errorHandler');
+const crypto = require('crypto');
 
 const categoryData = {
   'Business Cards': {
@@ -82,10 +83,14 @@ const bulkPricingSets = {
 };
 
 const couponData = [
-  { code: 'WELCOME20', discount: 20, discountType: 'percentage', minOrder: 199, maxUses: 1000, isActive: true },
-  { code: 'FIRST100', discount: 100, discountType: 'fixed', minOrder: 499, maxUses: 500, isActive: true },
-  { code: 'PRINT50', discount: 50, discountType: 'percentage', minOrder: 999, maxUses: 200, isActive: true, maxDiscount: 500 },
-];
+  { code: 'WELCOME20', description: '20% off on your first order', discountType: 'percentage', discountValue: 20, minimumOrderAmount: 199, maximumDiscountAmount: 500, usageLimit: 1000, isActive: true },
+  { code: 'FIRST100', description: '₹100 off on orders above ₹499', discountType: 'fixed', discountValue: 100, minimumOrderAmount: 499, maximumDiscountAmount: 100, usageLimit: 500, isActive: true },
+  { code: 'PRINT50', description: '50% off on orders above ₹999', discountType: 'percentage', discountValue: 50, minimumOrderAmount: 999, maximumDiscountAmount: 500, usageLimit: 200, isActive: true },
+].map((c) => ({
+  ...c,
+  validFrom: new Date(),
+  validTill: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+}));
 
 const settingsData = [
   { key: 'site_name', value: 'PrintJack', category: 'general' },
@@ -124,15 +129,18 @@ exports.seed = async (req, res, next) => {
 
     const results = {};
 
+    const adminPassword = crypto.randomBytes(12).toString('base64url');
+
     const admin = await User.create({
       name: 'PrintJack Admin',
       email: 'admin@printjack.in',
       phone: '9876543210',
-      password: 'Admin@123',
+      password: adminPassword,
       role: 'super_admin',
       isActive: true,
+      mustChangePassword: true,
     });
-    results.admin = { email: admin.email, password: 'Admin@123' };
+    results.admin = { email: admin.email, password: adminPassword, mustChangePassword: true };
 
     const categoryMap = {};
     const parentNames = Object.keys(categoryData);

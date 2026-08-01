@@ -14,7 +14,7 @@ exports.uploadSingle = async (req, res, next) => {
     if (height) options.height = parseInt(height, 10);
     if (quality) options.quality = quality;
 
-    const result = await uploadToCloudinary(req.file.path, options);
+    const result = await uploadToCloudinary(req.file, options);
 
     res.status(200).json({
       success: true,
@@ -41,7 +41,7 @@ exports.uploadMultiple = async (req, res, next) => {
     const { folder = 'printjack/uploads' } = req.query;
 
     const uploadPromises = req.files.map((file) =>
-      uploadToCloudinary(file.path, { folder })
+      uploadToCloudinary(file, { folder })
     );
 
     const results = await Promise.all(uploadPromises);
@@ -63,7 +63,7 @@ exports.uploadMultiple = async (req, res, next) => {
 
 exports.deleteUpload = async (req, res, next) => {
   try {
-    const { publicId } = req.body;
+    const publicId = req.params.publicId || req.body.publicId;
 
     if (!publicId) {
       throw new AppError('Public ID is required', 400);
@@ -97,7 +97,7 @@ exports.uploadDesignFile = async (req, res, next) => {
 
     const { name, productId, width, height, colorMode } = req.body;
 
-    const result = await uploadToCloudinary(req.file.path, {
+    const result = await uploadToCloudinary(req.file, {
       folder: 'printjack/designs/files',
       resource_type: 'auto',
       format: ext.replace('.', '') || undefined,

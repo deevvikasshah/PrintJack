@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { body } = require("express-validator");
 const { protect, authorize } = require("../middleware/auth");
+const { upload } = require("../middleware/upload");
 const validate = require("../middleware/validate");
 const {
   getAllCategories,
@@ -18,6 +19,7 @@ router.post(
   "/",
   protect,
   authorize("admin"),
+  upload.single("image"),
   [
     body("name").trim().notEmpty().withMessage("Category name is required"),
     body("slug").trim().notEmpty().withMessage("Slug is required"),
@@ -30,6 +32,7 @@ router.put(
   "/:id",
   protect,
   authorize("admin"),
+  upload.single("image"),
   [
     body("name").optional().trim().notEmpty().withMessage("Name cannot be empty"),
     body("slug").optional().trim().notEmpty().withMessage("Slug cannot be empty"),

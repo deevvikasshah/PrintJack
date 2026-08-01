@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Truck, Eye } from 'lucide-react';
+import { Package, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Truck, Eye, Loader2, AlertCircle } from 'lucide-react';
 import api from '../../utils/api';
 import { formatPrice, formatDate, getStatusColor, getStatusLabel } from '../../utils/formatters';
 import EmptyState from '../../components/common/EmptyState';
 import Pagination from '../../components/common/Pagination';
 import Loading from '../../components/common/Loading';
 import toast from 'react-hot-toast';
+import { useCart } from '../../context/CartContext';
 
 const TABS = [
   { key: 'all', label: 'All Orders' },
@@ -79,7 +80,7 @@ function StatusTimeline({ currentStatus }) {
   );
 }
 
-function OrderCard({ order }) {
+function OrderCard({ order, onReorder }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -225,7 +226,7 @@ function OrderCard({ order }) {
             </Link>
             {order.status === 'delivered' && (
               <button
-                onClick={() => toast.success('Reorder feature coming soon!')}
+                onClick={() => onReorder(order)}
                 className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors"
               >
                 <RefreshCw size={14} />
@@ -245,6 +246,26 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const { addToCart } = useCart();
+
+  const handleReorder = async (order) => {
+    try {
+      toast.loading('Adding items to cart...', { id: 'reorder' });
+      for (const item of order.items) {
+        await addToCart(
+          item.product || item.productId,
+          item.quantity,
+          item.size,
+          item.color,
+          item.designId || item.design
+        );
+      }
+      toast.success('All items added to cart!', { id: 'reorder' });
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to add items to cart';
+      toast.error(message, { id: 'reorder' });
+    }
+  };
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -322,7 +343,7 @@ export default function OrdersPage() {
         <>
           <div className="space-y-4">
             {orders.map((order) => (
-              <OrderCard key={order._id} order={order} />
+              <OrderCard key={order._id} order={order} onReorder={handleReorder} />
             ))}
           </div>
           <Pagination
