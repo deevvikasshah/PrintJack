@@ -311,7 +311,7 @@ exports.getCalculatorConfig = async (req, res, next) => {
   try {
     const { productId } = req.params;
 
-    const product = await Product.findById(productId).select('calculatorConfig name basePrice');
+    const product = await Product.findById(productId).select('calculatorConfig name basePrice isActive');
     if (!product || !product.isActive) {
       throw new AppError('Product not found or unavailable', 404);
     }
