@@ -90,7 +90,7 @@ router.post(
 
 router.get("/:id/templates", getTemplates);
 
-router.post("/:id/calculate", calculatePrice);
-router.get("/:id/calculator-config", getCalculatorConfig);
+router.post("/:productId/calculate", calculatePrice);
+router.get("/:productId/calculator-config", getCalculatorConfig);
 
 module.exports = router;
