@@ -198,7 +198,7 @@ export default function ProductsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div>
-              <span className="text-sm text-moo-green font-medium uppercase tracking-widest">Shop</span>
+              <span className="text-sm text-pj-green font-medium uppercase tracking-widest">Shop</span>
               <h1 className="mt-2 font-display text-3xl sm:text-5xl text-ink">All Products</h1>
               <p className="text-sm text-ink/50 mt-2">{products.length} products found</p>
             </div>
@@ -210,7 +210,7 @@ export default function ProductsPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search products..."
-                  className="w-full pl-10 pr-9 py-3 border border-ink/15 rounded-full text-sm bg-white focus:outline-none focus:ring-2 focus:ring-moo-green/30 focus:border-moo-green transition-colors"
+                  className="w-full pl-10 pr-9 py-3 border border-ink/15 rounded-full text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pj-green/30 focus:border-pj-green transition-colors"
                 />
                 {searchQuery && (
                   <button onClick={() => setSearchQuery('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink">
@@ -222,7 +222,7 @@ export default function ProductsPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="appearance-none pl-4 pr-9 py-3 border border-ink/15 rounded-full text-sm bg-white focus:outline-none focus:ring-2 focus:ring-moo-green/30 focus:border-moo-green"
+                  className="appearance-none pl-4 pr-9 py-3 border border-ink/15 rounded-full text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pj-green/30 focus:border-pj-green"
                 >
                   {sortOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -253,7 +253,7 @@ export default function ProductsPage() {
         {activeFilterTags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {activeFilterTags.map((tag, i) => (
-              <span key={i} className="inline-flex items-center gap-1 bg-moo-green/10 text-moo-green text-xs font-medium px-3 py-1.5 rounded-full">
+              <span key={i} className="inline-flex items-center gap-1 bg-pj-green/10 text-pj-green text-xs font-medium px-3 py-1.5 rounded-full">
                 {tag.label}
                 <button onClick={() => removeTag(tag)} className="hover:text-ink">
                   <X size={12} />
@@ -308,7 +308,7 @@ export default function ProductsPage() {
                     />
                     <button
                       onClick={() => setShowFilters(false)}
-                      className="mt-6 w-full bg-ink hover:bg-moo-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
+                      className="mt-6 w-full bg-ink hover:bg-pj-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
                     >
                       Show {products.length} Results
                     </button>
@@ -328,7 +328,7 @@ export default function ProductsPage() {
                 <PackageOpen size={64} className="mx-auto text-ink/20 mb-4" />
                 <h3 className="font-display text-xl text-ink mb-2">No products found</h3>
                 <p className="text-ink/50 mb-6">Try adjusting your filters or search query</p>
-                <button onClick={clearAll} className="bg-ink hover:bg-moo-green text-paper-50 font-semibold px-6 py-3 rounded-full transition-colors">
+                <button onClick={clearAll} className="bg-ink hover:bg-pj-green text-paper-50 font-semibold px-6 py-3 rounded-full transition-colors">
                   Clear All Filters
                 </button>
               </div>

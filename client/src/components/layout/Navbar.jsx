@@ -104,7 +104,7 @@ export default function Navbar() {
                         type="button"
                         onClick={() => { setSearchCategory('all'); setIsCategoryOpen(false); }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-paper-100 transition-colors ${
-                          searchCategory === 'all' ? 'text-moo-green font-medium' : 'text-ink/80'
+                          searchCategory === 'all' ? 'text-pj-green font-medium' : 'text-ink/80'
                         }`}
                       >
                         All Categories
@@ -115,7 +115,7 @@ export default function Navbar() {
                           type="button"
                           onClick={() => { setSearchCategory(cat.slug); setIsCategoryOpen(false); }}
                           className={`w-full text-left px-4 py-2 text-sm hover:bg-paper-100 transition-colors ${
-                            searchCategory === cat.slug ? 'text-moo-green font-medium' : 'text-ink/80'
+                            searchCategory === cat.slug ? 'text-pj-green font-medium' : 'text-ink/80'
                           }`}
                         >
                           {cat.name}
@@ -131,11 +131,11 @@ export default function Navbar() {
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                   placeholder="Search products, categories..."
-                  className="flex-1 px-4 py-2 border border-ink/15 focus:border-moo-green focus:ring-0 focus:outline-none text-sm bg-paper-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-ink/15 focus:border-pj-green focus:ring-0 focus:outline-none text-sm bg-paper-50 transition-colors"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-ink text-paper-50 rounded-r-full hover:bg-moo-green transition-colors"
+                  className="px-4 py-2 bg-ink text-paper-50 rounded-r-full hover:bg-pj-green transition-colors"
                 >
                   <Search size={18} />
                 </button>
@@ -147,7 +147,7 @@ export default function Navbar() {
               {/* Mobile Search */}
               <Link
                 to="/products"
-                className="md:hidden p-2 text-gray-600 hover:text-moo-green transition-colors"
+                className="md:hidden p-2 text-gray-600 hover:text-pj-green transition-colors"
               >
                 <Search size={22} />
               </Link>
@@ -155,7 +155,7 @@ export default function Navbar() {
               {/* Cart */}
               <Link
                 to="/cart"
-                className="relative p-2 text-gray-600 hover:text-moo-green transition-colors"
+                className="relative p-2 text-gray-600 hover:text-pj-green transition-colors"
               >
                 <ShoppingCart size={22} />
                 {itemCount > 0 && (
@@ -175,7 +175,7 @@ export default function Navbar() {
                     {user?.avatar ? (
                       <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
                     ) : (
-                      <div className="w-8 h-8 bg-gradient-to-br from-ink to-moo-green rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-gradient-to-br from-ink to-pj-green rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-bold">{getInitials(user?.name)}</span>
                       </div>
                     )}
@@ -192,7 +192,7 @@ export default function Navbar() {
                           <Link
                             key={link.to}
                             to={link.to}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-moo-green transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-pj-green transition-colors"
                           >
                             <link.icon size={16} />
                             {link.label}
@@ -200,7 +200,7 @@ export default function Navbar() {
                         ))}
                         <Link
                           to="/dashboard/settings"
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-moo-green transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-pj-green transition-colors"
                         >
                           <Settings size={16} />
                           Settings
@@ -210,7 +210,7 @@ export default function Navbar() {
                         <div className="border-t border-gray-100 py-1">
                           <Link
                             to="/admin"
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-moo-green hover:bg-paper-100 font-medium transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-pj-green hover:bg-paper-100 font-medium transition-colors"
                           >
                             <Shield size={16} />
                             Admin Dashboard
@@ -233,13 +233,13 @@ export default function Navbar() {
                 <div className="hidden sm:flex items-center gap-2">
                   <Link
                     to="/login"
-                    className="px-4 py-2 text-sm font-medium text-ink hover:text-moo-green transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-ink hover:text-pj-green transition-colors"
                   >
                     Login
                   </Link>
                   <Link
                     to="/register"
-                    className="px-4 py-2 text-sm font-medium bg-ink text-white rounded-xl hover:bg-moo-green transition-colors"
+                    className="px-4 py-2 text-sm font-medium bg-ink text-white rounded-xl hover:bg-pj-green transition-colors"
                   >
                     Register
                   </Link>
@@ -249,7 +249,7 @@ export default function Navbar() {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setIsMobileOpen(!isMobileOpen)}
-                className="md:hidden p-2 text-gray-600 hover:text-moo-green transition-colors"
+                className="md:hidden p-2 text-gray-600 hover:text-pj-green transition-colors"
               >
                 {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -265,7 +265,7 @@ export default function Navbar() {
                 <Link
                   key={cat.slug}
                   to={`/products?category=${cat.slug}`}
-                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-moo-green hover:bg-paper-100 rounded-lg whitespace-nowrap transition-all"
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-pj-green hover:bg-paper-100 rounded-lg whitespace-nowrap transition-all"
                 >
                   {cat.name}
                 </Link>
@@ -294,7 +294,7 @@ export default function Navbar() {
                   <Link to="/login" onClick={() => setIsMobileOpen(false)} className="flex-1 px-4 py-2.5 text-sm font-medium text-ink border border-ink rounded-xl text-center hover:bg-gray-50 transition-colors">
                     Login
                   </Link>
-                  <Link to="/register" onClick={() => setIsMobileOpen(false)} className="flex-1 px-4 py-2.5 text-sm font-medium bg-ink text-white rounded-xl text-center hover:bg-moo-green transition-colors">
+                  <Link to="/register" onClick={() => setIsMobileOpen(false)} className="flex-1 px-4 py-2.5 text-sm font-medium bg-ink text-white rounded-xl text-center hover:bg-pj-green transition-colors">
                     Register
                   </Link>
                 </div>
@@ -304,7 +304,7 @@ export default function Navbar() {
                   {user?.avatar ? (
                     <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
                   ) : (
-                    <div className="w-10 h-10 bg-gradient-to-br from-ink to-moo-green rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-ink to-pj-green rounded-full flex items-center justify-center">
                       <span className="text-white text-sm font-bold">{getInitials(user?.name)}</span>
                     </div>
                   )}
@@ -329,7 +329,7 @@ export default function Navbar() {
                   key={cat.slug}
                   to={`/products?category=${cat.slug}`}
                   onClick={() => setIsMobileOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-moo-green rounded-lg transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-pj-green rounded-lg transition-colors"
                 >
                   {cat.name}
                 </Link>
@@ -344,7 +344,7 @@ export default function Navbar() {
                     key={link.to}
                     to={link.to}
                     onClick={() => setIsMobileOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-moo-green rounded-lg transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-pj-green rounded-lg transition-colors"
                   >
                     <link.icon size={16} />
                     {link.label}
@@ -354,7 +354,7 @@ export default function Navbar() {
                   <Link
                     to="/admin"
                     onClick={() => setIsMobileOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-moo-green hover:bg-paper-100 rounded-lg font-medium transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-pj-green hover:bg-paper-100 rounded-lg font-medium transition-colors"
                   >
                     <Shield size={16} />
                     Admin Dashboard

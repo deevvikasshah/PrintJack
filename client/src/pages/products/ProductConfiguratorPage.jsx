@@ -62,8 +62,8 @@ export default function ProductConfiguratorPage() {
 
   const { isAuthenticated } = useAuth();
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  const hideQuantity = searchParams.get('feature-hideQuantityAndPaper') === 'true';
-  const designKey = searchParams.get('designKey');
+  const hideQuantity = searchParams.get('hideOptions') === 'true';
+  const designKey = searchParams.get('area');
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -94,7 +94,7 @@ export default function ProductConfiguratorPage() {
 
   useEffect(() => {
     const readHash = () => {
-      const m = window.location.hash.match(/step=(\w+)/);
+      const m = window.location.hash.match(/stage=(\w+)/);
       if (m && STEPS.some((s) => s.id === m[1])) {
         setStep(m[1]);
       }
@@ -565,7 +565,7 @@ export default function ProductConfiguratorPage() {
         setCanRedo(false);
       }
       setStep(s);
-      window.location.hash = `step=${s}`;
+      window.location.hash = `stage=${s}`;
       if (s === 'review') {
         const url = canvasRef.current?.toDataUrl?.() || previewUrlRef.current;
         setDesignPreviewUrl(url || null);
@@ -662,7 +662,7 @@ export default function ProductConfiguratorPage() {
     return (
       <div className="min-h-screen bg-paper-100 flex flex-col items-center justify-center gap-4">
         <p className="text-ink/60 text-lg">Product not found</p>
-        <Link to="/products" className="bg-ink hover:bg-moo-green text-paper-50 font-semibold px-6 py-3 rounded-full transition-colors">
+        <Link to="/products" className="bg-ink hover:bg-pj-green text-paper-50 font-semibold px-6 py-3 rounded-full transition-colors">
           Browse Products
         </Link>
       </div>
@@ -722,7 +722,7 @@ export default function ProductConfiguratorPage() {
                 className="p-2 rounded-full hover:bg-paper-200 transition-colors"
                 title={copied ? 'Link copied!' : 'Share this configurator'}
               >
-                {copied ? <Check className="w-4 h-4 text-moo-green" /> : <Share2 className="w-4 h-4 text-ink" />}
+                {copied ? <Check className="w-4 h-4 text-pj-green" /> : <Share2 className="w-4 h-4 text-ink" />}
               </button>
               {STEPS.map((s, i) => {
                 const isActive = s.id === step;
@@ -736,7 +736,7 @@ export default function ProductConfiguratorPage() {
                       isActive
                         ? 'bg-ink text-paper-50'
                         : isDone
-                          ? 'bg-moo-green text-paper-50'
+                          ? 'bg-pj-green text-paper-50'
                           : 'bg-paper-200 text-ink/50 hover:bg-paper-300'
                     )}
                   >
@@ -755,9 +755,9 @@ export default function ProductConfiguratorPage() {
       {/* Draft banner */}
       {draftExists && step !== 'review' && (
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
-          <div className="flex items-center justify-between gap-3 bg-moo-sage border border-moo-green/40 rounded-2xl px-4 py-3">
+          <div className="flex items-center justify-between gap-3 bg-pj-sage border border-pj-green/40 rounded-2xl px-4 py-3">
             <div className="flex items-center gap-2.5 min-w-0">
-              <Archive className="w-4 h-4 text-moo-green flex-shrink-0" />
+              <Archive className="w-4 h-4 text-pj-green flex-shrink-0" />
               <p className="text-sm text-ink/80 truncate">
                 You have a saved draft for this product.
               </p>
@@ -766,7 +766,7 @@ export default function ProductConfiguratorPage() {
               <button
                 onClick={handleResume}
                 disabled={resuming}
-                className="flex items-center gap-1.5 px-4 py-2 bg-moo-green text-paper-50 text-sm font-semibold rounded-full hover:bg-ink transition-colors disabled:opacity-60"
+                className="flex items-center gap-1.5 px-4 py-2 bg-pj-green text-paper-50 text-sm font-semibold rounded-full hover:bg-ink transition-colors disabled:opacity-60"
               >
                 {resuming && <Loader2 className="w-4 h-4 animate-spin" />}
                 {resuming ? 'Restoring...' : 'Resume draft'}
@@ -787,7 +787,7 @@ export default function ProductConfiguratorPage() {
       {step === 'details' && (
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
           <div className="text-center mb-8">
-            <p className="text-xs font-semibold text-moo-green uppercase tracking-widest mb-2">Step 1 of 3</p>
+            <p className="text-xs font-semibold text-pj-green uppercase tracking-widest mb-2">Step 1 of 3</p>
             <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink">Choose your options</h2>
             <p className="mt-2 text-ink/60">Pick a print area{!hideQuantity && ', size, color and quantity'} to get started.</p>
           </div>
@@ -798,7 +798,7 @@ export default function ProductConfiguratorPage() {
               {printAreas.length > 0 && (
                 <div className="bg-paper-50 rounded-2xl border border-paper-200 p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <Ruler className="w-4 h-4 text-moo-green" />
+                    <Ruler className="w-4 h-4 text-pj-green" />
                     <h3 className="font-display font-semibold text-ink">Print Area</h3>
                   </div>
                   <div className="space-y-2">
@@ -809,7 +809,7 @@ export default function ProductConfiguratorPage() {
                         className={clsx(
                           'w-full flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all',
                           selectedPrintArea === i
-                            ? 'border-moo-green bg-moo-sage'
+                            ? 'border-pj-green bg-pj-sage'
                             : 'border-paper-200 hover:border-paper-300'
                         )}
                       >
@@ -832,7 +832,7 @@ export default function ProductConfiguratorPage() {
               {!hideQuantity && sizes.length > 0 && (
                 <div className="bg-paper-50 rounded-2xl border border-paper-200 p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <Package className="w-4 h-4 text-moo-green" />
+                    <Package className="w-4 h-4 text-pj-green" />
                     <h3 className="font-display font-semibold text-ink">Size</h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -863,7 +863,7 @@ export default function ProductConfiguratorPage() {
               {!hideQuantity && colors.length > 0 && (
                 <div className="bg-paper-50 rounded-2xl border border-paper-200 p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <Palette className="w-4 h-4 text-moo-green" />
+                    <Palette className="w-4 h-4 text-pj-green" />
                     <h3 className="font-display font-semibold text-ink">Color</h3>
                   </div>
                   <div className="flex flex-wrap gap-3">
@@ -916,7 +916,7 @@ export default function ProductConfiguratorPage() {
               {!hideQuantity && (
                 <div className="bg-paper-50 rounded-2xl border border-paper-200 p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <ShoppingCart className="w-4 h-4 text-moo-green" />
+                    <ShoppingCart className="w-4 h-4 text-pj-green" />
                     <h3 className="font-display font-semibold text-ink">Quantity</h3>
                   </div>
                   <div className="flex items-center gap-3">
@@ -932,7 +932,7 @@ export default function ProductConfiguratorPage() {
                       max={10000}
                       value={quantity}
                       onChange={(e) => setQuantity(Math.max(product.minimumOrderQuantity || 1, parseInt(e.target.value) || 1))}
-                      className="w-24 text-center px-3 py-2 border-2 border-paper-300 rounded-xl text-lg font-bold text-ink outline-none focus:border-moo-green"
+                      className="w-24 text-center px-3 py-2 border-2 border-paper-300 rounded-xl text-lg font-bold text-ink outline-none focus:border-pj-green"
                     />
                     <button
                       onClick={() => setQuantity(quantity + 1)}
@@ -950,7 +950,7 @@ export default function ProductConfiguratorPage() {
                           key={tier.min}
                           className={clsx(
                             'flex items-center justify-between px-4 py-2.5 rounded-xl text-sm transition-colors',
-                            active ? 'bg-moo-sage border border-moo-green/40' : 'border border-transparent'
+                            active ? 'bg-pj-sage border border-pj-green/40' : 'border border-transparent'
                           )}
                         >
                           <span className="text-ink/70">
@@ -980,7 +980,7 @@ export default function ProductConfiguratorPage() {
                   </div>
                 )}
                 {!hideQuantity && pricingTier && pricingTier.priceMultiplier < 1 && (
-                  <div className="flex items-center justify-between text-sm text-moo-green mt-2">
+                  <div className="flex items-center justify-between text-sm text-pj-green mt-2">
                     <span>Bulk discount ({Math.round((1 - pricingTier.priceMultiplier) * 100)}% off)</span>
                     <span>-₹{(basePrice * quantity - totalPrice).toLocaleString()}</span>
                   </div>
@@ -993,7 +993,7 @@ export default function ProductConfiguratorPage() {
 
               <button
                 onClick={() => goToStep('design')}
-                className="w-full flex items-center justify-center gap-2 bg-moo-green hover:bg-ink text-paper-50 font-semibold py-4 rounded-full transition-colors text-lg shadow-lg shadow-moo-green/20"
+                className="w-full flex items-center justify-center gap-2 bg-pj-green hover:bg-ink text-paper-50 font-semibold py-4 rounded-full transition-colors text-lg shadow-lg shadow-pj-green/20"
               >
                 Continue to Design
                 <ArrowRight className="w-5 h-5" />
@@ -1007,7 +1007,7 @@ export default function ProductConfiguratorPage() {
       {step === 'design' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="text-center mb-6">
-            <p className="text-xs font-semibold text-moo-green uppercase tracking-widest mb-2">Step 2 of 3</p>
+            <p className="text-xs font-semibold text-pj-green uppercase tracking-widest mb-2">Step 2 of 3</p>
             <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink">Design your print</h2>
             <p className="mt-2 text-ink/60">Add text, upload artwork, or start from a template.</p>
           </div>
@@ -1023,7 +1023,7 @@ export default function ProductConfiguratorPage() {
                     className={clsx(
                       'flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors min-w-[64px]',
                       activeDesignTab === tab.id
-                        ? 'text-moo-green bg-moo-sage/60'
+                        ? 'text-pj-green bg-pj-sage/60'
                         : 'text-ink/50 hover:text-ink/80 hover:bg-paper-100'
                     )}
                   >
@@ -1056,7 +1056,7 @@ export default function ProductConfiguratorPage() {
                   onClick={() => setShowGrid(!showGrid)}
                   className={clsx(
                     'p-1.5 rounded-lg transition-colors',
-                    showGrid ? 'text-moo-green bg-moo-sage' : 'text-ink/60 hover:bg-paper-200'
+                    showGrid ? 'text-pj-green bg-pj-sage' : 'text-ink/60 hover:bg-paper-200'
                   )}
                   title="Toggle Grid"
                 >
@@ -1077,7 +1077,7 @@ export default function ProductConfiguratorPage() {
                             <button
                               key={tpl._id || tpl.url || tpl.name}
                               onClick={() => loadProductTemplate(tpl)}
-                              className="group border border-paper-200 rounded-xl overflow-hidden hover:border-moo-green hover:shadow-md transition-all"
+                              className="group border border-paper-200 rounded-xl overflow-hidden hover:border-pj-green hover:shadow-md transition-all"
                               title={tpl.name}
                             >
                               <div className="aspect-[4/3] bg-paper-100 flex items-center justify-center overflow-hidden">
@@ -1111,7 +1111,7 @@ export default function ProductConfiguratorPage() {
                   <div className="space-y-3">
                     <button
                       onClick={addText}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-ink text-paper-50 rounded-xl font-semibold hover:bg-moo-green transition-colors text-sm"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-ink text-paper-50 rounded-xl font-semibold hover:bg-pj-green transition-colors text-sm"
                     >
                       <Type className="w-4 h-4" />
                       Add Text
@@ -1136,7 +1136,7 @@ export default function ProductConfiguratorPage() {
                       <button
                         key={type}
                         onClick={() => addShape(type)}
-                        className="flex flex-col items-center gap-1 p-2 bg-paper-100 border border-paper-200 rounded-xl hover:border-moo-green hover:bg-moo-sage/40 transition-all"
+                        className="flex flex-col items-center gap-1 p-2 bg-paper-100 border border-paper-200 rounded-xl hover:border-pj-green hover:bg-pj-sage/40 transition-all"
                         title={label}
                       >
                         <Icon className="w-5 h-5 text-ink/70" />
@@ -1186,7 +1186,7 @@ export default function ProductConfiguratorPage() {
               <button
                 onClick={handleSaveDraft}
                 disabled={savingDraft}
-                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border-2 border-moo-green text-moo-green font-semibold hover:bg-moo-sage transition-colors disabled:opacity-60"
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border-2 border-pj-green text-pj-green font-semibold hover:bg-pj-sage transition-colors disabled:opacity-60"
               >
                 {savingDraft ? <Loader2 className="w-4 h-4 animate-spin" /> : <Archive className="w-4 h-4" />}
                 {savingDraft ? 'Saving...' : 'Save Draft'}
@@ -1194,7 +1194,7 @@ export default function ProductConfiguratorPage() {
             </div>
             <button
               onClick={() => goToStep('review')}
-              className="flex items-center justify-center gap-2 bg-moo-green hover:bg-ink text-paper-50 font-semibold py-3.5 rounded-full transition-colors text-lg shadow-lg shadow-moo-green/20"
+              className="flex items-center justify-center gap-2 bg-pj-green hover:bg-ink text-paper-50 font-semibold py-3.5 rounded-full transition-colors text-lg shadow-lg shadow-pj-green/20"
             >
               Review Design
               <ArrowRight className="w-5 h-5" />
@@ -1207,7 +1207,7 @@ export default function ProductConfiguratorPage() {
       {step === 'review' && (
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
           <div className="text-center mb-8">
-            <p className="text-xs font-semibold text-moo-green uppercase tracking-widest mb-2">Step 3 of 3</p>
+            <p className="text-xs font-semibold text-pj-green uppercase tracking-widest mb-2">Step 3 of 3</p>
             <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink">Review your order</h2>
             <p className="mt-2 text-ink/60">Make sure everything looks perfect before adding to cart.</p>
           </div>
@@ -1280,7 +1280,7 @@ export default function ProductConfiguratorPage() {
                   </div>
                 )}
                 {!hideQuantity && pricingTier && pricingTier.priceMultiplier < 1 && (
-                  <div className="flex justify-between gap-4 text-moo-green">
+                  <div className="flex justify-between gap-4 text-pj-green">
                     <dt>Bulk discount ({Math.round((1 - pricingTier.priceMultiplier) * 100)}% off)</dt>
                     <dd className="font-semibold">-₹{(basePrice * quantity - totalPrice).toLocaleString()}</dd>
                   </div>
@@ -1303,7 +1303,7 @@ export default function ProductConfiguratorPage() {
                 <button
                   onClick={handleAddToCart}
                   disabled={addingToCart}
-                  className="flex items-center justify-center gap-2 bg-moo-green hover:bg-ink text-paper-50 font-semibold py-4 rounded-full transition-colors text-lg shadow-lg shadow-moo-green/20 disabled:opacity-60"
+                  className="flex items-center justify-center gap-2 bg-pj-green hover:bg-ink text-paper-50 font-semibold py-4 rounded-full transition-colors text-lg shadow-lg shadow-pj-green/20 disabled:opacity-60"
                 >
                   {addingToCart ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> Adding...</>
@@ -1327,7 +1327,7 @@ export default function ProductConfiguratorPage() {
           {step === 'details' && (
             <button
               onClick={() => goToStep('design')}
-              className="flex-1 flex items-center justify-center gap-2 bg-moo-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 bg-pj-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
             >
               Continue
               <ArrowRight className="w-4 h-4" />
@@ -1336,7 +1336,7 @@ export default function ProductConfiguratorPage() {
           {step === 'design' && (
             <button
               onClick={() => goToStep('review')}
-              className="flex-1 flex items-center justify-center gap-2 bg-moo-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 bg-pj-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
             >
               Review
               <ArrowRight className="w-4 h-4" />
@@ -1346,7 +1346,7 @@ export default function ProductConfiguratorPage() {
             <button
               onClick={handleAddToCart}
               disabled={addingToCart}
-              className="flex-1 flex items-center justify-center gap-2 bg-moo-green text-paper-50 font-semibold py-3 rounded-full transition-colors disabled:opacity-60"
+              className="flex-1 flex items-center justify-center gap-2 bg-pj-green text-paper-50 font-semibold py-3 rounded-full transition-colors disabled:opacity-60"
             >
               {addingToCart ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Adding...</>

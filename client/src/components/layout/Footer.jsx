@@ -48,13 +48,13 @@ export default function Footer() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="flex-1 md:w-72 px-4 py-3 bg-white/10 border border-white/20 rounded-l-full text-sm placeholder-paper-100/40 focus:outline-none focus:border-moo-green transition-colors"
+                className="flex-1 md:w-72 px-4 py-3 bg-white/10 border border-white/20 rounded-l-full text-sm placeholder-paper-100/40 focus:outline-none focus:border-pj-green transition-colors"
                 required
               />
               <button
                 type="submit"
                 disabled={isSubscribing}
-                className="px-6 py-3 bg-moo-green text-white rounded-r-full font-medium text-sm hover:bg-paper-200 hover:text-ink transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-3 bg-pj-green text-white rounded-r-full font-medium text-sm hover:bg-paper-200 hover:text-ink transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 <Send size={16} />
                 {isSubscribing ? 'Subscribing...' : 'Subscribe'}
@@ -96,7 +96,7 @@ export default function Footer() {
                 { label: 'Bulk Orders', to: '/bulk-orders' },
               ].map((link) => (
                 <li key={link.to}>
-                  <Link to={link.to} className="text-sm text-paper-100/60 hover:text-moo-green transition-colors">
+                  <Link to={link.to} className="text-sm text-paper-100/60 hover:text-pj-green transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -110,7 +110,7 @@ export default function Footer() {
             <ul className="space-y-2.5">
               {PRODUCT_CATEGORIES.slice(0, 7).map((cat) => (
                 <li key={cat.slug}>
-                  <Link to={`/products?category=${cat.slug}`} className="text-sm text-paper-100/60 hover:text-moo-green transition-colors">
+                  <Link to={`/products?category=${cat.slug}`} className="text-sm text-paper-100/60 hover:text-pj-green transition-colors">
                     {cat.name}
                   </Link>
                 </li>
@@ -130,7 +130,7 @@ export default function Footer() {
                 { label: 'Contact Support', to: '/contact' },
               ].map((link, i) => (
                 <li key={i}>
-                  <Link to={link.to} className="text-sm text-paper-100/60 hover:text-moo-green transition-colors">
+                  <Link to={link.to} className="text-sm text-paper-100/60 hover:text-pj-green transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -149,7 +149,7 @@ export default function Footer() {
                 { label: 'Cookie Policy', to: '/privacy#cookies' },
               ].map((link, i) => (
                 <li key={i}>
-                  <Link to={link.to} className="text-sm text-paper-100/60 hover:text-moo-green transition-colors">
+                  <Link to={link.to} className="text-sm text-paper-100/60 hover:text-pj-green transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -175,7 +175,7 @@ export default function Footer() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-paper-100/70 hover:bg-moo-green hover:text-white transition-all"
+                    className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-paper-100/70 hover:bg-pj-green hover:text-white transition-all"
                     aria-label={social.label}
                   >
                     <social.icon size={14} />

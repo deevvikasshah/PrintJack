@@ -65,7 +65,7 @@ export default function ProductCard({ product }) {
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {discount > 0 && (
-              <span className="bg-moo-green text-white text-xs font-semibold px-3 py-1 rounded-full">
+              <span className="bg-pj-green text-white text-xs font-semibold px-3 py-1 rounded-full">
                 Save {discount}%
               </span>
             )}
@@ -90,8 +90,8 @@ export default function ProductCard({ product }) {
               }}
               className={`p-2 rounded-full shadow-md transition-colors ${
                 wishlisted
-                  ? 'bg-moo-green text-white'
-                  : 'bg-white text-ink/70 hover:text-moo-green'
+                  ? 'bg-pj-green text-white'
+                  : 'bg-white text-ink/70 hover:text-pj-green'
               }`}
             >
               <Heart size={18} fill={wishlisted ? 'currentColor' : 'none'} />
@@ -101,7 +101,7 @@ export default function ProductCard({ product }) {
                 e.preventDefault();
                 setQuickViewOpen(true);
               }}
-              className="p-2 rounded-full bg-white text-ink/70 hover:text-moo-green shadow-md transition-colors"
+              className="p-2 rounded-full bg-white text-ink/70 hover:text-pj-green shadow-md transition-colors"
             >
               <Eye size={18} />
             </button>
@@ -111,7 +111,7 @@ export default function ProductCard({ product }) {
           <div className="absolute inset-x-0 bottom-0 p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
             <Link
               to={`/configure/${_id}`}
-              className="block w-full text-center bg-ink hover:bg-moo-green text-paper-50 font-semibold py-2.5 rounded-full transition-colors text-sm"
+              className="block w-full text-center bg-ink hover:bg-pj-green text-paper-50 font-semibold py-2.5 rounded-full transition-colors text-sm"
             >
               Customize Now
             </Link>
@@ -126,7 +126,7 @@ export default function ProductCard({ product }) {
             </span>
           )}
           <Link to={`/products/${slug || _id}`}>
-            <h3 className="mt-1 font-display text-base text-ink leading-snug line-clamp-2 hover:text-moo-green transition-colors min-h-[2.75rem]">
+            <h3 className="mt-1 font-display text-base text-ink leading-snug line-clamp-2 hover:text-pj-green transition-colors min-h-[2.75rem]">
               {name}
             </h3>
           </Link>
@@ -159,7 +159,7 @@ export default function ProductCard({ product }) {
             )}
           </div>
           {bulkPrice && (
-            <p className="text-xs text-moo-green font-medium mt-0.5">
+            <p className="text-xs text-pj-green font-medium mt-0.5">
               Bulk from ₹{bulkPrice}
             </p>
           )}
@@ -187,7 +187,7 @@ export default function ProductCard({ product }) {
           <div className="flex gap-2 mt-4">
             <Link
               to={`/configure/${_id}`}
-              className="flex-1 text-center bg-ink hover:bg-moo-green text-paper-50 text-sm font-semibold py-2.5 rounded-full transition-colors"
+              className="flex-1 text-center bg-ink hover:bg-pj-green text-paper-50 text-sm font-semibold py-2.5 rounded-full transition-colors"
             >
               Customize
             </Link>
@@ -270,14 +270,14 @@ export default function ProductCard({ product }) {
                     )}
                   </div>
                   {bulkPrice && (
-                    <p className="text-sm text-moo-green font-medium mt-1">
+                    <p className="text-sm text-pj-green font-medium mt-1">
                       Bulk pricing from ₹{bulkPrice}
                     </p>
                   )}
                   <div className="mt-4 flex gap-3">
                     <Link
                       to={`/configure/${_id}`}
-                      className="flex-1 text-center bg-ink hover:bg-moo-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
+                      className="flex-1 text-center bg-ink hover:bg-pj-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
                     >
                       Customize Now
                     </Link>
@@ -296,7 +296,7 @@ export default function ProductCard({ product }) {
                   </div>
                   <Link
                     to={`/products/${slug || _id}`}
-                    className="mt-3 text-center text-sm text-moo-green hover:text-ink font-medium transition-colors"
+                    className="mt-3 text-center text-sm text-pj-green hover:text-ink font-medium transition-colors"
                   >
                     View Full Details →
                   </Link>

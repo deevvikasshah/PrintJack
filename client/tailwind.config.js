@@ -50,7 +50,7 @@ export default {
           500: '#BFAC8A',
         },
         ink: '#17150F',
-        moo: {
+        pj: {
           green: '#1F7A5A',
           sage: '#E8EFE8',
         },

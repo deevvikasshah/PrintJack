@@ -131,7 +131,7 @@ export default function HomePage() {
       <section className="relative bg-paper-100 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-28 lg:pb-32 text-center">
           <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="inline-flex items-center gap-2 text-sm text-ink/60 mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-moo-green" /> Trusted by 10,000+ businesses across India
+            <span className="w-1.5 h-1.5 rounded-full bg-pj-green" /> Trusted by 10,000+ businesses across India
           </motion.span>
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="font-display text-4xl sm:text-5xl lg:text-7xl text-ink leading-[1.05] font-semibold tracking-tight">
             Custom printed products<br />
@@ -144,7 +144,7 @@ export default function HomePage() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.7 }} className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Link
               to="/products"
-              className="inline-flex items-center gap-2 bg-ink text-paper-50 font-semibold px-8 py-4 rounded-full hover:bg-moo-green transition-colors"
+              className="inline-flex items-center gap-2 bg-ink text-paper-50 font-semibold px-8 py-4 rounded-full hover:bg-pj-green transition-colors"
             >
               Shop Products <ArrowRight size={18} />
             </Link>
@@ -193,8 +193,8 @@ export default function HomePage() {
                 transition={{ delay: i * 0.08 }}
                 className="flex items-center gap-3 justify-center lg:justify-start"
               >
-                <div className="w-10 h-10 rounded-full bg-moo-green/10 flex items-center justify-center">
-                  <item.icon size={20} className="text-moo-green" />
+                <div className="w-10 h-10 rounded-full bg-pj-green/10 flex items-center justify-center">
+                  <item.icon size={20} className="text-pj-green" />
                 </div>
                 <span className="text-sm text-ink/70">{item.text}</span>
               </motion.div>
@@ -207,7 +207,7 @@ export default function HomePage() {
       <section id="shop-by-category" className="py-20 lg:py-28">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div variants={fadeUp} className="max-w-2xl mb-14">
-            <span className="text-sm text-moo-green font-medium uppercase tracking-widest">Shop by Category</span>
+            <span className="text-sm text-pj-green font-medium uppercase tracking-widest">Shop by Category</span>
             <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Premium print for every need</h2>
             <p className="mt-4 text-ink/60 text-lg">Easily create the best custom products online — all printed on premium, sustainably sourced materials.</p>
           </motion.div>
@@ -223,8 +223,8 @@ export default function HomePage() {
                   </div>
                   <div className="p-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-display text-xl text-ink group-hover:text-moo-green transition-colors">{cat.name}</h3>
-                      <ArrowRight size={18} className="text-ink/40 group-hover:text-moo-green group-hover:translate-x-1 transition-all" />
+                      <h3 className="font-display text-xl text-ink group-hover:text-pj-green transition-colors">{cat.name}</h3>
+                      <ArrowRight size={18} className="text-ink/40 group-hover:text-pj-green group-hover:translate-x-1 transition-all" />
                     </div>
                     <p className="mt-1 text-sm text-ink/50">{cat.count}+ products · from ₹{cat.priceFrom}</p>
                   </div>
@@ -239,7 +239,7 @@ export default function HomePage() {
       <section id="special-finishes" className="py-20 lg:py-28 bg-paper-50 border-y border-ink/10">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div variants={fadeUp} className="max-w-2xl mb-14">
-            <span className="text-sm text-moo-green font-medium uppercase tracking-widest">Special Finishes</span>
+            <span className="text-sm text-pj-green font-medium uppercase tracking-widest">Special Finishes</span>
             <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Give your products stealable status</h2>
             <p className="mt-4 text-ink/60 text-lg">From gold bling to velvety textures — a treat for the eyes, and the hands.</p>
           </motion.div>
@@ -253,7 +253,7 @@ export default function HomePage() {
                   <h3 className="font-display text-lg text-ink">{f.name}</h3>
                   <p className="text-sm text-ink/50 mt-0.5">{f.note}</p>
                   <p className="mt-3 text-sm text-ink/80"><span className="font-semibold text-ink">From ₹{f.from}</span> / unit</p>
-                  <Link to="/products" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-moo-green hover:gap-2 transition-all">
+                  <Link to="/products" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-pj-green hover:gap-2 transition-all">
                     Shop {f.name} <ArrowRight size={14} />
                   </Link>
                 </div>
@@ -268,10 +268,10 @@ export default function HomePage() {
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div variants={fadeUp} className="flex items-end justify-between mb-14">
             <div className="max-w-xl">
-              <span className="text-sm text-moo-green font-medium uppercase tracking-widest">Featured</span>
+              <span className="text-sm text-pj-green font-medium uppercase tracking-widest">Featured</span>
               <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Handpicked for you</h2>
             </div>
-            <Link to="/products" className="hidden sm:inline-flex items-center gap-2 text-moo-green font-semibold hover:gap-3 transition-all">
+            <Link to="/products" className="hidden sm:inline-flex items-center gap-2 text-pj-green font-semibold hover:gap-3 transition-all">
               View all products <ArrowRight size={16} />
             </Link>
           </motion.div>
@@ -281,7 +281,7 @@ export default function HomePage() {
                 <div className="relative aspect-[4/3] overflow-hidden bg-paper-200">
                   <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   {p.discount && (
-                    <span className="absolute top-3 left-3 bg-moo-green text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    <span className="absolute top-3 left-3 bg-pj-green text-white text-xs font-semibold px-3 py-1 rounded-full">
                       Save {p.discount}%
                     </span>
                   )}
@@ -298,11 +298,11 @@ export default function HomePage() {
                 </div>
                 <div className="p-6">
                   <span className="text-xs text-ink/50 uppercase tracking-wider">{p.category}</span>
-                  <h3 className="mt-1 font-display text-xl text-ink group-hover:text-moo-green transition-colors">{p.name}</h3>
+                  <h3 className="mt-1 font-display text-xl text-ink group-hover:text-pj-green transition-colors">{p.name}</h3>
                   <ul className="mt-3 space-y-1">
                     {p.features.map((f, j) => (
                       <li key={j} className="flex items-center gap-2 text-sm text-ink/60">
-                        <CheckCircle size={14} className="text-moo-green flex-shrink-0" /> {f}
+                        <CheckCircle size={14} className="text-pj-green flex-shrink-0" /> {f}
                       </li>
                     ))}
                   </ul>
@@ -319,7 +319,7 @@ export default function HomePage() {
                     <span className="text-xs text-ink/50 ml-1">({p.reviews})</span>
                   </div>
                   <div className="mt-5 flex gap-3">
-                    <Link to={`/configure/${p.id}`} className="flex-1 text-center bg-ink hover:bg-moo-green text-paper-50 text-sm font-semibold py-3 rounded-full transition-colors">
+                    <Link to={`/configure/${p.id}`} className="flex-1 text-center bg-ink hover:bg-pj-green text-paper-50 text-sm font-semibold py-3 rounded-full transition-colors">
                       Customize
                     </Link>
                     <Link to={`/products/${p.slug || p.id}`} className="flex-1 text-center border border-ink/20 hover:border-ink text-ink text-sm font-semibold py-3 rounded-full transition-colors">
@@ -337,7 +337,7 @@ export default function HomePage() {
       <section id="how-it-works" className="py-20 lg:py-28 bg-paper-50 border-y border-ink/10">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-sm text-moo-green font-medium uppercase tracking-widest">How It Works</span>
+            <span className="text-sm text-pj-green font-medium uppercase tracking-widest">How It Works</span>
             <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">From idea to doorstep in 4 steps</h2>
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
@@ -345,7 +345,7 @@ export default function HomePage() {
               <motion.div key={i} variants={fadeUp} className="text-center relative">
                 <div className="relative mx-auto w-20 h-20 mb-6">
                   <div className="w-20 h-20 rounded-full bg-white border border-ink/10 flex items-center justify-center shadow-sm">
-                    <step.icon size={28} className="text-moo-green" />
+                    <step.icon size={28} className="text-pj-green" />
                   </div>
                   <span className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-ink text-paper-50 text-xs font-bold flex items-center justify-center">
                     {i + 1}
@@ -363,13 +363,13 @@ export default function HomePage() {
       <section className="py-20 lg:py-28">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-sm text-moo-green font-medium uppercase tracking-widest">Testimonials</span>
+            <span className="text-sm text-pj-green font-medium uppercase tracking-widest">Testimonials</span>
             <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">What our customers say</h2>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {testimonials.map((t, i) => (
               <motion.div key={i} variants={fadeUp} className="bg-paper-50 rounded-2xl p-6 border border-ink/10">
-                <Quote size={22} className="text-moo-green/40 mb-4" />
+                <Quote size={22} className="text-pj-green/40 mb-4" />
                 <p className="text-sm text-ink/70 leading-relaxed">{t.text}</p>
                 <div className="flex mt-4">
                   {[...Array(5)].map((_, j) => (
@@ -377,7 +377,7 @@ export default function HomePage() {
                   ))}
                 </div>
                 <div className="mt-5 flex items-center gap-3 pt-5 border-t border-ink/10">
-                  <div className="w-10 h-10 rounded-full bg-moo-green text-white flex items-center justify-center text-sm font-bold">
+                  <div className="w-10 h-10 rounded-full bg-pj-green text-white flex items-center justify-center text-sm font-bold">
                     {t.avatar}
                   </div>
                   <div>
@@ -395,7 +395,7 @@ export default function HomePage() {
       <section id="faqs" className="py-20 lg:py-28 bg-paper-50 border-y border-ink/10">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-sm text-moo-green font-medium uppercase tracking-widest">FAQs</span>
+            <span className="text-sm text-pj-green font-medium uppercase tracking-widest">FAQs</span>
             <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Questions, answered</h2>
           </motion.div>
           <motion.div variants={fadeUp}>
@@ -409,10 +409,10 @@ export default function HomePage() {
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div variants={fadeUp} className="flex items-end justify-between mb-14">
             <div>
-              <span className="text-sm text-moo-green font-medium uppercase tracking-widest">From Our Blog</span>
+              <span className="text-sm text-pj-green font-medium uppercase tracking-widest">From Our Blog</span>
               <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Latest articles</h2>
             </div>
-            <Link to="/blog" className="hidden sm:inline-flex items-center gap-2 text-moo-green font-semibold hover:gap-3 transition-all">
+            <Link to="/blog" className="hidden sm:inline-flex items-center gap-2 text-pj-green font-semibold hover:gap-3 transition-all">
               View all <ArrowRight size={16} />
             </Link>
           </motion.div>
@@ -425,9 +425,9 @@ export default function HomePage() {
                   </div>
                   <div className="p-6">
                     <span className="text-xs text-ink/50">{post.date}</span>
-                    <h3 className="mt-1 font-display text-lg text-ink group-hover:text-moo-green transition-colors leading-snug">{post.title}</h3>
+                    <h3 className="mt-1 font-display text-lg text-ink group-hover:text-pj-green transition-colors leading-snug">{post.title}</h3>
                     <p className="mt-2 text-sm text-ink/60 line-clamp-2">{post.excerpt}</p>
-                    <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-moo-green group-hover:gap-2 transition-all">
+                    <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-pj-green group-hover:gap-2 transition-all">
                       Read More <ArrowRight size={14} />
                     </span>
                   </div>
@@ -439,7 +439,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== NEWSLETTER ===== */}
-      <section className="py-20 lg:py-28 bg-moo-green">
+      <section className="py-20 lg:py-28 bg-pj-green">
         <AnimatedSection className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div variants={fadeUp}>
             <h2 className="font-display text-3xl sm:text-5xl text-white">Stay in the loop</h2>
