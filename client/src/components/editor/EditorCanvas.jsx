@@ -12,6 +12,7 @@ const EditorCanvas = forwardRef(function EditorCanvas(
     showGrid,
     onObjectSelected,
     onObjectModified,
+    onModifyStart,
     onCanvasReady,
     onMouseMove,
   },
@@ -23,6 +24,7 @@ const EditorCanvas = forwardRef(function EditorCanvas(
   const printAreaRef = useRef(null);
   const gridRef = useRef([]);
   const bgImageRef = useRef(null);
+  const transformRef = useRef(false);
 
   const CANVAS_DISPLAY_MAX = 700;
 
@@ -143,8 +145,21 @@ const EditorCanvas = forwardRef(function EditorCanvas(
     canvas.on('selection:cleared', () => {
       onObjectSelected?.(null);
     });
+    const handleTransformStart = () => {
+      if (transformRef.current) return;
+      transformRef.current = true;
+      onModifyStart?.();
+    };
+    canvas.on('object:moving', handleTransformStart);
+    canvas.on('object:scaling', handleTransformStart);
+    canvas.on('object:rotating', handleTransformStart);
+    canvas.on('object:skewing', handleTransformStart);
     canvas.on('object:modified', (e) => {
+      transformRef.current = false;
       onObjectModified?.(e.target);
+    });
+    canvas.on('mouse:up', () => {
+      transformRef.current = false;
     });
     canvas.on('mouse:move', (e) => {
       const pointer = canvas.getPointer(e.e);

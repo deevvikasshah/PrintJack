@@ -114,16 +114,58 @@ export default function EditorPage() {
     fetchProduct();
   }, [productId, navigate]);
 
+  const isDecorationObject = useCallback((o) => {
+    return o._isGrid === true || o._isBackground === true || o._isPrintArea === true;
+  }, []);
+
+  const serializeDesign = useCallback(
+    (canvas) => {
+      const objects = canvas
+        .getObjects()
+        .filter((o) => !isDecorationObject(o))
+        .map((o) => o.toObject(['id', 'name']));
+      return JSON.stringify(objects);
+    },
+    [isDecorationObject]
+  );
+
+  const applyDesignState = useCallback(
+    (state, callback) => {
+      const canvas = canvasRef.current?.getCanvas?.();
+      if (!canvas) {
+        callback?.();
+        return;
+      }
+      canvas.discardActiveObject();
+      canvas
+        .getObjects()
+        .filter((o) => !isDecorationObject(o))
+        .forEach((o) => canvas.remove(o));
+      const objects = JSON.parse(state);
+      if (!objects.length) {
+        canvas.renderAll();
+        callback?.();
+        return;
+      }
+      fabric.util.enlivenObjects(objects, (enlivened) => {
+        enlivened.forEach((o) => canvas.add(o));
+        canvas.renderAll();
+        callback?.();
+      });
+    },
+    [isDecorationObject]
+  );
+
   const saveCanvasState = useCallback(() => {
     const canvas = canvasRef.current?.getCanvas?.();
     if (!canvas) return;
-    const state = JSON.stringify(canvas.toJSON(['id', 'name', '_isGrid', '_isBackground', '_isPrintArea']));
+    const state = serializeDesign(canvas);
     undoStack.current.push(state);
     if (undoStack.current.length > MAX_UNDO) undoStack.current.shift();
     redoStack.current = [];
     setCanUndo(undoStack.current.length > 0);
     setCanRedo(false);
-  }, []);
+  }, [serializeDesign]);
 
   const refreshObjects = useCallback(() => {
     const canvas = canvasRef.current?.getCanvas?.();
@@ -143,31 +185,27 @@ export default function EditorPage() {
     if (undoStack.current.length === 0) return;
     const canvas = canvasRef.current?.getCanvas?.();
     if (!canvas) return;
-    const currentState = JSON.stringify(canvas.toJSON(['id', 'name', '_isGrid', '_isBackground', '_isPrintArea']));
-    redoStack.current.push(currentState);
+    redoStack.current.push(serializeDesign(canvas));
     const prevState = undoStack.current.pop();
-    canvas.loadFromJSON(prevState, () => {
-      canvas.renderAll();
+    applyDesignState(prevState, () => {
       refreshObjects();
       setCanUndo(undoStack.current.length > 0);
       setCanRedo(true);
     });
-  }, [refreshObjects]);
+  }, [serializeDesign, applyDesignState, refreshObjects]);
 
   const redo = useCallback(() => {
     if (redoStack.current.length === 0) return;
     const canvas = canvasRef.current?.getCanvas?.();
     if (!canvas) return;
-    const currentState = JSON.stringify(canvas.toJSON(['id', 'name', '_isGrid', '_isBackground', '_isPrintArea']));
-    undoStack.current.push(currentState);
+    undoStack.current.push(serializeDesign(canvas));
     const nextState = redoStack.current.pop();
-    canvas.loadFromJSON(nextState, () => {
-      canvas.renderAll();
+    applyDesignState(nextState, () => {
       refreshObjects();
       setCanRedo(redoStack.current.length > 0);
       setCanUndo(true);
     });
-  }, [refreshObjects]);
+  }, [serializeDesign, applyDesignState, refreshObjects]);
 
   const addText = useCallback(() => {
     const canvas = canvasRef.current?.getCanvas?.();
@@ -362,13 +400,13 @@ export default function EditorPage() {
       const canvas = canvasRef.current?.getCanvas?.();
       if (!canvas) return;
       saveCanvasState();
-      canvas.loadFromJSON(templateJson, () => {
-        canvas.renderAll();
+      const objects = templateJson?.objects || templateJson;
+      applyDesignState(JSON.stringify(objects || []), () => {
         refreshObjects();
         toast.success('Template loaded');
       });
     },
-    [saveCanvasState, refreshObjects]
+    [saveCanvasState, applyDesignState, refreshObjects]
   );
 
   const deleteSelected = useCallback(() => {
@@ -692,6 +730,10 @@ export default function EditorPage() {
   const handleObjectModified = useCallback(() => {
     refreshObjects();
   }, [refreshObjects]);
+
+  const handleModifyStart = useCallback(() => {
+    saveCanvasState();
+  }, [saveCanvasState]);
 
   const handleMouseMove = useCallback((pos) => {
     setCursorPos(pos);
@@ -1029,6 +1071,7 @@ export default function EditorPage() {
             showGrid={showGrid}
             onObjectSelected={handleObjectSelected}
             onObjectModified={handleObjectModified}
+            onModifyStart={handleModifyStart}
             onCanvasReady={handleCanvasReady}
             onMouseMove={handleMouseMove}
           />
