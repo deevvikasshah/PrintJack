@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { fabric } from 'fabric';
 import toast from 'react-hot-toast';
 import {
   ChevronLeft, Check, Minus, Plus, ShoppingCart, Type,
   Square, Circle, Triangle, Star, Upload, Layout, Palette, Undo2, Redo2,
-  Grid3X3, Loader2, Ruler, Package, ArrowRight,
+  Grid3X3, Loader2, Ruler, Package, ArrowRight, Share2, Archive, X,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import EditorCanvas from '../../components/editor/EditorCanvas';
@@ -13,7 +14,10 @@ import DesignTemplates from '../../components/editor/DesignTemplates';
 import ClipartPanel from '../../components/editor/ClipartPanel';
 import ImageUploader from '../../components/editor/ImageUploader';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
+
+const DRAFT_KEY = (pid) => `printjack-config-draft-${pid}`;
 
 const STEPS = [
   { id: 'details', label: 'Details' },
@@ -54,7 +58,9 @@ export default function ProductConfiguratorPage() {
   const designStateRef = useRef(null);
   const canvasJSONRef = useRef(null);
   const previewUrlRef = useRef(null);
+  const resumeJSONRef = useRef(null);
 
+  const { isAuthenticated } = useAuth();
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const hideQuantity = searchParams.get('feature-hideQuantityAndPaper') === 'true';
   const designKey = searchParams.get('designKey');
@@ -81,6 +87,10 @@ export default function ProductConfiguratorPage() {
   const [showGrid, setShowGrid] = useState(false);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [addingToCart, setAddingToCart] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [draftExists, setDraftExists] = useState(false);
+  const [resuming, setResuming] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const readHash = () => {
@@ -131,6 +141,118 @@ export default function ProductConfiguratorPage() {
     fetchProduct();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
+
+  useEffect(() => {
+    const key = DRAFT_KEY(productId);
+    try {
+      const existing = localStorage.getItem(key);
+      if (existing) {
+        const parsed = JSON.parse(existing);
+        if (parsed?.designId) {
+          designIdRef.current = parsed.designId;
+          setDraftExists(true);
+        }
+      }
+    } catch {
+      // ignore corrupt draft
+    }
+  }, [productId]);
+
+  const handleResume = async () => {
+    const key = DRAFT_KEY(productId);
+    const raw = localStorage.getItem(key);
+    let designId = designIdRef.current;
+    try {
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        designId = parsed.designId || designId;
+      }
+    } catch {
+      // fall through
+    }
+    if (!designId) return;
+    setResuming(true);
+    try {
+      const { data } = await api.get(`/designs/${designId}`);
+      const design = data.design || data;
+      const json = design.canvasJSON || design.canvasData;
+      if (json) {
+        resumeJSONRef.current = json;
+      }
+      if (design.quantity) setQuantity(design.quantity);
+      if (design.size) setSelectedSize(design.size);
+      if (design.color) setSelectedColor(design.color);
+      setDraftExists(false);
+      goToStep('design');
+      toast.success('Draft restored');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not load your draft');
+    } finally {
+      setResuming(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    const canvas = canvasRef.current?.getCanvas?.();
+    if (!canvas) return;
+    setSavingDraft(true);
+    try {
+      const json = canvasRef.current.toJSON?.() || null;
+      const previewUrl = canvasRef.current.toDataUrl?.() || null;
+      let designId = designIdRef.current;
+      if (designId) {
+        await api.put(`/designs/${designId}`, {
+          canvasJSON: json,
+          previewImage: previewUrl,
+          isDraft: true,
+        });
+      } else {
+        const { data } = await api.post('/designs', {
+          productId,
+          name: `${product?.name || 'Product'} draft`,
+          canvasJSON: json,
+          previewImage: previewUrl,
+          isDraft: true,
+        });
+        designId = data.design?._id || data._id;
+        designIdRef.current = designId;
+      }
+      try {
+        localStorage.setItem(DRAFT_KEY(productId), JSON.stringify({ designId }));
+      } catch {
+        // storage unavailable
+      }
+      setDraftExists(true);
+      toast.success('Draft saved — resume anytime');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Please login to save drafts');
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const handleClearDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_KEY(productId));
+    } catch {
+      // ignore
+    }
+    designIdRef.current = null;
+    setDraftExists(false);
+    toast.success('Draft cleared');
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success('Configurator link copied');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Could not copy link');
+    }
+  };
 
   const setupCanvas = (prod, area) => {
     const pa = area || {
@@ -453,6 +575,13 @@ export default function ProductConfiguratorPage() {
   );
 
   const handleCanvasReady = useCallback(() => {
+    if (resumeJSONRef.current) {
+      const json = resumeJSONRef.current;
+      resumeJSONRef.current = null;
+      canvasRef.current?.loadFromJSON?.(json);
+      refreshObjects();
+      return;
+    }
     if (designStateRef.current) {
       applyDesignState(designStateRef.current, () => {
         designStateRef.current = null;
@@ -462,6 +591,13 @@ export default function ProductConfiguratorPage() {
       });
     }
   }, [applyDesignState, refreshObjects]);
+
+  const loadProductTemplate = useCallback(
+    (template) => {
+      addImageToCanvas(template.url || template.thumbnail, template.name || 'Template');
+    },
+    [addImageToCanvas]
+  );
 
   const basePrice = product?.basePrice || product?.price || 299;
   const pricingTier = useMemo(
@@ -497,6 +633,12 @@ export default function ProductConfiguratorPage() {
         }
       }
       await cartAddToCart(productId, quantity, selectedSize || undefined, selectedColor || undefined, designId);
+      try {
+        localStorage.removeItem(DRAFT_KEY(productId));
+      } catch {
+        // ignore
+      }
+      setDraftExists(false);
       toast.success('Added to cart!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to add to cart');
@@ -536,6 +678,23 @@ export default function ProductConfiguratorPage() {
 
   return (
     <div className="min-h-screen bg-paper-100 pb-24">
+      <Helmet>
+        <title>{product.name ? `Customize ${product.name} | PrintJack` : 'Customize | PrintJack'}</title>
+        <meta
+          name="description"
+          content={`Design and order custom ${product.name || 'printed products'} with bulk pricing on PrintJack. Choose print area, size, colour and quantity, then personalise online.`}
+        />
+        <meta property="og:title" content={`Customize ${product.name || 'Products'} | PrintJack`} />
+        <meta
+          property="og:description"
+          content={`Design your own ${product.name || 'custom product'} online with free design tools and bulk pricing.`}
+        />
+        {(product.image || product.images?.[0]?.url) && (
+          <meta property="og:image" content={product.image || product.images?.[0]?.url} />
+        )}
+        <meta property="og:type" content="product" />
+      </Helmet>
+
       {/* Sticky header with progress */}
       <header className="sticky top-0 z-30 bg-paper-50/95 backdrop-blur border-b border-paper-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3">
@@ -558,6 +717,13 @@ export default function ProductConfiguratorPage() {
               </div>
             </div>
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <button
+                onClick={handleShare}
+                className="p-2 rounded-full hover:bg-paper-200 transition-colors"
+                title={copied ? 'Link copied!' : 'Share this configurator'}
+              >
+                {copied ? <Check className="w-4 h-4 text-moo-green" /> : <Share2 className="w-4 h-4 text-ink" />}
+              </button>
               {STEPS.map((s, i) => {
                 const isActive = s.id === step;
                 const isDone = stepIndex > i;
@@ -585,6 +751,37 @@ export default function ProductConfiguratorPage() {
           </div>
         </div>
       </header>
+
+      {/* Draft banner */}
+      {draftExists && step !== 'review' && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
+          <div className="flex items-center justify-between gap-3 bg-moo-sage border border-moo-green/40 rounded-2xl px-4 py-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Archive className="w-4 h-4 text-moo-green flex-shrink-0" />
+              <p className="text-sm text-ink/80 truncate">
+                You have a saved draft for this product.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={handleResume}
+                disabled={resuming}
+                className="flex items-center gap-1.5 px-4 py-2 bg-moo-green text-paper-50 text-sm font-semibold rounded-full hover:bg-ink transition-colors disabled:opacity-60"
+              >
+                {resuming && <Loader2 className="w-4 h-4 animate-spin" />}
+                {resuming ? 'Restoring...' : 'Resume draft'}
+              </button>
+              <button
+                onClick={handleClearDraft}
+                className="p-2 rounded-full hover:bg-paper-200 transition-colors"
+                title="Discard draft"
+              >
+                <X className="w-4 h-4 text-ink/60" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* STEP 1: DETAILS */}
       {step === 'details' && (
@@ -868,7 +1065,47 @@ export default function ProductConfiguratorPage() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-3 max-h-[420px]">
-                {activeDesignTab === 'templates' && <DesignTemplates onLoadTemplate={loadTemplate} />}
+                {activeDesignTab === 'templates' && (
+                  <div className="space-y-4">
+                    {product.templates?.length > 0 && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-ink/60 uppercase tracking-wider mb-2">
+                          Product templates
+                        </h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {product.templates.map((tpl) => (
+                            <button
+                              key={tpl._id || tpl.url || tpl.name}
+                              onClick={() => loadProductTemplate(tpl)}
+                              className="group border border-paper-200 rounded-xl overflow-hidden hover:border-moo-green hover:shadow-md transition-all"
+                              title={tpl.name}
+                            >
+                              <div className="aspect-[4/3] bg-paper-100 flex items-center justify-center overflow-hidden">
+                                {(tpl.thumbnail || tpl.url) ? (
+                                  <img
+                                    src={tpl.thumbnail || tpl.url}
+                                    alt={tpl.name || 'Template'}
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <Layout className="w-6 h-6 text-ink/30" />
+                                )}
+                              </div>
+                              <p className="p-2 text-xs font-medium text-ink/70 truncate">{tpl.name}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <h4 className="text-xs font-semibold text-ink/60 uppercase tracking-wider mb-2">
+                        Built-in templates
+                      </h4>
+                      <DesignTemplates onLoadTemplate={loadTemplate} />
+                    </div>
+                  </div>
+                )}
                 {activeDesignTab === 'upload' && <ImageUploader onImageAdd={addImageToCanvas} />}
                 {activeDesignTab === 'text' && (
                   <div className="space-y-3">
@@ -938,13 +1175,23 @@ export default function ProductConfiguratorPage() {
 
           {/* Bottom actions */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-6 max-w-2xl mx-auto">
-            <button
-              onClick={() => goToStep('details')}
-              className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border-2 border-paper-300 text-ink font-semibold hover:border-ink transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back to Details
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => goToStep('details')}
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border-2 border-paper-300 text-ink font-semibold hover:border-ink transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back to Details
+              </button>
+              <button
+                onClick={handleSaveDraft}
+                disabled={savingDraft}
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border-2 border-moo-green text-moo-green font-semibold hover:bg-moo-sage transition-colors disabled:opacity-60"
+              >
+                {savingDraft ? <Loader2 className="w-4 h-4 animate-spin" /> : <Archive className="w-4 h-4" />}
+                {savingDraft ? 'Saving...' : 'Save Draft'}
+              </button>
+            </div>
             <button
               onClick={() => goToStep('review')}
               className="flex items-center justify-center gap-2 bg-moo-green hover:bg-ink text-paper-50 font-semibold py-3.5 rounded-full transition-colors text-lg shadow-lg shadow-moo-green/20"
@@ -1069,6 +1316,47 @@ export default function ProductConfiguratorPage() {
           </div>
         </div>
       )}
+
+      {/* Mobile sticky price bar */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-paper-50/95 backdrop-blur border-t border-paper-200 px-4 py-3">
+        <div className="flex items-center justify-between gap-3 max-w-5xl mx-auto">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-wider text-ink/50">Total</p>
+            <p className="font-display text-xl font-bold text-ink">₹{totalPrice.toLocaleString()}</p>
+          </div>
+          {step === 'details' && (
+            <button
+              onClick={() => goToStep('design')}
+              className="flex-1 flex items-center justify-center gap-2 bg-moo-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
+            >
+              Continue
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
+          {step === 'design' && (
+            <button
+              onClick={() => goToStep('review')}
+              className="flex-1 flex items-center justify-center gap-2 bg-moo-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
+            >
+              Review
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
+          {step === 'review' && (
+            <button
+              onClick={handleAddToCart}
+              disabled={addingToCart}
+              className="flex-1 flex items-center justify-center gap-2 bg-moo-green text-paper-50 font-semibold py-3 rounded-full transition-colors disabled:opacity-60"
+            >
+              {addingToCart ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Adding...</>
+              ) : (
+                <><ShoppingCart className="w-4 h-4" /> Add to Cart</>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

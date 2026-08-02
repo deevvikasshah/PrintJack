@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useContext } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import {
   Star, ChevronRight, Minus, Plus, ShoppingCart,
   Share2, MessageCircle, Truck, RotateCcw, Shield,
@@ -199,6 +200,27 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <Helmet>
+        <title>{p.name ? `${p.name} | PrintJack` : 'Products | PrintJack'}</title>
+        <meta
+          name="description"
+          content={p.metaDescription || p.shortDescription || `Buy custom ${p.name || 'products'} online at PrintJack with bulk pricing, free design tools and pan-India delivery.`}
+        />
+        <meta property="og:title" content={`${p.name || 'Products'} | PrintJack`} />
+        <meta
+          property="og:description"
+          content={p.shortDescription || `Custom ${p.name || 'products'} with bulk pricing and free design tools.`}
+        />
+        {(p.metaTitle || p.name) && (
+          <meta property="og:title" content={p.metaTitle || `${p.name} | PrintJack`} />
+        )}
+        {images[0] && images[0] !== '/placeholder-product.png' && (
+          <meta property="og:image" content={images[0]} />
+        )}
+        <meta property="og:type" content="product" />
+        <meta property="og:url" content={`https://printjack.vercel.app/products/${slug}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
       {/* Breadcrumb */}
       <div className="bg-gray-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
