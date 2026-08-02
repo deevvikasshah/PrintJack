@@ -12,6 +12,7 @@ import BackToTop from './components/common/BackToTop';
 const HomePage = lazy(() => import('./pages/HomePage'));
 const ProductsPage = lazy(() => import('./pages/products/ProductsPage'));
 const ProductDetailPage = lazy(() => import('./pages/products/ProductDetailPage'));
+const ProductConfiguratorPage = lazy(() => import('./pages/products/ProductConfiguratorPage'));
 const EditorPage = lazy(() => import('./pages/editor/EditorPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
@@ -70,6 +71,7 @@ export default function App() {
         <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
         <Route path="/products" element={<PublicLayout><ProductsPage /></PublicLayout>} />
         <Route path="/products/:slug" element={<PublicLayout><ProductDetailPage /></PublicLayout>} />
+        <Route path="/configure/:productId" element={<PublicLayout><ProductConfiguratorPage /></PublicLayout>} />
         <Route path="/editor/:productId" element={<PublicLayout><EditorPage /></PublicLayout>} />
         <Route path="/blog" element={<PublicLayout><BlogListPage /></PublicLayout>} />
         <Route path="/blog/:slug" element={<PublicLayout><BlogDetailPage /></PublicLayout>} />

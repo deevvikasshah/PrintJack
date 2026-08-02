@@ -319,7 +319,7 @@ export default function HomePage() {
                     <span className="text-xs text-ink/50 ml-1">({p.reviews})</span>
                   </div>
                   <div className="mt-5 flex gap-3">
-                    <Link to={`/editor/${p.id}`} className="flex-1 text-center bg-ink hover:bg-moo-green text-paper-50 text-sm font-semibold py-3 rounded-full transition-colors">
+                    <Link to={`/configure/${p.id}`} className="flex-1 text-center bg-ink hover:bg-moo-green text-paper-50 text-sm font-semibold py-3 rounded-full transition-colors">
                       Customize
                     </Link>
                     <Link to={`/products/${p.slug || p.id}`} className="flex-1 text-center border border-ink/20 hover:border-ink text-ink text-sm font-semibold py-3 rounded-full transition-colors">

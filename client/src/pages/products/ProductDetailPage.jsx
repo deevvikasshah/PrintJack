@@ -425,7 +425,7 @@ export default function ProductDetailPage() {
             {/* CTA Buttons */}
             <div className="mt-6 space-y-3">
               <Link
-                to={`/editor/${p._id}`}
+                to={`/configure/${p._id}`}
                 className="flex items-center justify-center gap-2 w-full bg-brand-500 hover:bg-red-600 text-white font-bold py-4 rounded-xl transition-colors text-lg shadow-lg shadow-brand-500/20"
               >
                 Create Your Design
@@ -643,7 +643,7 @@ export default function ProductDetailPage() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 lg:hidden z-30 shadow-lg">
         <div className="flex gap-3">
           <Link
-            to={`/editor/${p._id}`}
+            to={`/configure/${p._id}`}
             className="flex-1 bg-brand-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl text-center transition-colors"
           >
             Customize

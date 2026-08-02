@@ -110,7 +110,7 @@ export default function ProductCard({ product }) {
           {/* Customize overlay on hover */}
           <div className="absolute inset-x-0 bottom-0 p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
             <Link
-              to={`/editor/${_id}`}
+              to={`/configure/${_id}`}
               className="block w-full text-center bg-ink hover:bg-moo-green text-paper-50 font-semibold py-2.5 rounded-full transition-colors text-sm"
             >
               Customize Now
@@ -186,7 +186,7 @@ export default function ProductCard({ product }) {
           {/* CTA */}
           <div className="flex gap-2 mt-4">
             <Link
-              to={`/editor/${_id}`}
+              to={`/configure/${_id}`}
               className="flex-1 text-center bg-ink hover:bg-moo-green text-paper-50 text-sm font-semibold py-2.5 rounded-full transition-colors"
             >
               Customize
@@ -276,7 +276,7 @@ export default function ProductCard({ product }) {
                   )}
                   <div className="mt-4 flex gap-3">
                     <Link
-                      to={`/editor/${_id}`}
+                      to={`/configure/${_id}`}
                       className="flex-1 text-center bg-ink hover:bg-moo-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
                     >
                       Customize Now
