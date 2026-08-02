@@ -57,6 +57,8 @@ const allowedOrigins = [
   "https://client-navy-ten-73.vercel.app",
   "https://client-idsp7wpad-markivs.vercel.app",
   "https://client-lyv6xipft-markivs.vercel.app",
+  "https://printjack.vercel.app",
+  "https://printjack-h532n5ohs-markivs.vercel.app",
 ]
   .filter(Boolean)
   .map((o) => o.replace(/\/+$/, ""));
@@ -128,12 +130,10 @@ app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Same-origin requests and non-browser tools have no `origin` header.
-      // Allow them only in non-production environments to avoid accidental exposure.
-      if (!origin) {
-        if (process.env.NODE_ENV !== "production") return callback(null, true);
-        return callback(new Error("Not allowed by CORS"));
-      }
+      // Same-origin requests and non-browser tools (curl, health checks,
+      // Razorpay webhooks, server-to-server calls) have no `Origin` header.
+      // Allow them so infrastructure and webhooks keep working in production.
+      if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
