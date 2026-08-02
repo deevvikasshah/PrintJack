@@ -175,7 +175,7 @@ exports.updateProduct = async (req, res, next) => {
       }
     });
 
-    const jsonFields = ['bulkPricing', 'colors', 'sizes', 'printAreas', 'tags', 'specifications', 'templates'];
+    const jsonFields = ['bulkPricing', 'colors', 'sizes', 'printAreas', 'tags', 'specifications', 'templates', 'images'];
     jsonFields.forEach((field) => {
       if (req.body[field]) {
         product[field] = typeof req.body[field] === 'string' ? JSON.parse(req.body[field]) : req.body[field];

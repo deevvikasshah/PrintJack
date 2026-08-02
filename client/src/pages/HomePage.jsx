@@ -44,9 +44,9 @@ const sectionNav = [
 ];
 
 const categories = [
-  { name: 'Business Cards', icon: CreditCard, count: 45, slug: 'business-cards', image: 'https://images.unsplash.com/photo-1572044347786-5693577a9077?w=800', priceFrom: 299 },
+  { name: 'Business Cards', icon: CreditCard, count: 45, slug: 'business-cards', image: 'https://images.unsplash.com/photo-1591405351990-4726e331f141?w=800', priceFrom: 299 },
   { name: 'Apparel', icon: Shirt, count: 120, slug: 't-shirts', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800', priceFrom: 499 },
-  { name: 'Stickers', icon: StickyNote, count: 80, slug: 'stickers', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800', priceFrom: 149 },
+  { name: 'Stickers', icon: StickyNote, count: 80, slug: 'stickers', image: 'https://images.unsplash.com/photo-1601924582970-9238bcb495d9?w=800', priceFrom: 149 },
   { name: 'Mugs & Gifts', icon: Coffee, count: 55, slug: 'mugs', image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=800', priceFrom: 399 },
   { name: 'Marketing Materials', icon: Megaphone, count: 65, slug: 'flyers', image: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=800', priceFrom: 99 },
   { name: 'Wide Format', icon: Maximize, count: 30, slug: 'banners', image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800', priceFrom: 1299 },
@@ -56,7 +56,7 @@ const finishes = [
   { name: 'Gold Foil', image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600', from: 549, note: 'Premium gilded finish' },
   { name: 'Spot Gloss', image: 'https://images.unsplash.com/photo-1549476464-37392f717541?w=600', from: 449, note: 'Selective shine & texture' },
   { name: 'Matte Soft Touch', image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600', from: 349, note: 'Velvety smooth feel' },
-  { name: 'Letterpress', image: 'https://images.unsplash.com/photo-1456324462928-7a4d8d3c6b3e?w=600', from: 599, note: 'Classic pressed depth' },
+  { name: 'Letterpress', image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600', from: 599, note: 'Classic pressed depth' },
 ];
 
 const steps = [
@@ -67,9 +67,9 @@ const steps = [
 ];
 
 const featuredProducts = [
-  { id: 1, name: 'Classic Business Card', price: 299, bulkPrice: 199, image: 'https://images.unsplash.com/photo-1572044347786-5693577a9077?w=400', category: 'Business Cards', rating: 4.8, reviews: 342, discount: 20, features: ['Premium 350 GSM', 'Matte or gloss', 'Free online preview'] },
+  { id: 1, name: 'Classic Business Card', price: 299, bulkPrice: 199, image: 'https://images.unsplash.com/photo-1591405351990-4726e331f141?w=400', category: 'Business Cards', rating: 4.8, reviews: 342, discount: 20, features: ['Premium 350 GSM', 'Matte or gloss', 'Free online preview'] },
   { id: 2, name: 'Custom Printed T-Shirt', price: 499, bulkPrice: 299, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400', category: 'Apparel', rating: 4.6, reviews: 518, badge: 'bestseller', features: ['100% combed cotton', 'Vivid DTF print', 'All sizes'] },
-  { id: 3, name: 'Die-Cut Vinyl Sticker Pack', price: 149, bulkPrice: 79, image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400', category: 'Stickers', rating: 4.9, reviews: 891, discount: 30, features: ['Waterproof vinyl', 'Any shape', 'Kiss cut or die cut'] },
+  { id: 3, name: 'Die-Cut Vinyl Sticker Pack', price: 149, bulkPrice: 79, image: 'https://images.unsplash.com/photo-1601924582970-9238bcb495d9?w=400', category: 'Stickers', rating: 4.9, reviews: 891, discount: 30, features: ['Waterproof vinyl', 'Any shape', 'Kiss cut or die cut'] },
   { id: 4, name: 'Premium Banner Roll-Up', price: 1299, bulkPrice: 899, image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400', category: 'Wide Format', rating: 4.7, reviews: 156, features: ['Matte or gloss', 'Reusable stand', 'Stand included'] },
   { id: 5, name: 'Custom Coffee Mug', price: 399, bulkPrice: 249, image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400', category: 'Mugs & Gifts', rating: 4.5, reviews: 234, badge: 'new', features: ['Microwave safe', 'Full-wrap print', 'Dishwasher proof'] },
   { id: 6, name: 'A5 Flyer Single-Sided', price: 99, bulkPrice: 49, image: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400', category: 'Marketing', rating: 4.4, reviews: 678, features: ['Gloss or matte', 'Fast turnaround', 'Full colour'] },
