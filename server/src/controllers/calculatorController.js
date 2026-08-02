@@ -355,3 +355,53 @@ exports.updateCalculatorConfig = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.enableCalculatorForAll = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      throw new AppError('Only admins can enable calculators', 403);
+    }
+
+    const products = await Product.find({ isActive: true });
+
+    let updated = 0;
+    for (const product of products) {
+      const area = product.printAreas && product.printAreas.length > 0 ? product.printAreas[0] : null;
+      const defaultWidth = area && area.width ? area.width : 10;
+      const defaultHeight = area && area.height ? area.height : 10;
+
+      product.calculatorConfig = {
+        enabled: true,
+        baseFormula: 'basePrice',
+        variables: [],
+        priceBreakdown: {
+          inkCost: 0,
+          paperCost: 0,
+          laminationCost: 0,
+          finishingCost: 0,
+          setupCost: 0,
+          shippingCost: 0,
+          totalCost: 0,
+          margin: 0,
+          finalPrice: 0,
+        },
+        currency: '₹',
+        allowCustomDimensions: true,
+        defaultWidth,
+        defaultHeight,
+        dimensionUnit: 'cm',
+      };
+
+      await product.save({ validateBeforeSave: false });
+      updated += 1;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Calculator enabled for ${updated} products`,
+      updated,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
