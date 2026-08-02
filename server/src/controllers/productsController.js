@@ -95,10 +95,12 @@ exports.getProduct = async (req, res, next) => {
     let product;
     if (idOrSlug.match(/^[0-9a-fA-F]{24}$/)) {
       product = await Product.findById(idOrSlug)
-        .populate('category', 'name slug image');
+        .populate('category', 'name slug image')
+        .populate('reviews.user', 'name avatar');
     } else {
       product = await Product.findOne({ slug: idOrSlug, isActive: true })
-        .populate('category', 'name slug image');
+        .populate('category', 'name slug image')
+        .populate('reviews.user', 'name avatar');
     }
 
     if (!product) {
@@ -106,6 +108,41 @@ exports.getProduct = async (req, res, next) => {
     }
 
     res.status(200).json({ success: true, product });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.markReviewHelpful = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      throw new AppError('Product not found', 404);
+    }
+
+    const review = product.reviews.id(req.params.reviewId);
+    if (!review) {
+      throw new AppError('Review not found', 404);
+    }
+
+    const alreadyVoted = review.helpful.users.some(
+      (u) => u.toString() === req.user._id.toString()
+    );
+
+    if (alreadyVoted) {
+      review.helpful.users = review.helpful.users.filter(
+        (u) => u.toString() !== req.user._id.toString()
+      );
+      review.helpful.count = Math.max(0, review.helpful.count - 1);
+      await product.save({ validateBeforeSave: false });
+      return res.status(200).json({ success: true, helpful: review.helpful.count, voted: false });
+    }
+
+    review.helpful.users.push(req.user._id);
+    review.helpful.count = (review.helpful.count || 0) + 1;
+    await product.save({ validateBeforeSave: false });
+
+    res.status(200).json({ success: true, helpful: review.helpful.count, voted: true });
   } catch (err) {
     next(err);
   }
@@ -297,7 +334,7 @@ exports.getRelatedProducts = async (req, res, next) => {
 
 exports.addProductReview = async (req, res, next) => {
   try {
-    const { rating, comment } = req.body;
+    const { rating, comment, title, photos } = req.body;
     const product = await Product.findById(req.params.id);
 
     if (!product) {
@@ -316,11 +353,33 @@ exports.addProductReview = async (req, res, next) => {
       throw new AppError('You have already reviewed this product', 400);
     }
 
-    product.reviews.push({
+    let verifiedPurchase = false;
+    try {
+      const { Order } = require('../models');
+      const paidOrder = await Order.findOne({
+        user: req.user._id,
+        paymentStatus: 'captured',
+        'items.product': req.params.id,
+      }).select('_id');
+      verifiedPurchase = !!paidOrder;
+    } catch (e) {
+      // ignore verification errors
+    }
+
+    const reviewPhotos = Array.isArray(photos)
+      ? photos.filter((p) => typeof p === 'string' && p.startsWith('data:image'))
+      : [];
+
+    const review = {
       user: req.user._id,
       rating: parseInt(rating, 10),
+      title: title || '',
       comment,
-    });
+      photos: reviewPhotos,
+      verifiedPurchase,
+    };
+
+    product.reviews.push(review);
 
     const totalRating = product.reviews.reduce((sum, r) => sum + r.rating, 0);
     product.averageRating = totalRating / product.reviews.length;
@@ -328,7 +387,18 @@ exports.addProductReview = async (req, res, next) => {
 
     await product.save();
 
-    res.status(201).json({ success: true, message: 'Review added successfully' });
+    const savedReview = product.reviews[product.reviews.length - 1];
+    await savedReview.populate('user', 'name avatar');
+
+    const { notifyAdmins } = require('../utils/notifyAdmins');
+    await notifyAdmins({
+      type: 'system',
+      title: `New Review: ${product.name}`,
+      message: `${req.user.name || req.user.email} left a ${review.rating}-star review on "${product.name}".`,
+      data: { productId: product._id, productName: product.name, action: 'view' },
+    });
+
+    res.status(201).json({ success: true, message: 'Review added successfully', review: savedReview });
   } catch (err) {
     next(err);
   }

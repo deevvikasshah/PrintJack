@@ -96,7 +96,23 @@ const blogPosts = [
   { title: 'Bulk Printing: Tips to Save Money Without Compromising Quality', excerpt: 'Discover how to optimize your print orders for the best value and quality balance.', image: 'https://images.unsplash.com/photo-1562408590-e32931084e23?w=600', date: 'Dec 28, 2025', slug: 'bulk-printing-tips' },
 ];
 
-const trustLogos = ['Startup India', 'Make in India', 'Digital India', 'ISO 9001', 'Google Pay', 'Shopify'];
+const defaultTrustLogos = ['Startup India', 'Make in India', 'Digital India', 'ISO 9001', 'Google Pay', 'Shopify'];
+const defaultTestimonials = testimonials;
+const defaultTrustBar = [
+  { icon: 'truck', text: 'Free Shipping on ₹999+' },
+  { icon: 'shield', text: '100% Quality Guarantee' },
+  { icon: 'map', text: 'Pan India Delivery' },
+  { icon: 'support', text: '24/7 Support' },
+];
+
+const TRUST_ICONS = {
+  truck: Truck,
+  shield: ShieldCheck,
+  map: MapPin,
+  support: Headphones,
+  card: CreditCard,
+  package: Package,
+};
 
 function FaqAccordion({ items }) {
   const [open, setOpen] = useState(0);
@@ -124,6 +140,28 @@ function FaqAccordion({ items }) {
 
 export default function HomePage() {
   const [email, setEmail] = useState('');
+  const [content, setContent] = useState(null);
+
+  const trustLogos = content?.trustLogos || defaultTrustLogos;
+  const siteTestimonials = content?.testimonials || defaultTestimonials;
+  const trustBar = content?.trustBar || defaultTrustBar;
+
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        const res = await fetch('/api/admin/settings/public');
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.success && data.content) {
+            setContent(data.content);
+          }
+        }
+      } catch (e) {
+        // Fall back to defaults on any error
+      }
+    };
+    loadContent();
+  }, []);
 
   return (
     <div className="bg-paper-100">
@@ -179,26 +217,24 @@ export default function HomePage() {
       <section className="bg-paper-50 border-b border-ink/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: Truck, text: 'Free Shipping on ₹999+' },
-              { icon: ShieldCheck, text: '100% Quality Guarantee' },
-              { icon: MapPin, text: 'Pan India Delivery' },
-              { icon: Headphones, text: '24/7 Support' },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="flex items-center gap-3 justify-center lg:justify-start"
-              >
-                <div className="w-10 h-10 rounded-full bg-pj-green/10 flex items-center justify-center">
-                  <item.icon size={20} className="text-pj-green" />
-                </div>
-                <span className="text-sm text-ink/70">{item.text}</span>
-              </motion.div>
-            ))}
+            {trustBar.map((item, i) => {
+              const Icon = TRUST_ICONS[item.icon] || Truck;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                  className="flex items-center gap-3 justify-center lg:justify-start"
+                >
+                  <div className="w-10 h-10 rounded-full bg-pj-green/10 flex items-center justify-center">
+                    <Icon size={20} className="text-pj-green" />
+                  </div>
+                  <span className="text-sm text-ink/70">{item.text}</span>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -367,7 +403,7 @@ export default function HomePage() {
             <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">What our customers say</h2>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {testimonials.map((t, i) => (
+            {siteTestimonials.map((t, i) => (
               <motion.div key={i} variants={fadeUp} className="bg-paper-50 rounded-2xl p-6 border border-ink/10">
                 <Quote size={22} className="text-pj-green/40 mb-4" />
                 <p className="text-sm text-ink/70 leading-relaxed">{t.text}</p>
@@ -378,7 +414,7 @@ export default function HomePage() {
                 </div>
                 <div className="mt-5 flex items-center gap-3 pt-5 border-t border-ink/10">
                   <div className="w-10 h-10 rounded-full bg-pj-green text-white flex items-center justify-center text-sm font-bold">
-                    {t.avatar}
+                    {t.avatar || t.name?.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
                   </div>
                   <div>
                     <h4 className="text-sm font-semibold text-ink">{t.name}</h4>

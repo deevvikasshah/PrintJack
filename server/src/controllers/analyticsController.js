@@ -1,4 +1,4 @@
-const { Order, Product, User } = require('../models');
+const { Order, Product, User, Cart } = require('../models');
 const { AppError } = require('../middleware/errorHandler');
 
 exports.getDashboardStats = async (req, res, next) => {
@@ -542,6 +542,35 @@ exports.getExportReport = async (req, res, next) => {
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="analytics-report.csv"');
     res.send(csv);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getFunnel = async (req, res, next) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const cartsCreated = await Cart.countDocuments();
+    const ordersPlaced = await Order.countDocuments();
+    const paidOrders = await Order.countDocuments({ paymentStatus: 'captured' });
+    const completedOrders = await Order.countDocuments({ orderStatus: 'delivered' });
+
+    const steps = [
+      { label: 'Registered Users', value: totalUsers },
+      { label: 'Carts Created', value: cartsCreated },
+      { label: 'Orders Placed', value: ordersPlaced },
+      { label: 'Paid Orders', value: paidOrders },
+      { label: 'Delivered', value: completedOrders },
+    ];
+
+    let prev = null;
+    const conversionRates = steps.map((step) => {
+      const rate = prev && prev > 0 ? Math.round((step.value / prev) * 1000) / 10 : (prev === 0 ? 0 : 100);
+      prev = step.value;
+      return rate;
+    });
+
+    res.status(200).json({ success: true, steps, conversionRates });
   } catch (err) {
     next(err);
   }

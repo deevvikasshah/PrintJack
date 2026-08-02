@@ -6,7 +6,10 @@ const {
   getSettings,
   updateSetting,
   bulkUpdateSettings,
+  getPublicContent,
 } = require("../controllers/settingsController");
+
+router.get("/public", getPublicContent);
 
 router.use(protect, authorize("admin", "super_admin"));
 

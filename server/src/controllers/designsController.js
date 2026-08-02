@@ -1,6 +1,8 @@
-const { Design, Product, Notification } = require('../models');
+const { Design, Product, Notification, User } = require('../models');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 const { AppError } = require('../middleware/errorHandler');
+const { notifyAdmins } = require('../utils/notifyAdmins');
+const { sendDesignApproval } = require('../services/email');
 
 exports.saveDesign = async (req, res, next) => {
   try {
@@ -43,6 +45,15 @@ exports.saveDesign = async (req, res, next) => {
       printSpecifications: printSpecifications || {},
       status,
     });
+
+    if (status === 'saved') {
+      await notifyAdmins({
+        type: 'design_update',
+        title: `New Design: ${designName}`,
+        message: `A new design "${designName}" for ${product.name} was created by ${req.user.name || req.user.email}.`,
+        data: { designId: design._id, designName, action: 'view' },
+      });
+    }
 
     res.status(201).json({ success: true, design });
   } catch (err) {
@@ -234,6 +245,13 @@ exports.submitForPrint = async (req, res, next) => {
     design.status = 'submitted';
     await design.save({ validateBeforeSave: false });
 
+    await notifyAdmins({
+      type: 'design_update',
+      title: `Design Submitted for Review: ${design.name}`,
+      message: `Design "${design.name}" was submitted for review by ${req.user.name || req.user.email}.`,
+      data: { designId: design._id, designName: design.name, action: 'approve' },
+    });
+
     res.status(200).json({ success: true, message: 'Design submitted for review', design });
   } catch (err) {
     next(err);
@@ -320,6 +338,15 @@ exports.approveDesign = async (req, res, next) => {
         : `Your design "${design.name}" has been rejected. ${adminNotes || 'Please review the admin notes.'}`,
       data: { designId: design._id, designName: design.name, status },
     });
+
+    const designOwner = await User.findById(design.user);
+    if (designOwner && designOwner.email) {
+      try {
+        await sendDesignApproval(design, designOwner, status, adminNotes);
+      } catch (e) {
+        console.error('Failed to send design approval email:', e.message);
+      }
+    }
 
     res.status(200).json({
       success: true,

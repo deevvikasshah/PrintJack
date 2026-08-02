@@ -39,6 +39,7 @@ const collaborationRoutes = require("./routes/collaboration");
 const versionsRoutes = require("./routes/versions");
 const calculatorRoutes = require("./routes/calculator");
 const adminRoutes = require("./routes/admin");
+const supportRoutes = require("./routes/support");
 
 // Fail fast if critical environment variables are missing
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your_jwt_secret_here') {
@@ -253,6 +254,7 @@ app.use("/api/suggestions", limiter, suggestionsRoutes);
 app.use("/api/templates", limiter, templatesRoutes);
 app.use("/api/collaboration", limiter, collaborationRoutes);
 app.use("/api/versions", limiter, versionsRoutes);
+app.use("/api/support", limiter, supportRoutes);
 
 // 404 handler
 app.all("*", (req, res, next) => {

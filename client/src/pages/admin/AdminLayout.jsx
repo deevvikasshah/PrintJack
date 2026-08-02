@@ -1,26 +1,82 @@
-import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Bell, Search, Menu, X, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import AdminSidebar from '../../components/layout/AdminSidebar';
-import { getInitials } from '../../utils/formatters';
+import { getInitials, formatDistanceToNow } from '../../utils/formatters';
+import { get, put } from '../../utils/api';
+
+const STATUS_STYLE = {
+  order_status: 'bg-blue-50 text-blue-600',
+  payment: 'bg-green-50 text-green-600',
+  design_update: 'bg-purple-50 text-purple-600',
+  system: 'bg-gray-50 text-gray-600',
+  promotional: 'bg-yellow-50 text-yellow-600',
+};
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const pollRef = useRef(null);
 
-  const notifications = [
-    { id: 1, text: 'New order #PJ-1234 received', time: '2 min ago', read: false },
-    { id: 2, text: 'Design approval pending for Order #PJ-1230', time: '15 min ago', read: false },
-    { id: 3, text: 'Payment failed for Order #PJ-1228', time: '1 hour ago', read: true },
-    { id: 4, text: 'New user registered: Rahul Sharma', time: '2 hours ago', read: true },
-  ];
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await get('/users/notifications', { params: { limit: 12 } });
+      if (res.data?.success) {
+        setNotifications(res.data.notifications || []);
+        setUnreadCount(res.data.unreadCount || 0);
+      }
+    } catch (e) {
+      // Silently ignore transient polling errors
+    }
+  }, []);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  useEffect(() => {
+    if (!user) return;
+    fetchNotifications();
+    pollRef.current = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(pollRef.current);
+  }, [user, fetchNotifications]);
+
+  const markAllRead = async () => {
+    try {
+      await put('/users/notifications/read-all');
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  const handleNotificationClick = async (n) => {
+    if (!n.isRead) {
+      setNotifications((prev) =>
+        prev.map((item) => (item._id === n._id ? { ...item, isRead: true } : item))
+      );
+      setUnreadCount((c) => Math.max(0, c - 1));
+      try {
+        await put(`/users/notifications/${n._id}/read`);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    const action = n.data?.action;
+    if (action === 'approve') {
+      navigate('/admin/designs');
+    } else if (action === 'view') {
+      navigate('/admin/orders');
+    }
+    setShowNotifications(false);
+  };
 
   return (
     <>
@@ -91,7 +147,7 @@ export default function AdminLayout() {
                     <Bell size={20} />
                     {unreadCount > 0 && (
                       <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-[#E63946] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                        {unreadCount}
+                        {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
                   </button>
@@ -100,25 +156,67 @@ export default function AdminLayout() {
                     <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
                       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                         <h3 className="font-semibold text-[#1D3557] text-sm">Notifications</h3>
-                        <button className="text-xs text-[#E63946] hover:underline">Mark all read</button>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllRead}
+                            className="text-xs text-[#E63946] hover:underline"
+                          >
+                            Mark all read
+                          </button>
+                        )}
                       </div>
                       <div className="max-h-80 overflow-y-auto">
+                        {loadingNotifications && notifications.length === 0 && (
+                          <div className="px-4 py-6 text-center text-sm text-gray-400">
+                            Loading...
+                          </div>
+                        )}
+                        {!loadingNotifications && notifications.length === 0 && (
+                          <div className="px-4 py-6 text-center text-sm text-gray-400">
+                            No notifications yet
+                          </div>
+                        )}
                         {notifications.map((n) => (
                           <div
-                            key={n.id}
+                            key={n._id}
+                            onClick={() => handleNotificationClick(n)}
                             className={`px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${
-                              !n.read ? 'bg-red-50/50' : ''
+                              !n.isRead ? 'bg-red-50/50' : ''
                             }`}
                           >
-                            <p className={`text-sm ${!n.read ? 'font-medium text-[#1D3557]' : 'text-gray-600'}`}>
-                              {n.text}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">{n.time}</p>
+                            <div className="flex items-start gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm truncate ${!n.isRead ? 'font-medium text-[#1D3557]' : 'text-gray-600'}`}>
+                                  {n.title}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {formatDistanceToNow(n.createdAt)}
+                                </p>
+                              </div>
+                              <span
+                                className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${STATUS_STYLE[n.type] || STATUS_STYLE.system}`}
+                              >
+                                {n.type === 'order_status'
+                                  ? 'ORDER'
+                                  : n.type === 'payment'
+                                    ? 'PAYMENT'
+                                    : n.type === 'design_update'
+                                      ? 'DESIGN'
+                                      : 'SYSTEM'}
+                              </span>
+                            </div>
                           </div>
                         ))}
                       </div>
                       <div className="px-4 py-2 border-t border-gray-100">
-                        <button className="w-full text-center text-sm text-[#E63946] hover:underline font-medium">
+                        <button
+                          onClick={() => {
+                            setShowNotifications(false);
+                            navigate('/admin/orders');
+                          }}
+                          className="w-full text-center text-sm text-[#E63946] hover:underline font-medium"
+                        >
                           View all notifications
                         </button>
                       </div>

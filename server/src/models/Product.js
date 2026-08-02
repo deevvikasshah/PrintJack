@@ -78,6 +78,30 @@ const imageSchema = new mongoose.Schema({
   alt: { type: String, default: '' },
 }, { _id: true });
 
+const reviewSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'User is required'],
+  },
+  rating: {
+    type: Number,
+    required: [true, 'Rating is required'],
+    min: 1,
+    max: 5,
+  },
+  title: { type: String, default: '', trim: true },
+  comment: { type: String, required: [true, 'Review comment is required'], trim: true },
+  photos: [{ type: String }],
+  verifiedPurchase: { type: Boolean, default: false },
+  helpful: {
+    count: { type: Number, default: 0 },
+    users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  },
+}, {
+  timestamps: { createdAt: true, updatedAt: false },
+});
+
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -171,6 +195,7 @@ const productSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  reviews: [reviewSchema],
 }, {
   timestamps: true,
 });

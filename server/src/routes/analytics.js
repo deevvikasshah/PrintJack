@@ -11,6 +11,7 @@ const {
   getCategoryPerformance,
   getCustomerAcquisition,
   getExportReport,
+  getFunnel,
 } = require("../controllers/analyticsController");
 
 router.use(protect, authorize("admin"));
@@ -25,6 +26,7 @@ router.get("/top-products", getTopProducts);
 router.get("/revenue-chart", getRevenueChart);
 router.get("/category-performance", getCategoryPerformance);
 router.get("/customer-acquisition", getCustomerAcquisition);
+router.get("/funnel", getFunnel);
 router.get("/export", getExportReport);
 
 module.exports = router;

@@ -26,6 +26,7 @@ export default function AdminAnalytics() {
   const [topProducts, setTopProducts] = useState([]);
   const [categoryPerformance, setCategoryPerformance] = useState(null);
   const [customerAcquisition, setCustomerAcquisition] = useState(null);
+  const [funnel, setFunnel] = useState(null);
 
   useEffect(() => {
     fetchAnalytics();
@@ -39,13 +40,14 @@ export default function AdminAnalytics() {
       if (dateRange.to) params.to = dateRange.to;
       params.period = revenuePeriod;
 
-      const [metricsRes, revenueRes, ordersRes, topRes, catRes, custRes] = await Promise.allSettled([
+      const [metricsRes, revenueRes, ordersRes, topRes, catRes, custRes, funnelRes] = await Promise.allSettled([
         get('/analytics/metrics', { params }),
         get('/analytics/revenue-chart', { params: { ...params, period: revenuePeriod } }),
         get('/analytics/orders-by-status', { params }),
         get('/analytics/top-products', { params: { limit: 10 } }),
         get('/analytics/category-performance', { params }),
         get('/analytics/customer-acquisition', { params }),
+        get('/analytics/funnel'),
       ]);
 
       if (metricsRes.status === 'fulfilled') setMetrics(metricsRes.value.data);
@@ -54,6 +56,7 @@ export default function AdminAnalytics() {
       if (topRes.status === 'fulfilled') setTopProducts(topRes.value.data.products || topRes.value.data || []);
       if (catRes.status === 'fulfilled') setCategoryPerformance(catRes.value.data);
       if (custRes.status === 'fulfilled') setCustomerAcquisition(custRes.value.data);
+      if (funnelRes.status === 'fulfilled') setFunnel(funnelRes.value.data);
     } catch (err) {
       console.error('Failed to load analytics', err);
     } finally {
@@ -226,6 +229,50 @@ export default function AdminAnalytics() {
             <p className="text-xs text-gray-500 mt-1">{metric.label}</p>
           </div>
         ))}
+      </div>
+
+      {/* Conversion Funnel */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+        <h2 className="text-lg font-semibold text-[#1D3557] mb-4">Conversion Funnel</h2>
+        {funnel?.steps?.length ? (
+          <div className="space-y-3">
+            {funnel.steps.map((step, idx) => {
+              const prevValue = idx > 0 ? funnel.steps[idx - 1].value : step.value;
+              const width = prevValue > 0 ? Math.max((step.value / prevValue) * 100, 10) : 100;
+              const rate = idx > 0 && prevValue > 0 ? Math.round((step.value / prevValue) * 1000) / 10 : 100;
+              const overall = funnel.steps[0].value > 0 ? Math.round((step.value / funnel.steps[0].value) * 1000) / 10 : 0;
+              return (
+                <div key={step.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-[#1D3557]">{step.label}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold text-[#1D3557]">{step.value.toLocaleString('en-IN')}</span>
+                      {idx > 0 ? (
+                        <span className={`text-xs font-semibold ${rate >= 100 ? 'text-green-600' : rate >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
+                          {rate}%
+                        </span>
+                      ) : (
+                        <span className="text-xs font-semibold text-gray-400">base</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-4 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{
+                        width: `${Math.max(width, 8)}%`,
+                        background: idx === 0 ? '#1D3557' : idx === funnel.steps.length - 1 ? '#22C55E' : '#E63946',
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-0.5">{overall}% of registered users</p>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400 text-center py-6">No funnel data yet</p>
+        )}
       </div>
 
       {/* Revenue Chart */}

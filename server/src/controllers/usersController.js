@@ -386,6 +386,19 @@ exports.markNotificationRead = async (req, res, next) => {
   }
 };
 
+exports.markAllNotificationsRead = async (req, res, next) => {
+  try {
+    await Notification.updateMany(
+      { user: req.user._id, isRead: false },
+      { isRead: true }
+    );
+
+    res.status(200).json({ success: true, message: 'All notifications marked as read' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getLoyaltyPoints = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).select('loyaltyPoints');

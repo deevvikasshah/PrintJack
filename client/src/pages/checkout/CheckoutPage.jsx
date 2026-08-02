@@ -638,6 +638,11 @@ function PaymentStep({ onBack, onPaymentSuccess, selectedAddress }) {
                 : totalAmount >= FREE_SHIPPING_THRESHOLD
                 ? 0
                 : SHIPPING_COST;
+            const days = method.id === 'express' ? 3 : 6;
+            const estDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', {
+              month: 'short',
+              day: 'numeric',
+            });
             return (
               <label
                 key={method.id}
@@ -658,6 +663,9 @@ function PaymentStep({ onBack, onPaymentSuccess, selectedAddress }) {
                 <div className="flex-1">
                   <p className="text-sm font-medium text-[#1D3557]">{method.label}</p>
                   <p className="text-xs text-gray-500">{method.description}</p>
+                  <p className="text-xs text-[#E63946] font-medium mt-0.5">
+                    Arrives by {estDate}
+                  </p>
                 </div>
                 <span className="text-sm font-bold text-[#1D3557]">
                   {finalPrice === 0 ? (
@@ -828,11 +836,17 @@ function PaymentStep({ onBack, onPaymentSuccess, selectedAddress }) {
 
 function ConfirmationStep({ order }) {
   const orderNumber = order?.orderNumber || order?._id?.slice(-8).toUpperCase() || 'N/A';
-  const estimatedDelivery = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
+  const estimatedDelivery = order?.estimatedDelivery
+    ? new Date(order.estimatedDelivery).toLocaleDateString('en-IN', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      })
+    : new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      });
 
   return (
     <div className="text-center space-y-6 max-w-lg mx-auto">

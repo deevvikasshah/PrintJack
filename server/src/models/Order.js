@@ -56,6 +56,11 @@ const orderSchema = new mongoose.Schema({
     default: 0,
     min: 0,
   },
+  shippingMethod: {
+    type: String,
+    enum: ['standard', 'express'],
+    default: 'standard',
+  },
   tax: {
     type: Number,
     default: 0,

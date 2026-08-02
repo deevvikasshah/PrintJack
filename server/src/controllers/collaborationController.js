@@ -4,7 +4,24 @@ const { AppError } = require('../middleware/errorHandler');
 exports.addCollaborator = async (req, res, next) => {
   try {
     const { designId } = req.params;
-    const { userId, role } = req.body;
+    const { userId, role, email } = req.body;
+
+    let collaboratorId = userId;
+    if (!collaboratorId && email) {
+      const found = await User.findOne({ email: { $regex: new RegExp(`^${email.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }).select('_id');
+      if (!found) {
+        throw new AppError('No user found with that email. Invite them to register first.', 404);
+      }
+      collaboratorId = found._id;
+    }
+
+    if (!collaboratorId) {
+      throw new AppError('User ID or email is required', 400);
+    }
+
+    if (collaboratorId.toString() === req.user._id.toString()) {
+      throw new AppError('You are already the owner of this design', 400);
+    }
 
     const design = await Design.findById(designId);
     if (!design) {
@@ -16,7 +33,7 @@ exports.addCollaborator = async (req, res, next) => {
     }
 
     const existingIndex = design.collaborators.findIndex(
-      (c) => c.user.toString() === userId
+      (c) => c.user.toString() === collaboratorId.toString()
     );
 
     if (existingIndex !== -1) {
@@ -25,7 +42,7 @@ exports.addCollaborator = async (req, res, next) => {
       design.collaborators[existingIndex].lastActive = new Date();
     } else {
       design.collaborators.push({
-        user: userId,
+        user: collaboratorId,
         role: role || 'editor',
         joinedAt: new Date(),
         lastActive: new Date(),
@@ -35,7 +52,7 @@ exports.addCollaborator = async (req, res, next) => {
 
     await design.save({ validateBeforeSave: false });
 
-    const collaborator = await User.findById(userId).select('name email');
+    const collaborator = await User.findById(collaboratorId).select('name email');
 
     res.status(200).json({
       success: true,

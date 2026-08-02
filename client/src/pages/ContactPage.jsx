@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import api from '../utils/api';
 import {
   Send, Phone, Mail, MapPin, Clock, MessageCircle,
   Loader2, CheckCircle,
@@ -30,9 +31,14 @@ export default function ContactPage() {
     e.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setSubmitting(false);
-    setSubmitted(true);
+    try {
+      await api.post('/support/contact', form);
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitted(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleChange = (field) => (e) => {

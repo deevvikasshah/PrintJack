@@ -6,7 +6,7 @@ import ScrollToTop from './components/layout/ScrollToTop';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminRoute from './components/common/AdminRoute';
 import Loading from './components/common/Loading';
-import WhatsAppButton from './components/marketing/WhatsAppButton';
+import WhatsAppButton from './components/marketing/LiveChatWidget';
 import BackToTop from './components/common/BackToTop';
 
 const HomePage = lazy(() => import('./pages/HomePage'));

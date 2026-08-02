@@ -18,6 +18,7 @@ const {
   toggleWishlist,
   getNotifications,
   markNotificationRead,
+  markAllNotificationsRead,
   getLoyaltyPoints,
   getLoyaltyHistory,
   redeemLoyaltyPoints,
@@ -71,6 +72,8 @@ router.post("/wishlist/:productId", protect, toggleWishlist);
 router.get("/notifications", protect, getNotifications);
 
 router.put("/notifications/:id/read", protect, markNotificationRead);
+
+router.put("/notifications/read-all", protect, markAllNotificationsRead);
 
 router.get("/loyalty", protect, getLoyaltyPoints);
 

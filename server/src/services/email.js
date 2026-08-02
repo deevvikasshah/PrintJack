@@ -213,8 +213,8 @@ const sendOrderConfirmation = async (order, user) => {
     <tr>
       <td>${item.product?.name || item.name || "Product"}</td>
       <td style="text-align: center;">${item.quantity}</td>
-      <td style="text-align: right;">${formatCurrency(item.price)}</td>
-      <td style="text-align: right;">${formatCurrency(item.quantity * item.price)}</td>
+      <td style="text-align: right;">${formatCurrency(item.unitPrice ?? item.price)}</td>
+      <td style="text-align: right;">${formatCurrency((item.unitPrice ?? item.price) * item.quantity)}</td>
     </tr>`
     )
     .join("");
@@ -250,7 +250,8 @@ const sendOrderConfirmation = async (order, user) => {
           <td style="text-align: right;">${formatCurrency(order.subtotal || 0)}</td>
         </tr>
         ${order.discount ? `<tr><td>Discount</td><td style="text-align: right; color: #28a745;">-${formatCurrency(order.discount)}</td></tr>` : ""}
-        ${order.shippingCharge !== undefined ? `<tr><td>Shipping</td><td style="text-align: right;">${order.shippingCharge === 0 ? "FREE" : formatCurrency(order.shippingCharge)}</td></tr>` : ""}
+        ${(order.shippingCost !== undefined || order.shippingCharge !== undefined) ? `<tr><td>Shipping</td><td style="text-align: right;">${(order.shippingCost ?? order.shippingCharge) === 0 ? "FREE" : formatCurrency(order.shippingCost ?? order.shippingCharge)}</td></tr>` : ""}
+        ${order.tax ? `<tr><td>GST (18%)</td><td style="text-align: right;">${formatCurrency(order.tax)}</td></tr>` : ""}
         ${order.gst ? `<tr><td>GST (${order.gstRate || 18}%)</td><td style="text-align: right;">${formatCurrency(order.gst)}</td></tr>` : ""}
         <tr style="background-color: ${branding.light};">
           <td><strong style="font-size: 16px;">Total</strong></td>
@@ -264,7 +265,7 @@ const sendOrderConfirmation = async (order, user) => {
     <div class="info-box mt-16">
       <strong>Shipping Address</strong><br>
       <span style="font-size: 13px; color: ${branding.textLight};">
-        ${order.shippingAddress.name || user.name}<br>
+        ${order.shippingAddress.fullName || order.shippingAddress.name || user.name}<br>
         ${order.shippingAddress.street || ""}<br>
         ${order.shippingAddress.city || ""}, ${order.shippingAddress.state || ""} - ${order.shippingAddress.pincode || ""}
         ${order.shippingAddress.phone ? `<br>Phone: ${order.shippingAddress.phone}` : ""}
@@ -273,7 +274,7 @@ const sendOrderConfirmation = async (order, user) => {
         : ""
     }
     <div class="text-center mt-16">
-      <a href="${branding.website}/orders/${order._id || order.orderNumber}" class="btn">Track Order</a>
+      <a href="${branding.website}/dashboard/orders/${order._id || order.orderNumber}" class="btn">Track Order</a>
     </div>`;
 
   return sendEmail({
@@ -335,7 +336,7 @@ const sendOrderStatusUpdate = async (order, user) => {
         : ""
     }
     <div class="text-center mt-16">
-      <a href="${branding.website}/orders/${order._id || order.orderNumber}" class="btn btn-secondary">View Order Details</a>
+      <a href="${branding.website}/dashboard/orders/${order._id || order.orderNumber}" class="btn btn-secondary">View Order Details</a>
     </div>`;
 
   return sendEmail({
@@ -347,18 +348,20 @@ const sendOrderStatusUpdate = async (order, user) => {
 
 const sendDesignApproval = async (design, user, status, notes) => {
   const isApproved = status === "approved";
+  const designName = design.name || "your design";
+  const designImage = design.previewImage || design.thumbnailUrl || design.fileUrl;
   const content = `
     <h2>Design ${isApproved ? "Approved ✅" : "Needs Revision ❌"}</h2>
     <p>Hi ${user.name},</p>
-    <p>Your design for <strong>${design.productName || "your product"}</strong> has been <strong>${isApproved ? "approved" : "rejected"}</strong> by our review team.</p>
+    <p>Your design <strong>${designName}</strong> has been <strong>${isApproved ? "approved" : "rejected"}</strong> by our review team.</p>
     <div class="text-center mt-16 mb-16">
       <span class="status-badge ${isApproved ? "status-approved" : "status-rejected"}" style="font-size: 15px; padding: 8px 24px;">
         ${isApproved ? "Approved" : "Needs Revision"}
       </span>
     </div>
     ${
-      design.thumbnailUrl || design.fileUrl
-        ? `<div class="text-center mb-16"><img src="${design.thumbnailUrl || design.fileUrl}" alt="Design" style="max-width: 100%; border-radius: 8px; border: 1px solid ${branding.border};"></div>`
+      designImage
+        ? `<div class="text-center mb-16"><img src="${designImage}" alt="Design" style="max-width: 100%; border-radius: 8px; border: 1px solid ${branding.border};"></div>`
         : ""
     }
     <div class="info-box ${isApproved ? "info-box-blue" : ""}">
@@ -373,23 +376,23 @@ const sendDesignApproval = async (design, user, status, notes) => {
       !isApproved
         ? `
     <div class="mt-16">
-      <p style="font-size: 14px; color: ${branding.textLight};">Please review the feedback above and upload a revised design. Our team will re-evaluate your updated design within 24 hours.</p>
+      <p style="font-size: 14px; color: ${branding.textLight};">Please review the feedback above and update your design. Our team will re-evaluate your updated design within 24 hours.</p>
       <div class="text-center">
-        <a href="${branding.website}/designs/${design._id || ""}/upload" class="btn">Upload Revised Design</a>
+        <a href="${branding.website}/dashboard/designs" class="btn">Update Design</a>
       </div>
     </div>`
         : `
     <div class="mt-16">
       <p style="font-size: 14px; color: ${branding.textLight};">Your design will now proceed to production. We'll notify you once your order is being printed.</p>
       <div class="text-center">
-        <a href="${branding.website}/orders" class="btn">View Order</a>
+        <a href="${branding.website}/dashboard/orders" class="btn">View Order</a>
       </div>
     </div>`
     }`;
 
   return sendEmail({
     to: user.email,
-    subject: `Design ${isApproved ? "Approved" : "Needs Revision"} — ${design.productName || "Your Design"} | ${branding.logoText}`,
+    subject: `Design ${isApproved ? "Approved" : "Needs Revision"} — ${designName} | ${branding.logoText}`,
     html: baseTemplate(content),
   });
 };

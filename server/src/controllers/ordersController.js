@@ -1,8 +1,9 @@
 const { Order, Cart, Product, User, Notification } = require('../models');
 const { AppError } = require('../middleware/errorHandler');
-const { sendEmail } = require('../services/email');
-const { sendSMS } = require('../services/sms');
+const { sendEmail, sendOrderConfirmation } = require('../services/email');
+const { sendSMS, sendWhatsApp } = require('../services/sms');
 const { generateInvoice } = require('../utils/helpers');
+const { notifyAdmins } = require('../utils/notifyAdmins');
 let razorpayService;
 try { razorpayService = require('../services/razorpay'); } catch { razorpayService = null; }
 
@@ -88,6 +89,9 @@ exports.checkoutFromCart = async (req, res, next) => {
     const discount = cart.discount || 0;
     const totalAmount = subtotal + shippingCost + tax - discount;
 
+    const estimatedDelivery = new Date();
+    estimatedDelivery.setDate(estimatedDelivery.getDate() + (isExpress ? 3 : 6));
+
     if (paymentMethod === 'cod') {
       const order = await Order.create({
         user: req.user._id,
@@ -101,6 +105,8 @@ exports.checkoutFromCart = async (req, res, next) => {
         paymentMethod: 'cod',
         paymentStatus: 'pending',
         orderStatus: 'pending',
+        shippingMethod: shippingMethod || 'standard',
+        estimatedDelivery,
       });
 
       for (const item of orderItems) {
@@ -120,6 +126,31 @@ exports.checkoutFromCart = async (req, res, next) => {
         data: { orderId: order._id, orderNumber: order.orderNumber },
       });
 
+      await notifyAdmins({
+        type: 'order_status',
+        title: `New Order ${order.orderNumber}`,
+        message: `New COD order ${order.orderNumber} for ₹${order.totalAmount} by ${shippingAddress.fullName || req.user.name || req.user.email}.`,
+        data: { orderId: order._id, orderNumber: order.orderNumber, action: 'view' },
+      });
+
+      if (req.user.email) {
+        try {
+          await sendOrderConfirmation(order, req.user);
+        } catch (e) {
+          console.error('Failed to send order confirmation email:', e.message);
+        }
+      }
+      if (shippingAddress.phone) {
+        try {
+          await sendWhatsApp({
+            to: shippingAddress.phone,
+            body: `PrintJack: Your order ${order.orderNumber} has been placed successfully (COD). Order total ₹${order.totalAmount}. We will update you as it progresses.`,
+          });
+        } catch (e) {
+          console.error('Failed to send order WhatsApp:', e.message);
+        }
+      }
+
       return res.status(201).json({ success: true, order });
     }
 
@@ -135,6 +166,8 @@ exports.checkoutFromCart = async (req, res, next) => {
       paymentMethod: 'razorpay',
       paymentStatus: 'pending',
       orderStatus: 'pending',
+      shippingMethod: shippingMethod || 'standard',
+      estimatedDelivery,
     });
 
     if (razorpayService) {
@@ -169,6 +202,7 @@ exports.checkoutFromCart = async (req, res, next) => {
       shippingCost,
       tax,
       discount,
+      estimatedDelivery: order.estimatedDelivery,
     });
   } catch (err) {
     next(err);
@@ -222,6 +256,32 @@ exports.verifyPaymentFromCheckout = async (req, res, next) => {
       message: `Payment for order ${order.orderNumber} has been confirmed.`,
       data: { orderId: order._id, orderNumber: order.orderNumber, paymentId: razorpay_payment_id },
     });
+
+    await notifyAdmins({
+      type: 'payment',
+      title: `Payment Received - ${order.orderNumber}`,
+      message: `Payment for order ${order.orderNumber} of ₹${order.totalAmount} has been confirmed.`,
+      data: { orderId: order._id, orderNumber: order.orderNumber, action: 'view' },
+    });
+
+    const payingUser = await User.findById(order.user);
+    if (payingUser && payingUser.email) {
+      try {
+        await sendOrderConfirmation(order, payingUser);
+      } catch (e) {
+        console.error('Failed to send order confirmation email:', e.message);
+      }
+    }
+    if (payingUser && order.shippingAddress?.phone) {
+      try {
+        await sendWhatsApp({
+          to: order.shippingAddress.phone,
+          body: `PrintJack: Payment for order ${order.orderNumber} has been confirmed. Total ₹${order.totalAmount}. Thank you for your purchase!`,
+        });
+      } catch (e) {
+        console.error('Failed to send payment WhatsApp:', e.message);
+      }
+    }
 
     res.status(200).json({
       success: true,
@@ -330,6 +390,21 @@ exports.createOrder = async (req, res, next) => {
       message: `Your order ${order.orderNumber} has been placed successfully.`,
       data: { orderId: order._id, orderNumber: order.orderNumber },
     });
+
+    await notifyAdmins({
+      type: 'order_status',
+      title: `New Order ${order.orderNumber}`,
+      message: `New order ${order.orderNumber} for ₹${order.totalAmount} by ${shippingAddress.fullName || req.user.name || req.user.email}.`,
+      data: { orderId: order._id, orderNumber: order.orderNumber, action: 'view' },
+    });
+
+    if (req.user.email) {
+      try {
+        await sendOrderConfirmation(order, req.user);
+      } catch (e) {
+        console.error('Failed to send order confirmation email:', e.message);
+      }
+    }
 
     res.status(201).json({ success: true, order });
   } catch (err) {
@@ -529,12 +604,27 @@ exports.updateOrderStatus = async (req, res, next) => {
       try {
         await sendSMS({
           to: user.phone,
-          message: `PrintJack: Your order ${order.orderNumber} ${statusMessages[status] || 'has been updated'}. ${trackingNumber ? `Tracking: ${trackingNumber}` : ''}`,
+          body: `PrintJack: Your order ${order.orderNumber} ${statusMessages[status] || 'has been updated'}. ${trackingNumber ? `Tracking: ${trackingNumber}` : ''}`,
         });
       } catch (e) {
         console.error('Failed to send order status SMS:', e.message);
       }
+      try {
+        await sendWhatsApp({
+          to: user.phone,
+          body: `PrintJack: Your order ${order.orderNumber} ${statusMessages[status] || 'has been updated'}. ${trackingNumber ? `Tracking: ${trackingNumber}` : ''}`,
+        });
+      } catch (e) {
+        console.error('Failed to send order status WhatsApp:', e.message);
+      }
     }
+
+    await notifyAdmins({
+      type: 'order_status',
+      title: `Order ${order.orderNumber} ${status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}`,
+      message: `Order ${order.orderNumber} status changed to ${status.replace('_', ' ')}${note ? `. Note: ${note}` : ''}.`,
+      data: { orderId: order._id, orderNumber: order.orderNumber, status, action: 'view' },
+    });
 
     res.status(200).json({ success: true, order });
   } catch (err) {

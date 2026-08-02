@@ -5,7 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import {
   Star, ChevronRight, Minus, Plus, ShoppingCart,
   Share2, MessageCircle, Truck, RotateCcw, Shield,
-  Ruler, Info, ZoomIn, Heart, Loader2, Upload, FileImage,
+  Ruler, Info, ZoomIn, Heart, Loader2, Upload, FileImage, Zap, PenTool,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import BulkPricingTable from '../../components/products/BulkPricingTable';
@@ -55,9 +55,12 @@ export default function ProductDetailPage() {
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [reviewSort, setReviewSort] = useState('recent');
+  const [reviewFilter, setReviewFilter] = useState('all');
 
-  const [uploadingDesign, setUploadingDesign] = useState(false);
-  const [addingToCart, setAddingToCart] = useState(false);
+const [uploadingDesign, setUploadingDesign] = useState(false);
+const [addingToCart, setAddingToCart] = useState(false);
+const [buyingNow, setBuyingNow] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -113,6 +116,25 @@ export default function ProductDetailPage() {
       // toast already shown by CartContext
     } finally {
       setAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to checkout');
+      navigate('/login');
+      return;
+    }
+    setBuyingNow(true);
+    try {
+      const selectedSizeValue = sizes.length > 0 ? (typeof sizes[selectedSize] === 'string' ? sizes[selectedSize] : sizes[selectedSize]?.name) : undefined;
+      const selectedColorValue = colors.length > 0 ? colors[selectedColor]?.name : undefined;
+      await addToCart(p._id, quantity, selectedSizeValue, selectedColorValue);
+      navigate('/checkout');
+    } catch {
+      // toast already shown by CartContext
+    } finally {
+      setBuyingNow(false);
     }
   };
 
@@ -197,6 +219,20 @@ export default function ProductDetailPage() {
     count: reviews.filter((rev) => Math.round(rev.rating) === r).length,
   }));
   const maxCount = Math.max(...ratingDistribution.map((d) => d.count), 1);
+
+  const filteredReviews = reviews.filter((rev) => {
+    if (reviewFilter === 'withPhotos') return rev.photos && rev.photos.length > 0;
+    if (reviewFilter === 'verified') return rev.verifiedPurchase;
+    if (reviewFilter === 'all') return true;
+    return Math.round(rev.rating) === parseInt(reviewFilter, 10);
+  });
+
+  const sortedReviews = [...filteredReviews].sort((a, b) => {
+    if (reviewSort === 'highest') return (b.rating || 0) - (a.rating || 0);
+    if (reviewSort === 'lowest') return (a.rating || 0) - (b.rating || 0);
+    if (reviewSort === 'helpful') return (b.helpful?.count || 0) - (a.helpful?.count || 0);
+    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+  });
 
   return (
     <div className="min-h-screen bg-white">
@@ -483,6 +519,18 @@ export default function ProductDetailPage() {
                   <><ShoppingCart size={20} /> Add to Cart</>
                 )}
               </button>
+
+              <button
+                onClick={handleBuyNow}
+                disabled={buyingNow || cartLoading}
+                className="flex items-center justify-center gap-2 w-full bg-[#E63946] text-white hover:bg-[#c62d38] font-bold py-4 rounded-xl transition-colors text-lg shadow-lg shadow-red-500/20 disabled:opacity-50"
+              >
+                {buyingNow ? (
+                  <><Loader2 size={20} className="animate-spin" /> Placing...</>
+                ) : (
+                  <><Zap size={20} /> Buy Now</>
+                )}
+              </button>
             </div>
 
             {/* Share */}
@@ -621,10 +669,59 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div>
-                  {reviews.length > 0 ? reviews.map((review, i) => (
-                    <ReviewCard key={i} review={review} index={i} />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => setReviewFilter('all')}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
+                          reviewFilter === 'all' ? 'bg-navy-700 text-white border-navy-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        All
+                      </button>
+                      <button
+                        onClick={() => setReviewFilter('withPhotos')}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
+                          reviewFilter === 'withPhotos' ? 'bg-navy-700 text-white border-navy-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        With Photos
+                      </button>
+                      <button
+                        onClick={() => setReviewFilter('verified')}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
+                          reviewFilter === 'verified' ? 'bg-navy-700 text-white border-navy-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        Verified Buyers
+                      </button>
+                      {[5, 4, 3, 2, 1].map((r) => (
+                        <button
+                          key={r}
+                          onClick={() => setReviewFilter(reviewFilter === String(r) ? 'all' : String(r))}
+                          className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
+                            reviewFilter === String(r) ? 'bg-navy-700 text-white border-navy-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                          }`}
+                        >
+                          {r} Star
+                        </button>
+                      ))}
+                    </div>
+                    <select
+                      value={reviewSort}
+                      onChange={(e) => setReviewSort(e.target.value)}
+                      className="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-full text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                    >
+                      <option value="recent">Most Recent</option>
+                      <option value="helpful">Most Helpful</option>
+                      <option value="highest">Highest Rated</option>
+                      <option value="lowest">Lowest Rated</option>
+                    </select>
+                  </div>
+                  {sortedReviews.length > 0 ? sortedReviews.map((review, i) => (
+                    <ReviewCard key={review._id || i} review={{ ...review, productId: p._id }} index={i} />
                   )) : (
-                    <p className="text-gray-500 text-center py-8">No reviews yet. Be the first to review!</p>
+                    <p className="text-gray-500 text-center py-8">No reviews match this filter.</p>
                   )}
                 </div>
               </div>
@@ -666,10 +763,19 @@ export default function ProductDetailPage() {
         <div className="flex gap-3">
           <Link
             to={`/configure/${p._id}`}
-            className="flex-1 bg-brand-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl text-center transition-colors"
+            className="w-12 flex items-center justify-center bg-brand-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition-colors"
+            title="Customize"
           >
-            Customize
+            <PenTool size={20} />
           </Link>
+          <button
+            onClick={handleBuyNow}
+            disabled={buyingNow || cartLoading}
+            className="flex-1 flex items-center justify-center gap-2 bg-[#E63946] text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
+          >
+            {buyingNow ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} />}
+            {buyingNow ? 'Placing...' : 'Buy Now'}
+          </button>
           <button
             onClick={handleAddToCart}
             disabled={addingToCart || cartLoading}

@@ -8,7 +8,7 @@ import {
   Trash2, Copy, Clipboard, Group, Ungroup, Image as ImageIcon,
   Square, Circle, Triangle, Star, Minus, ArrowUp, ArrowDown,
   Lock, Unlock, ZoomIn, ZoomOut, Maximize2, ChevronDown, ChevronRight,
-  RotateCcw, AlignCenter, AlignLeft, AlignRight, Menu, X
+  RotateCcw, AlignCenter, AlignLeft, AlignRight, Menu, X, Users
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import EditorCanvas from '../../components/editor/EditorCanvas';
@@ -22,6 +22,7 @@ import PreviewModal from '../../components/editor/PreviewModal';
 import ZoomControls from '../../components/editor/ZoomControls';
 import KeyboardShortcuts from '../../components/editor/KeyboardShortcuts';
 import ToolbarButton from '../../components/editor/ToolbarButton';
+import CollaboratorsModal from '../../components/editor/CollaboratorsModal';
 import { useCart } from '../../context/CartContext';
 import api from '../../utils/api';
 
@@ -71,9 +72,11 @@ export default function EditorPage() {
 
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const [savedDesignId, setSavedDesignId] = useState(null);
 
   const [bgColor, setBgColor] = useState('#FFFFFF');
   const [mobilePanelOpen, setMobilePanelOpen] = useState(null);
+  const [showCollaborators, setShowCollaborators] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -641,6 +644,7 @@ export default function EditorPage() {
           result = await api.post('/designs', payload);
           designIdRef.current = result.data.design?._id || result.data._id;
         }
+        setSavedDesignId(designIdRef.current);
         setLastSaved(new Date());
         toast.success(asDraft ? 'Draft saved' : 'Design saved');
       } catch (err) {
@@ -825,6 +829,20 @@ export default function EditorPage() {
           >
             <Download className="w-4 h-4" />
             <span className="hidden lg:inline">Download</span>
+          </button>
+
+          <button
+            onClick={() => {
+              if (!savedDesignId) {
+                toast('Please save the design first to share it with collaborators');
+              } else {
+                setShowCollaborators(true);
+              }
+            }}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Users className="w-4 h-4" />
+            <span className="hidden lg:inline">Share</span>
           </button>
 
           <button
@@ -1216,6 +1234,13 @@ export default function EditorPage() {
         onAddToCart={handleAddToCart}
         onEditDesign={() => setShowPreview(false)}
       />
+
+      {showCollaborators && savedDesignId && (
+        <CollaboratorsModal
+          designId={savedDesignId}
+          onClose={() => setShowCollaborators(false)}
+        />
+      )}
     </div>
   );
 }

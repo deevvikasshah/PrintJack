@@ -13,6 +13,7 @@ const {
   deleteProduct,
   getRelatedProducts,
   addProductReview,
+  markReviewHelpful,
   getTemplates,
 } = require("../controllers/productsController");
 const {
@@ -70,9 +71,21 @@ router.post(
       .isInt({ min: 1, max: 5 })
       .withMessage("Rating must be between 1 and 5"),
     body("comment").trim().notEmpty().withMessage("Review comment is required"),
+    body("title").optional().trim(),
   ],
   validate,
   addProductReview
+);
+
+router.post(
+  "/:id/reviews/:reviewId/helpful",
+  protect,
+  [
+    param("id").isMongoId().withMessage("Invalid product ID"),
+    param("reviewId").isMongoId().withMessage("Invalid review ID"),
+  ],
+  validate,
+  markReviewHelpful
 );
 
 router.get("/:id/templates", getTemplates);

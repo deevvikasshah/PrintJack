@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Settings, Save, Globe, CreditCard, Truck, Search as SearchIcon,
-  Mail, Share2, Upload, Loader2,
+  Mail, Share2, Upload, Loader2, LayoutDashboard,
 } from 'lucide-react';
 import { get, put } from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -9,6 +9,7 @@ import Loading from '../../components/common/Loading';
 
 const tabs = [
   { id: 'general', label: 'General', icon: Globe },
+  { id: 'homepage', label: 'Homepage', icon: LayoutDashboard },
   { id: 'payment', label: 'Payment', icon: CreditCard },
   { id: 'shipping', label: 'Shipping', icon: Truck },
   { id: 'seo', label: 'SEO', icon: SearchIcon },
@@ -65,6 +66,12 @@ export default function AdminSettings() {
 
   const updateField = (field, value) => {
     setSettings((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const displayJson = (value) => {
+    if (typeof value === 'string') return value;
+    if (Array.isArray(value) || (value && typeof value === 'object')) return JSON.stringify(value, null, 2);
+    return '';
   };
 
   const updateNestedField = (parent, field, value) => {
@@ -199,6 +206,85 @@ export default function AdminSettings() {
                     className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none"
                   />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Homepage */}
+          {activeTab === 'homepage' && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold text-[#1D3557] mb-1">Homepage Content</h2>
+                <p className="text-sm text-gray-500">
+                  Manage testimonials, trusted-by logos and trust bar shown on the homepage.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Testimonials (JSON array)
+                </label>
+                <p className="text-xs text-gray-400 mb-2">
+                  Each item: {'{'} "name", "role", "rating" (1-5), "text", "avatar" (optional 2 letters) {'}'}
+                </p>
+                <textarea
+                  rows={8}
+                  value={displayJson(settings.testimonials)}
+                  onChange={(e) => {
+                    try {
+                      updateField('testimonials', JSON.parse(e.target.value));
+                    } catch (err) {
+                      setSettings((prev) => ({ ...prev, testimonials: e.target.value }));
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946]"
+                  placeholder='[{"name":"Priya Sharma","role":"Founder","rating":5,"text":"Great quality!","avatar":"PS"}]'
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Trusted-By Logos (JSON array of names)
+                </label>
+                <textarea
+                  rows={3}
+                  value={displayJson(settings.trustLogos)}
+                  onChange={(e) => {
+                    try {
+                      updateField('trustLogos', JSON.parse(e.target.value));
+                    } catch (err) {
+                      setSettings((prev) => ({ ...prev, trustLogos: e.target.value }));
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none"
+                  placeholder='["Startup India","Make in India","ISO 9001"]'
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Trust Bar (JSON array)
+                </label>
+                <p className="text-xs text-gray-400 mb-2">
+                  Each item: {'{'} "icon": "truck" | "shield" | "map" | "support" | "card" | "package", "text": "..." {'}'}
+                </p>
+                <textarea
+                  rows={5}
+                  value={displayJson(settings.trustBar)}
+                  onChange={(e) => {
+                    try {
+                      updateField('trustBar', JSON.parse(e.target.value));
+                    } catch (err) {
+                      setSettings((prev) => ({ ...prev, trustBar: e.target.value }));
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none"
+                  placeholder='[{"icon":"truck","text":"Free Shipping on ₹999+"}]'
+                />
+              </div>
+
+              <div className="bg-blue-50 text-blue-700 text-xs rounded-xl p-3">
+                Tip: After saving, refresh the homepage to preview your changes. Leave the fields as arrays to keep them editable.
               </div>
             </div>
           )}
