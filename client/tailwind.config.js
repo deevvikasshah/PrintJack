@@ -41,10 +41,24 @@ export default {
           600: '#16a34a',
         },
         gold: '#FFD700',
+        paper: {
+          50: '#FCFBF9',
+          100: '#F7F4EF',
+          200: '#EFEAE1',
+          300: '#E3DBCB',
+          400: '#D4C7AE',
+          500: '#BFAC8A',
+        },
+        ink: '#17150F',
+        moo: {
+          green: '#1F7A5A',
+          sage: '#E8EFE8',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Poppins', 'system-ui', 'sans-serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
       },
       boxShadow: {
         'card': '0 2px 12px rgba(0,0,0,0.08)',

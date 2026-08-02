@@ -4,19 +4,19 @@ import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import {
   ArrowRight, Truck, ShieldCheck, MapPin, Headphones,
-  CreditCard, Palette, Shirt, StickyNote, Megaphone, Maximize, Coffee,
-  MousePointerClick, Upload, CheckCircle, Package, Star,
-  ChevronLeft, ChevronRight, Send, Play, Quote,
+  CreditCard, Shirt, StickyNote, Megaphone, Maximize, Coffee,
+  MousePointerClick, Palette, CheckCircle, Package, Star,
+  Send, ChevronDown, Quote,
 } from 'lucide-react';
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' } },
 };
 
 const staggerContainer = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
+  visible: { transition: { staggerChildren: 0.08 } },
 };
 
 function AnimatedSection({ children, className = '' }) {
@@ -35,13 +35,28 @@ function AnimatedSection({ children, className = '' }) {
   );
 }
 
+const sectionNav = [
+  { href: '#shop-by-category', label: 'Shop by Category' },
+  { href: '#special-finishes', label: 'Special Finishes' },
+  { href: '#featured', label: 'Featured Products' },
+  { href: '#how-it-works', label: 'How It Works' },
+  { href: '#faqs', label: 'FAQs' },
+];
+
 const categories = [
-  { name: 'Business Cards', icon: CreditCard, count: 45, slug: 'business-cards', color: 'from-blue-500 to-blue-600' },
-  { name: 'Apparel', icon: Shirt, count: 120, slug: 'apparel', color: 'from-brand-500 to-red-600' },
-  { name: 'Stickers', icon: StickyNote, count: 80, slug: 'stickers', color: 'from-amber-400 to-orange-500' },
-  { name: 'Marketing Materials', icon: Megaphone, count: 65, slug: 'marketing', color: 'from-emerald-500 to-emerald-600' },
-  { name: 'Wide Format', icon: Maximize, count: 30, slug: 'wide-format', color: 'from-purple-500 to-purple-600' },
-  { name: 'Mugs & Gifts', icon: Coffee, count: 55, slug: 'mugs-gifts', color: 'from-pink-500 to-rose-500' },
+  { name: 'Business Cards', icon: CreditCard, count: 45, slug: 'business-cards', image: 'https://images.unsplash.com/photo-1572044347786-5693577a9077?w=800', priceFrom: 299 },
+  { name: 'Apparel', icon: Shirt, count: 120, slug: 't-shirts', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800', priceFrom: 499 },
+  { name: 'Stickers', icon: StickyNote, count: 80, slug: 'stickers', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800', priceFrom: 149 },
+  { name: 'Mugs & Gifts', icon: Coffee, count: 55, slug: 'mugs', image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=800', priceFrom: 399 },
+  { name: 'Marketing Materials', icon: Megaphone, count: 65, slug: 'flyers', image: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=800', priceFrom: 99 },
+  { name: 'Wide Format', icon: Maximize, count: 30, slug: 'banners', image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800', priceFrom: 1299 },
+];
+
+const finishes = [
+  { name: 'Gold Foil', image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600', from: 549, note: 'Premium gilded finish' },
+  { name: 'Spot Gloss', image: 'https://images.unsplash.com/photo-1549476464-37392f717541?w=600', from: 449, note: 'Selective shine & texture' },
+  { name: 'Matte Soft Touch', image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600', from: 349, note: 'Velvety smooth feel' },
+  { name: 'Letterpress', image: 'https://images.unsplash.com/photo-1456324462928-7a4d8d3c6b3e?w=600', from: 599, note: 'Classic pressed depth' },
 ];
 
 const steps = [
@@ -52,19 +67,12 @@ const steps = [
 ];
 
 const featuredProducts = [
-  { id: 1, name: 'Classic Business Card', price: 299, bulkPrice: 199, image: 'https://images.unsplash.com/photo-1572044347786-5693577a9077?w=400', category: 'Business Cards', rating: 4.8, reviews: 342, discount: 20 },
-  { id: 2, name: 'Custom Printed T-Shirt', price: 499, bulkPrice: 299, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400', category: 'Apparel', rating: 4.6, reviews: 518, badge: 'bestseller' },
-  { id: 3, name: 'Die-Cut Vinyl Sticker Pack', price: 149, bulkPrice: 79, image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400', category: 'Stickers', rating: 4.9, reviews: 891, discount: 30 },
-  { id: 4, name: 'Premium Banner Roll-Up', price: 1299, bulkPrice: 899, image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400', category: 'Wide Format', rating: 4.7, reviews: 156 },
-  { id: 5, name: 'Custom Coffee Mug', price: 399, bulkPrice: 249, image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400', category: 'Mugs & Gifts', rating: 4.5, reviews: 234, badge: 'new' },
-  { id: 6, name: 'A5 Flyer Single-Sided', price: 99, bulkPrice: 49, image: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400', category: 'Marketing', rating: 4.4, reviews: 678 },
-];
-
-const trendingProducts = [
-  { id: 7, name: 'Tote Bag Print', price: 349, image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=400', rating: 4.7 },
-  { id: 8, name: 'Phone Case Custom', price: 599, image: 'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400', rating: 4.8 },
-  { id: 9, name: 'Notebook Cover', price: 249, image: 'https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400', rating: 4.6 },
-  { id: 10, name: 'Poster Print A3', price: 199, image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400', rating: 4.5 },
+  { id: 1, name: 'Classic Business Card', price: 299, bulkPrice: 199, image: 'https://images.unsplash.com/photo-1572044347786-5693577a9077?w=400', category: 'Business Cards', rating: 4.8, reviews: 342, discount: 20, features: ['Premium 350 GSM', 'Matte or gloss', 'Free online preview'] },
+  { id: 2, name: 'Custom Printed T-Shirt', price: 499, bulkPrice: 299, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400', category: 'Apparel', rating: 4.6, reviews: 518, badge: 'bestseller', features: ['100% combed cotton', 'Vivid DTF print', 'All sizes'] },
+  { id: 3, name: 'Die-Cut Vinyl Sticker Pack', price: 149, bulkPrice: 79, image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400', category: 'Stickers', rating: 4.9, reviews: 891, discount: 30, features: ['Waterproof vinyl', 'Any shape', 'Kiss cut or die cut'] },
+  { id: 4, name: 'Premium Banner Roll-Up', price: 1299, bulkPrice: 899, image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400', category: 'Wide Format', rating: 4.7, reviews: 156, features: ['Matte or gloss', 'Reusable stand', 'Stand included'] },
+  { id: 5, name: 'Custom Coffee Mug', price: 399, bulkPrice: 249, image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=400', category: 'Mugs & Gifts', rating: 4.5, reviews: 234, badge: 'new', features: ['Microwave safe', 'Full-wrap print', 'Dishwasher proof'] },
+  { id: 6, name: 'A5 Flyer Single-Sided', price: 99, bulkPrice: 49, image: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400', category: 'Marketing', rating: 4.4, reviews: 678, features: ['Gloss or matte', 'Fast turnaround', 'Full colour'] },
 ];
 
 const testimonials = [
@@ -72,6 +80,14 @@ const testimonials = [
   { name: 'Rahul Mehta', role: 'Marketing Lead, TechNova', rating: 5, text: 'The online editor made it so easy to design our promotional banners. Great customer support too. Highly recommended for businesses!', avatar: 'RM' },
   { name: 'Ananya Patel', role: 'Event Manager', rating: 5, text: 'We got 500 custom t-shirts for our college fest. The bulk pricing was unbeatable and the quality was perfect. Will order again!', avatar: 'AP' },
   { name: 'Vikram Singh', role: 'CEO, StartupGrid', rating: 4, text: 'Professional business cards at an affordable price. The design tool is intuitive and the delivery was on time. Great experience overall.', avatar: 'VS' },
+];
+
+const faqs = [
+  { q: 'What is the minimum order quantity?', a: 'Most products can be ordered from a single unit, but our best value starts with bulk quantities. Business cards, for example, start from just 50 cards. Check each product page for its minimum order.' },
+  { q: 'Can I use my own design?', a: 'Absolutely. Upload your own artwork directly from your device, or use our free online design editor to create something from scratch — it is completely free to use.' },
+  { q: 'What finishes are available?', a: 'We offer a range of premium finishes including gold and silver foil, spot gloss, raised spot gloss, matte soft touch, and letterpress. These are available on select products.' },
+  { q: 'How long does delivery take?', a: 'Standard production takes 3–5 business days, with shipping across India taking 2–5 more days depending on your location. Express options are available at checkout.' },
+  { q: 'Do you offer bulk discounts?', a: 'Yes! Every product page includes a bulk pricing table. The more you order, the lower the per-unit price — and our team is happy to provide custom quotes for large corporate orders.' },
 ];
 
 const blogPosts = [
@@ -82,116 +98,86 @@ const blogPosts = [
 
 const trustLogos = ['Startup India', 'Make in India', 'Digital India', 'ISO 9001', 'Google Pay', 'Shopify'];
 
-const trendingSlides = [
-  { id: 1, name: 'Custom T-Shirts', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800', bg: 'from-brand-500 to-red-600' },
-  { id: 2, name: 'Business Cards', image: 'https://images.unsplash.com/photo-1572044347786-5693577a9077?w=800', bg: 'from-navy-700 to-blue-900' },
-  { id: 3, name: 'Premium Stickers', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800', bg: 'from-amber-500 to-orange-600' },
-];
+function FaqAccordion({ items }) {
+  const [open, setOpen] = useState(0);
+  return (
+    <div className="max-w-3xl mx-auto divide-y divide-ink/10">
+      {items.map((item, i) => (
+        <div key={i} className="py-5">
+          <button
+            onClick={() => setOpen(open === i ? -1 : i)}
+            className="w-full flex items-center justify-between gap-4 text-left"
+          >
+            <span className="font-display text-lg text-ink font-medium">{item.q}</span>
+            <ChevronDown size={20} className={`flex-shrink-0 text-ink/50 transition-transform duration-300 ${open === i ? 'rotate-180' : ''}`} />
+          </button>
+          <div className={`grid transition-all duration-300 ${open === i ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0'}`}>
+            <div className="overflow-hidden">
+              <p className="text-ink/60 leading-relaxed">{item.a}</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function HomePage() {
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [email, setEmail] = useState('');
-  const [featuredIdx, setFeaturedIdx] = useState(0);
-  const [testIdx, setTestIdx] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setCurrentSlide((p) => (p + 1) % trendingSlides.length), 5000);
-    return () => clearInterval(t);
-  }, []);
 
   return (
-    <div className="overflow-hidden">
+    <div className="bg-paper-100">
       {/* ===== HERO ===== */}
-      <section className="relative min-h-[90vh] flex items-center bg-gradient-to-br from-brand-500 via-red-500 to-navy-700 overflow-hidden">
-        {/* Animated bg shapes */}
-        <div className="absolute inset-0 overflow-hidden">
-          <motion.div animate={{ x: [0, 40, 0], y: [0, -30, 0] }} transition={{ duration: 8, repeat: Infinity }} className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
-          <motion.div animate={{ x: [0, -30, 0], y: [0, 40, 0] }} transition={{ duration: 10, repeat: Infinity }} className="absolute bottom-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-          <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white/10 rounded-full" />
-          <motion.div animate={{ rotate: -360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full" />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 grid lg:grid-cols-2 gap-12 items-center">
-          <motion.div initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
-            <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white/90 text-sm font-medium px-4 py-1.5 rounded-full mb-6">
-              <Play size={14} className="fill-white/90" /> Trusted by 10,000+ businesses
-            </motion.span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
-              Design Your Brand.{' '}
-              <span className="text-yellow-300">We Print It.</span>
-            </h1>
-            <p className="mt-6 text-lg text-white/80 max-w-lg leading-relaxed">
-              From business cards to branded merchandise — create, customize, and order
-              premium printed products with pan India delivery. Quality guaranteed.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                to="/products"
-                className="inline-flex items-center gap-2 bg-white text-navy-700 font-bold px-8 py-4 rounded-xl hover:bg-yellow-300 hover:text-navy-700 transition-all shadow-xl hover:shadow-2xl hover:scale-105"
-              >
-                Start Designing <ArrowRight size={20} />
-              </Link>
-              <a
-                href="#categories"
-                className="inline-flex items-center gap-2 border-2 border-white/40 text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/10 transition-all"
-              >
-                Explore Categories
-              </a>
-            </div>
+      <section className="relative bg-paper-100 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-28 lg:pb-32 text-center">
+          <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="inline-flex items-center gap-2 text-sm text-ink/60 mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-moo-green" /> Trusted by 10,000+ businesses across India
+          </motion.span>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="font-display text-4xl sm:text-5xl lg:text-7xl text-ink leading-[1.05] font-semibold tracking-tight">
+            Custom printed products<br />
+            <span className="italic text-ink/70">that mean business.</span>
+          </motion.h1>
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.7 }} className="mt-6 text-lg text-ink/60 max-w-2xl mx-auto leading-relaxed">
+            From business cards to branded merchandise — design, customize, and order
+            premium printed products with pan-India delivery.
+          </motion.p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.7 }} className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <Link
+              to="/products"
+              className="inline-flex items-center gap-2 bg-ink text-paper-50 font-semibold px-8 py-4 rounded-full hover:bg-moo-green transition-colors"
+            >
+              Shop Products <ArrowRight size={18} />
+            </Link>
+            <Link
+              to="/editor"
+              className="inline-flex items-center gap-2 border border-ink/20 text-ink font-semibold px-8 py-4 rounded-full hover:border-ink transition-colors"
+            >
+              Start Designing
+            </Link>
           </motion.div>
-
-          {/* Floating mockups */}
-          <div className="relative hidden lg:flex items-center justify-center h-[500px]">
-            {trendingSlides.map((slide, i) => (
-              <motion.div
-                key={slide.id}
-                animate={{
-                  opacity: i === currentSlide ? 1 : 0,
-                  scale: i === currentSlide ? 1 : 0.8,
-                  rotate: i === currentSlide ? -3 : 0,
-                  y: i === currentSlide ? 0 : 30,
-                }}
-                transition={{ duration: 0.6 }}
-                className="absolute"
-              >
-                <div className="w-72 h-80 bg-white rounded-2xl shadow-2xl overflow-hidden">
-                  <div className={`h-20 bg-gradient-to-r ${slide.bg}`} />
-                  <img src={slide.image} alt={slide.name} className="w-full h-60 object-cover" />
-                </div>
-                <div className="absolute -bottom-4 -right-4 bg-white rounded-xl shadow-lg px-4 py-2 text-sm font-bold text-navy-700">
-                  {slide.name}
-                </div>
-              </motion.div>
-            ))}
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="absolute top-10 right-0 bg-white rounded-xl shadow-xl p-3"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
-                  <CheckCircle size={16} className="text-white" />
-                </div>
-                <span className="text-sm font-medium text-gray-700">Order Confirmed!</span>
-              </div>
-            </motion.div>
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="absolute bottom-20 left-0 bg-white rounded-xl shadow-xl p-3"
-            >
-              <div className="flex items-center gap-2">
-                <Truck size={16} className="text-brand-500" />
-                <span className="text-sm font-medium text-gray-700">Out for Delivery</span>
-              </div>
-            </motion.div>
-          </div>
         </div>
       </section>
 
+      {/* ===== STICKY SECTION NAV ===== */}
+      <nav className="sticky top-0 z-40 bg-paper-50/90 backdrop-blur border-b border-ink/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            {sectionNav.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="px-3 py-3.5 text-sm text-ink/60 hover:text-ink whitespace-nowrap transition-colors border-b-2 border-transparent hover:border-ink"
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      </nav>
+
       {/* ===== TRUST BAR ===== */}
-      <section className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <section className="bg-paper-50 border-b border-ink/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { icon: Truck, text: 'Free Shipping on ₹999+' },
@@ -201,42 +187,47 @@ export default function HomePage() {
             ].map((item, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
+                transition={{ delay: i * 0.08 }}
                 className="flex items-center gap-3 justify-center lg:justify-start"
               >
-                <div className="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center">
-                  <item.icon size={20} className="text-brand-500" />
+                <div className="w-10 h-10 rounded-full bg-moo-green/10 flex items-center justify-center">
+                  <item.icon size={20} className="text-moo-green" />
                 </div>
-                <span className="text-sm font-medium text-gray-700">{item.text}</span>
+                <span className="text-sm text-ink/70">{item.text}</span>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ===== CATEGORIES ===== */}
-      <section id="categories" className="py-20 bg-gray-50">
+      {/* ===== SHOP BY CATEGORY ===== */}
+      <section id="shop-by-category" className="py-20 lg:py-28">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <span className="text-brand-500 font-semibold text-sm uppercase tracking-wider">Browse by Category</span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900">Find What You Need</h2>
-            <p className="mt-3 text-gray-500 max-w-xl mx-auto">Explore our wide range of custom printing products for every need</p>
+          <motion.div variants={fadeUp} className="max-w-2xl mb-14">
+            <span className="text-sm text-moo-green font-medium uppercase tracking-widest">Shop by Category</span>
+            <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Premium print for every need</h2>
+            <p className="mt-4 text-ink/60 text-lg">Easily create the best custom products online — all printed on premium, sustainably sourced materials.</p>
           </motion.div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {categories.map((cat, i) => (
               <motion.div key={cat.slug} variants={fadeUp}>
                 <Link
                   to={`/products?category=${cat.slug}`}
-                  className="group block bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-transparent"
+                  className="group block bg-paper-50 rounded-2xl overflow-hidden border border-ink/10 hover:border-ink/30 transition-all hover:-translate-y-1"
                 >
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    <cat.icon size={24} className="text-white" />
+                  <div className="aspect-[4/3] overflow-hidden bg-paper-200">
+                    <img src={cat.image} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   </div>
-                  <h3 className="font-bold text-gray-900 group-hover:text-brand-500 transition-colors">{cat.name}</h3>
-                  <p className="text-sm text-gray-400 mt-1">{cat.count}+ products</p>
+                  <div className="p-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-display text-xl text-ink group-hover:text-moo-green transition-colors">{cat.name}</h3>
+                      <ArrowRight size={18} className="text-ink/40 group-hover:text-moo-green group-hover:translate-x-1 transition-all" />
+                    </div>
+                    <p className="mt-1 text-sm text-ink/50">{cat.count}+ products · from ₹{cat.priceFrom}</p>
+                  </div>
                 </Link>
               </motion.div>
             ))}
@@ -244,29 +235,28 @@ export default function HomePage() {
         </AnimatedSection>
       </section>
 
-      {/* ===== HOW IT WORKS ===== */}
-      <section className="py-20 bg-white">
+      {/* ===== SPECIAL FINISHES ===== */}
+      <section id="special-finishes" className="py-20 lg:py-28 bg-paper-50 border-y border-ink/10">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div variants={fadeUp} className="text-center mb-14">
-            <span className="text-brand-500 font-semibold text-sm uppercase tracking-wider">How It Works</span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900">4 Simple Steps</h2>
+          <motion.div variants={fadeUp} className="max-w-2xl mb-14">
+            <span className="text-sm text-moo-green font-medium uppercase tracking-widest">Special Finishes</span>
+            <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Give your products stealable status</h2>
+            <p className="mt-4 text-ink/60 text-lg">From gold bling to velvety textures — a treat for the eyes, and the hands.</p>
           </motion.div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {steps.map((step, i) => (
-              <motion.div key={i} variants={fadeUp} className="text-center relative">
-                <div className="w-16 h-16 rounded-2xl bg-navy-700 text-white flex items-center justify-center mx-auto mb-5 shadow-lg shadow-navy-700/20">
-                  <step.icon size={28} />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {finishes.map((f, i) => (
+              <motion.div key={f.name} variants={fadeUp} className="group bg-white rounded-2xl overflow-hidden border border-ink/10 hover:border-ink/30 transition-all hover:-translate-y-1">
+                <div className="aspect-square overflow-hidden bg-paper-200">
+                  <img src={f.image} alt={f.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                 </div>
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 w-6 h-6 bg-brand-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                  {i + 1}
+                <div className="p-5">
+                  <h3 className="font-display text-lg text-ink">{f.name}</h3>
+                  <p className="text-sm text-ink/50 mt-0.5">{f.note}</p>
+                  <p className="mt-3 text-sm text-ink/80"><span className="font-semibold text-ink">From ₹{f.from}</span> / unit</p>
+                  <Link to="/products" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-moo-green hover:gap-2 transition-all">
+                    Shop {f.name} <ArrowRight size={14} />
+                  </Link>
                 </div>
-                <h3 className="font-bold text-gray-900 text-lg">{step.title}</h3>
-                <p className="mt-2 text-sm text-gray-500 leading-relaxed">{step.desc}</p>
-                {i < 3 && (
-                  <div className="hidden lg:block absolute top-8 -right-4 text-gray-200">
-                    <ArrowRight size={20} />
-                  </div>
-                )}
               </motion.div>
             ))}
           </div>
@@ -274,58 +264,67 @@ export default function HomePage() {
       </section>
 
       {/* ===== FEATURED PRODUCTS ===== */}
-      <section className="py-20 bg-gray-50">
+      <section id="featured" className="py-20 lg:py-28">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div variants={fadeUp} className="flex items-end justify-between mb-10">
-            <div>
-              <span className="text-brand-500 font-semibold text-sm uppercase tracking-wider">Featured</span>
-              <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900">Handpicked for You</h2>
+          <motion.div variants={fadeUp} className="flex items-end justify-between mb-14">
+            <div className="max-w-xl">
+              <span className="text-sm text-moo-green font-medium uppercase tracking-widest">Featured</span>
+              <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Handpicked for you</h2>
             </div>
-            <Link to="/products" className="hidden sm:inline-flex items-center gap-1 text-brand-500 font-semibold hover:underline">
-              View All <ArrowRight size={16} />
+            <Link to="/products" className="hidden sm:inline-flex items-center gap-2 text-moo-green font-semibold hover:gap-3 transition-all">
+              View all products <ArrowRight size={16} />
             </Link>
           </motion.div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredProducts.map((p, i) => (
-              <motion.div key={p.id} variants={fadeUp} className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all overflow-hidden border border-gray-100">
-                <div className="relative aspect-[4/3] overflow-hidden bg-gray-50">
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              <motion.div key={p.id} variants={fadeUp} className="group bg-paper-50 rounded-2xl overflow-hidden border border-ink/10 hover:border-ink/30 transition-all hover:-translate-y-1">
+                <div className="relative aspect-[4/3] overflow-hidden bg-paper-200">
+                  <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   {p.discount && (
-                    <span className="absolute top-3 left-3 bg-brand-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                      -{p.discount}%
+                    <span className="absolute top-3 left-3 bg-moo-green text-white text-xs font-semibold px-3 py-1 rounded-full">
+                      Save {p.discount}%
                     </span>
                   )}
                   {p.badge === 'bestseller' && (
-                    <span className="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                    <span className="absolute top-3 left-3 bg-ink text-paper-50 text-xs font-semibold px-3 py-1 rounded-full">
                       Best Seller
                     </span>
                   )}
                   {p.badge === 'new' && (
-                    <span className="absolute top-3 right-3 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                    <span className="absolute top-3 left-3 bg-ink text-paper-50 text-xs font-semibold px-3 py-1 rounded-full">
                       New
                     </span>
                   )}
                 </div>
-                <div className="p-5">
-                  <span className="text-xs font-medium text-gray-400 uppercase">{p.category}</span>
-                  <h3 className="mt-1 font-bold text-gray-900 group-hover:text-brand-500 transition-colors">{p.name}</h3>
-                  <div className="flex items-center gap-1 mt-2">
-                    {[...Array(5)].map((_, j) => (
-                      <Star key={j} size={14} className={j < Math.round(p.rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'} />
+                <div className="p-6">
+                  <span className="text-xs text-ink/50 uppercase tracking-wider">{p.category}</span>
+                  <h3 className="mt-1 font-display text-xl text-ink group-hover:text-moo-green transition-colors">{p.name}</h3>
+                  <ul className="mt-3 space-y-1">
+                    {p.features.map((f, j) => (
+                      <li key={j} className="flex items-center gap-2 text-sm text-ink/60">
+                        <CheckCircle size={14} className="text-moo-green flex-shrink-0" /> {f}
+                      </li>
                     ))}
-                    <span className="text-xs text-gray-400 ml-1">({p.reviews})</span>
+                  </ul>
+                  <div className="mt-4 flex items-baseline gap-2">
+                    <span className="font-display text-2xl text-ink">₹{p.price}</span>
+                    {p.bulkPrice && <span className="text-sm text-ink/50">from · bulk ₹{p.bulkPrice}</span>}
                   </div>
-                  <div className="mt-3 flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-gray-900">₹{p.price}</span>
-                    {p.bulkPrice && <span className="text-xs text-emerald-600 font-medium">Bulk from ₹{p.bulkPrice}</span>}
+                  <div className="mt-4 flex items-center gap-1">
+                    <div className="flex">
+                      {[...Array(5)].map((_, j) => (
+                        <Star key={j} size={14} className={j < Math.round(p.rating) ? 'text-amber-500 fill-amber-500' : 'text-ink/15 fill-ink/15'} />
+                      ))}
+                    </div>
+                    <span className="text-xs text-ink/50 ml-1">({p.reviews})</span>
                   </div>
-                  <div className="mt-4 flex gap-2">
-                    <Link to={`/editor/${p.id}`} className="flex-1 text-center bg-brand-500 hover:bg-red-600 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
+                  <div className="mt-5 flex gap-3">
+                    <Link to={`/editor/${p.id}`} className="flex-1 text-center bg-ink hover:bg-moo-green text-paper-50 text-sm font-semibold py-3 rounded-full transition-colors">
                       Customize
                     </Link>
-                    <button className="px-4 py-2.5 border-2 border-gray-200 hover:border-navy-700 text-gray-700 text-sm font-semibold rounded-xl transition-colors">
-                      Add to Cart
-                    </button>
+                    <Link to={`/products/${p.slug || p.id}`} className="flex-1 text-center border border-ink/20 hover:border-ink text-ink text-sm font-semibold py-3 rounded-full transition-colors">
+                      View Details
+                    </Link>
                   </div>
                 </div>
               </motion.div>
@@ -334,140 +333,101 @@ export default function HomePage() {
         </AnimatedSection>
       </section>
 
-      {/* ===== POPULAR RIGHT NOW ===== */}
-      <section className="py-20 bg-white">
+      {/* ===== HOW IT WORKS ===== */}
+      <section id="how-it-works" className="py-20 lg:py-28 bg-paper-50 border-y border-ink/10">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div variants={fadeUp} className="flex items-end justify-between mb-10">
-            <div>
-              <span className="text-brand-500 font-semibold text-sm uppercase tracking-wider">Trending</span>
-              <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900">Popular Right Now</h2>
-            </div>
-            <Link to="/products?sort=trending" className="hidden sm:inline-flex items-center gap-1 text-brand-500 font-semibold hover:underline">
-              View All <ArrowRight size={16} />
-            </Link>
+          <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-sm text-moo-green font-medium uppercase tracking-widest">How It Works</span>
+            <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">From idea to doorstep in 4 steps</h2>
           </motion.div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-            {trendingProducts.map((p, i) => (
-              <motion.div key={p.id} variants={fadeUp} className="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all">
-                <div className="aspect-square overflow-hidden bg-gray-50">
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 text-sm group-hover:text-brand-500 transition-colors">{p.name}</h3>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star size={13} className="text-amber-400 fill-amber-400" />
-                    <span className="text-xs text-gray-500">{p.rating}</span>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+            {steps.map((step, i) => (
+              <motion.div key={i} variants={fadeUp} className="text-center relative">
+                <div className="relative mx-auto w-20 h-20 mb-6">
+                  <div className="w-20 h-20 rounded-full bg-white border border-ink/10 flex items-center justify-center shadow-sm">
+                    <step.icon size={28} className="text-moo-green" />
                   </div>
-                  <p className="mt-2 font-bold text-gray-900">₹{p.price}</p>
+                  <span className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-ink text-paper-50 text-xs font-bold flex items-center justify-center">
+                    {i + 1}
+                  </span>
                 </div>
+                <h3 className="font-display text-lg text-ink">{step.title}</h3>
+                <p className="mt-2 text-sm text-ink/60 leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
           </div>
         </AnimatedSection>
-      </section>
-
-      {/* ===== BULK ORDERING CTA ===== */}
-      <section className="py-20 bg-gradient-to-r from-navy-700 to-navy-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatedSection className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div variants={fadeUp}>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
-                Ordering in Bulk? <br />
-                <span className="text-yellow-300">Get Special Pricing</span>
-              </h2>
-              <p className="mt-4 text-white/70 text-lg leading-relaxed">
-                Whether it's 100 business cards or 10,000 t-shirts, we offer competitive bulk pricing with guaranteed quality. Get a custom quote today.
-              </p>
-              <Link
-                to="/contact"
-                className="mt-8 inline-flex items-center gap-2 bg-brand-500 hover:bg-red-600 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-xl hover:shadow-2xl"
-              >
-                Get a Quote <ArrowRight size={20} />
-              </Link>
-            </motion.div>
-            <motion.div variants={fadeUp} className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
-              <h3 className="text-xl font-bold text-white mb-6">Request a Quote</h3>
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                <input type="text" placeholder="Your Name" className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                <input type="email" placeholder="Email Address" className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                <input type="tel" placeholder="Phone Number" className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                <select className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white/60 focus:outline-none focus:ring-2 focus:ring-brand-500">
-                  <option value="">Select Product Type</option>
-                  <option value="business-cards">Business Cards</option>
-                  <option value="apparel">Apparel</option>
-                  <option value="stickers">Stickers</option>
-                  <option value="banners">Banners</option>
-                  <option value="mugs">Mugs & Gifts</option>
-                  <option value="other">Other</option>
-                </select>
-                <textarea rows={3} placeholder="Tell us about your project..." className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none" />
-                <button className="w-full bg-brand-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition-colors">
-                  Submit Request
-                </button>
-              </form>
-            </motion.div>
-          </AnimatedSection>
-        </div>
       </section>
 
       {/* ===== TESTIMONIALS ===== */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 lg:py-28">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div variants={fadeUp} className="text-center mb-12">
-            <span className="text-brand-500 font-semibold text-sm uppercase tracking-wider">Testimonials</span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900">What Our Customers Say</h2>
+          <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-sm text-moo-green font-medium uppercase tracking-widest">Testimonials</span>
+            <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">What our customers say</h2>
           </motion.div>
-          <motion.div variants={fadeUp} className="relative">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {testimonials.map((t, i) => (
-                <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                  <Quote size={24} className="text-brand-500/20 mb-3" />
-                  <p className="text-sm text-gray-600 leading-relaxed">{t.text}</p>
-                  <div className="flex mt-3">
-                    {[...Array(5)].map((_, j) => (
-                      <Star key={j} size={14} className={j < t.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'} />
-                    ))}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {testimonials.map((t, i) => (
+              <motion.div key={i} variants={fadeUp} className="bg-paper-50 rounded-2xl p-6 border border-ink/10">
+                <Quote size={22} className="text-moo-green/40 mb-4" />
+                <p className="text-sm text-ink/70 leading-relaxed">{t.text}</p>
+                <div className="flex mt-4">
+                  {[...Array(5)].map((_, j) => (
+                    <Star key={j} size={13} className={j < t.rating ? 'text-amber-500 fill-amber-500' : 'text-ink/15 fill-ink/15'} />
+                  ))}
+                </div>
+                <div className="mt-5 flex items-center gap-3 pt-5 border-t border-ink/10">
+                  <div className="w-10 h-10 rounded-full bg-moo-green text-white flex items-center justify-center text-sm font-bold">
+                    {t.avatar}
                   </div>
-                  <div className="mt-4 flex items-center gap-3 pt-4 border-t border-gray-100">
-                    <div className="w-10 h-10 rounded-full bg-navy-700 text-white flex items-center justify-center text-sm font-bold">
-                      {t.avatar}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-900">{t.name}</h4>
-                      <p className="text-xs text-gray-400">{t.role}</p>
-                    </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-ink">{t.name}</h4>
+                    <p className="text-xs text-ink/50">{t.role}</p>
                   </div>
                 </div>
-              ))}
-            </div>
+              </motion.div>
+            ))}
+          </div>
+        </AnimatedSection>
+      </section>
+
+      {/* ===== FAQ ===== */}
+      <section id="faqs" className="py-20 lg:py-28 bg-paper-50 border-y border-ink/10">
+        <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-sm text-moo-green font-medium uppercase tracking-widest">FAQs</span>
+            <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Questions, answered</h2>
+          </motion.div>
+          <motion.div variants={fadeUp}>
+            <FaqAccordion items={faqs} />
           </motion.div>
         </AnimatedSection>
       </section>
 
       {/* ===== BLOG PREVIEW ===== */}
-      <section className="py-20 bg-white">
+      <section className="py-20 lg:py-28">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div variants={fadeUp} className="flex items-end justify-between mb-10">
+          <motion.div variants={fadeUp} className="flex items-end justify-between mb-14">
             <div>
-              <span className="text-brand-500 font-semibold text-sm uppercase tracking-wider">From Our Blog</span>
-              <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-gray-900">Latest Articles</h2>
+              <span className="text-sm text-moo-green font-medium uppercase tracking-widest">From Our Blog</span>
+              <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Latest articles</h2>
             </div>
-            <Link to="/blog" className="hidden sm:inline-flex items-center gap-1 text-brand-500 font-semibold hover:underline">
-              View All <ArrowRight size={16} />
+            <Link to="/blog" className="hidden sm:inline-flex items-center gap-2 text-moo-green font-semibold hover:gap-3 transition-all">
+              View all <ArrowRight size={16} />
             </Link>
           </motion.div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {blogPosts.map((post, i) => (
               <motion.div key={i} variants={fadeUp}>
-                <Link to={`/blog/${post.slug}`} className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-gray-100">
-                  <div className="aspect-[16/10] overflow-hidden">
-                    <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <Link to={`/blog/${post.slug}`} className="group block bg-paper-50 rounded-2xl overflow-hidden border border-ink/10 hover:border-ink/30 transition-all hover:-translate-y-1">
+                  <div className="aspect-[16/10] overflow-hidden bg-paper-200">
+                    <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   </div>
-                  <div className="p-5">
-                    <span className="text-xs text-gray-400">{post.date}</span>
-                    <h3 className="mt-1 font-bold text-gray-900 group-hover:text-brand-500 transition-colors leading-snug">{post.title}</h3>
-                    <p className="mt-2 text-sm text-gray-500 line-clamp-2">{post.excerpt}</p>
-                    <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-500 group-hover:gap-2 transition-all">
+                  <div className="p-6">
+                    <span className="text-xs text-ink/50">{post.date}</span>
+                    <h3 className="mt-1 font-display text-lg text-ink group-hover:text-moo-green transition-colors leading-snug">{post.title}</h3>
+                    <p className="mt-2 text-sm text-ink/60 line-clamp-2">{post.excerpt}</p>
+                    <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-moo-green group-hover:gap-2 transition-all">
                       Read More <ArrowRight size={14} />
                     </span>
                   </div>
@@ -479,42 +439,40 @@ export default function HomePage() {
       </section>
 
       {/* ===== NEWSLETTER ===== */}
-      <section className="py-20 bg-gradient-to-r from-brand-500 to-red-600">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <AnimatedSection>
-            <motion.div variants={fadeUp}>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Stay in the Loop</h2>
-              <p className="mt-3 text-white/80 text-lg">Get exclusive offers, design tips, and new product launches straight to your inbox.</p>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setEmail('');
-                  alert('Thanks for subscribing!');
-                }}
-                className="mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
-              >
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  required
-                  className="flex-1 px-5 py-3.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
-                />
-                <button type="submit" className="bg-navy-700 hover:bg-navy-900 text-white font-bold px-8 py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2">
-                  <Send size={16} /> Subscribe
-                </button>
-              </form>
-              <p className="mt-3 text-white/50 text-xs">No spam, unsubscribe anytime.</p>
-            </motion.div>
-          </AnimatedSection>
-        </div>
+      <section className="py-20 lg:py-28 bg-moo-green">
+        <AnimatedSection className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div variants={fadeUp}>
+            <h2 className="font-display text-3xl sm:text-5xl text-white">Stay in the loop</h2>
+            <p className="mt-4 text-white/80 text-lg">Get exclusive offers, design tips, and new product launches straight to your inbox.</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setEmail('');
+                alert('Thanks for subscribing!');
+              }}
+              className="mt-10 flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+            >
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+                className="flex-1 px-5 py-3.5 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+              />
+              <button type="submit" className="bg-ink hover:bg-paper-200 text-paper-50 font-bold px-8 py-3.5 rounded-full transition-colors flex items-center justify-center gap-2">
+                <Send size={16} /> Subscribe
+              </button>
+            </form>
+            <p className="mt-3 text-white/50 text-xs">No spam, unsubscribe anytime.</p>
+          </motion.div>
+        </AnimatedSection>
       </section>
 
       {/* ===== TRUSTED BY ===== */}
-      <section className="py-16 bg-white border-t border-gray-100">
+      <section className="py-16 bg-paper-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-8">Trusted by 10,000+ businesses across India</p>
+          <p className="text-sm font-semibold text-ink/40 uppercase tracking-widest mb-8">Trusted by 10,000+ businesses across India</p>
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14">
             {trustLogos.map((logo, i) => (
               <motion.div
@@ -522,10 +480,10 @@ export default function HomePage() {
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="text-gray-300 hover:text-gray-500 transition-colors"
+                transition={{ delay: i * 0.08 }}
+                className="text-ink/30 hover:text-ink/60 transition-colors"
               >
-                <span className="text-xl font-extrabold tracking-tight">{logo}</span>
+                <span className="text-xl font-display tracking-tight">{logo}</span>
               </motion.div>
             ))}
           </div>

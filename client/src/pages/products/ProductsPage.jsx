@@ -19,16 +19,16 @@ const sortOptions = [
 
 function ProductSkeleton() {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
-      <div className="aspect-square bg-gray-200" />
-      <div className="p-4 space-y-3">
-        <div className="h-3 bg-gray-200 rounded w-1/3" />
-        <div className="h-4 bg-gray-200 rounded w-2/3" />
-        <div className="h-3 bg-gray-200 rounded w-1/4" />
-        <div className="h-5 bg-gray-200 rounded w-1/3" />
+    <div className="bg-paper-50 rounded-2xl border border-ink/10 overflow-hidden animate-pulse">
+      <div className="aspect-square bg-paper-200" />
+      <div className="p-5 space-y-3">
+        <div className="h-3 bg-paper-200 rounded w-1/3" />
+        <div className="h-4 bg-paper-200 rounded w-2/3" />
+        <div className="h-3 bg-paper-200 rounded w-1/4" />
+        <div className="h-5 bg-paper-200 rounded w-1/3" />
         <div className="flex gap-2">
-          <div className="h-9 bg-gray-200 rounded-xl flex-1" />
-          <div className="h-9 bg-gray-200 rounded-xl w-20" />
+          <div className="h-9 bg-paper-200 rounded-full flex-1" />
+          <div className="h-9 bg-paper-200 rounded-full w-20" />
         </div>
       </div>
     </div>
@@ -192,27 +192,28 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper-100">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-paper-50 border-b border-ink/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">All Products</h1>
-              <p className="text-sm text-gray-500 mt-1">{products.length} products found</p>
+              <span className="text-sm text-moo-green font-medium uppercase tracking-widest">Shop</span>
+              <h1 className="mt-2 font-display text-3xl sm:text-5xl text-ink">All Products</h1>
+              <p className="text-sm text-ink/50 mt-2">{products.length} products found</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <div className="relative flex-1 sm:flex-none sm:w-72">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/40" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search products..."
-                  className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors"
+                  className="w-full pl-10 pr-9 py-3 border border-ink/15 rounded-full text-sm bg-white focus:outline-none focus:ring-2 focus:ring-moo-green/30 focus:border-moo-green transition-colors"
                 />
                 {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  <button onClick={() => setSearchQuery('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink">
                     <X size={14} />
                   </button>
                 )}
@@ -221,53 +222,53 @@ export default function ProductsPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="appearance-none pl-4 pr-9 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  className="appearance-none pl-4 pr-9 py-3 border border-ink/15 rounded-full text-sm bg-white focus:outline-none focus:ring-2 focus:ring-moo-green/30 focus:border-moo-green"
                 >
                   {sortOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink/40 pointer-events-none" />
               </div>
-              <div className="hidden sm:flex border border-gray-200 rounded-xl overflow-hidden">
-                <button onClick={() => setView('grid')} className={`p-2.5 transition-colors ${view === 'grid' ? 'bg-navy-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
+              <div className="hidden sm:flex border border-ink/15 rounded-full overflow-hidden">
+                <button onClick={() => setView('grid')} className={`p-3 transition-colors ${view === 'grid' ? 'bg-ink text-paper-50' : 'bg-white text-ink/60 hover:bg-paper-50'}`}>
                   <Grid3X3 size={16} />
                 </button>
-                <button onClick={() => setView('list')} className={`p-2.5 transition-colors ${view === 'list' ? 'bg-navy-700 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
+                <button onClick={() => setView('list')} className={`p-3 transition-colors ${view === 'list' ? 'bg-ink text-paper-50' : 'bg-white text-ink/60 hover:bg-paper-50'}`}>
                   <List size={16} />
-      </button>
+                </button>
               </div>
               <button
                 onClick={() => setShowFilters(true)}
-                className="lg:hidden p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50"
+                className="lg:hidden p-3 border border-ink/15 rounded-full bg-white hover:bg-paper-50"
               >
-                <SlidersHorizontal size={16} className="text-gray-600" />
+                <SlidersHorizontal size={16} className="text-ink/70" />
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeFilterTags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {activeFilterTags.map((tag, i) => (
-              <span key={i} className="inline-flex items-center gap-1 bg-brand-500/10 text-brand-500 text-xs font-medium px-3 py-1.5 rounded-full">
+              <span key={i} className="inline-flex items-center gap-1 bg-moo-green/10 text-moo-green text-xs font-medium px-3 py-1.5 rounded-full">
                 {tag.label}
-                <button onClick={() => removeTag(tag)} className="hover:text-red-600">
+                <button onClick={() => removeTag(tag)} className="hover:text-ink">
                   <X size={12} />
                 </button>
               </span>
             ))}
-            <button onClick={clearAll} className="text-xs text-gray-400 hover:text-gray-600 font-medium ml-1">
+            <button onClick={clearAll} className="text-xs text-ink/50 hover:text-ink font-medium ml-1">
               Clear all
             </button>
           </div>
         )}
 
-        <div className="flex gap-6">
+        <div className="flex gap-8">
           <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+            <div className="sticky top-24 bg-paper-50 rounded-2xl p-5 border border-ink/10">
               <ProductFilter
                 filters={filters}
                 onFilterChange={handleFilterChange}
@@ -295,7 +296,7 @@ export default function ProductsPage() {
                 >
                   <div className="p-5">
                     <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-lg font-bold text-gray-900">Filters</h2>
+                      <h2 className="font-display text-lg text-ink">Filters</h2>
                       <button onClick={() => setShowFilters(false)} className="p-1 hover:bg-gray-100 rounded-lg">
                         <X size={20} className="text-gray-500" />
                       </button>
@@ -307,7 +308,7 @@ export default function ProductsPage() {
                     />
                     <button
                       onClick={() => setShowFilters(false)}
-                      className="mt-6 w-full bg-brand-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors"
+                      className="mt-6 w-full bg-ink hover:bg-moo-green text-paper-50 font-semibold py-3 rounded-full transition-colors"
                     >
                       Show {products.length} Results
                     </button>
@@ -319,22 +320,22 @@ export default function ProductsPage() {
 
           <div className="flex-1 min-w-0">
             {loading ? (
-              <div className={`grid gap-5 ${view === 'grid' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+              <div className={`grid gap-6 ${view === 'grid' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
                 {[...Array(8)].map((_, i) => <ProductSkeleton key={i} />)}
               </div>
             ) : products.length === 0 ? (
-              <div className="text-center py-20">
-                <PackageOpen size={64} className="mx-auto text-gray-300 mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">No products found</h3>
-                <p className="text-gray-500 mb-6">Try adjusting your filters or search query</p>
-                <button onClick={clearAll} className="bg-brand-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+              <div className="text-center py-24">
+                <PackageOpen size={64} className="mx-auto text-ink/20 mb-4" />
+                <h3 className="font-display text-xl text-ink mb-2">No products found</h3>
+                <p className="text-ink/50 mb-6">Try adjusting your filters or search query</p>
+                <button onClick={clearAll} className="bg-ink hover:bg-moo-green text-paper-50 font-semibold px-6 py-3 rounded-full transition-colors">
                   Clear All Filters
                 </button>
               </div>
             ) : (
               <motion.div
                 layout
-                className={`grid gap-5 ${view === 'grid' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}
+                className={`grid gap-6 ${view === 'grid' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}
               >
                 <AnimatePresence>
                   {products.slice((currentPage - 1) * perPage, currentPage * perPage).map((product) => (
@@ -349,7 +350,7 @@ export default function ProductsPage() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="p-2.5 rounded-full border border-ink/15 hover:bg-paper-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronLeft size={18} />
                 </button>
@@ -357,10 +358,10 @@ export default function ProductsPage() {
                   <button
                     key={i}
                     onClick={() => setCurrentPage(i + 1)}
-                    className={`w-10 h-10 rounded-xl text-sm font-semibold transition-colors ${
+                    className={`w-10 h-10 rounded-full text-sm font-semibold transition-colors ${
                       currentPage === i + 1
-                        ? 'bg-navy-700 text-white'
-                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                        ? 'bg-ink text-paper-50'
+                        : 'border border-ink/15 text-ink/70 hover:bg-paper-50'
                     }`}
                   >
                     {i + 1}
@@ -369,7 +370,7 @@ export default function ProductsPage() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="p-2.5 rounded-full border border-ink/15 hover:bg-paper-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ChevronRight size={18} />
                 </button>

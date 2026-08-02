@@ -70,18 +70,18 @@ export default function Navbar() {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'bg-white/90 backdrop-blur-lg shadow-lg border-b border-gray-100'
-            : 'bg-white shadow-sm'
+            ? 'bg-paper-50/90 backdrop-blur-lg shadow-sm border-b border-ink/10'
+            : 'bg-paper-50'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-18">
             {/* Logo */}
-            <Link to="/" className="flex-shrink-0 flex items-center gap-1">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#E63946] to-[#c62d38] rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">P</span>
+            <Link to="/" className="flex-shrink-0 flex items-center gap-2">
+              <div className="w-8 h-8 bg-ink rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm font-display">P</span>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-[#E63946] to-[#c62d38] bg-clip-text text-transparent">
+              <span className="font-display text-xl font-semibold text-ink">
                 PrintJack
               </span>
             </Link>
@@ -93,18 +93,18 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-                    className="flex items-center gap-1 px-3 py-2 bg-gray-100 border border-r-0 border-gray-200 rounded-l-xl text-sm text-gray-600 hover:bg-gray-200 transition-colors whitespace-nowrap"
+                    className="flex items-center gap-1 px-3 py-2 bg-paper-100 border border-r-0 border-ink/15 rounded-l-full text-sm text-ink/70 hover:bg-paper-200 transition-colors whitespace-nowrap"
                   >
                     {searchCategory === 'all' ? 'All' : PRODUCT_CATEGORIES.find((c) => c.slug === searchCategory)?.name || 'All'}
                     <ChevronDown size={14} />
                   </button>
                   {isCategoryOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                    <div className="absolute top-full left-0 mt-1 w-56 bg-paper-50 rounded-xl shadow-xl border border-ink/10 py-2 z-50">
                       <button
                         type="button"
                         onClick={() => { setSearchCategory('all'); setIsCategoryOpen(false); }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
-                          searchCategory === 'all' ? 'text-[#E63946] font-medium' : 'text-gray-700'
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-paper-100 transition-colors ${
+                          searchCategory === 'all' ? 'text-moo-green font-medium' : 'text-ink/80'
                         }`}
                       >
                         All Categories
@@ -114,8 +114,8 @@ export default function Navbar() {
                           key={cat.slug}
                           type="button"
                           onClick={() => { setSearchCategory(cat.slug); setIsCategoryOpen(false); }}
-                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
-                            searchCategory === cat.slug ? 'text-[#E63946] font-medium' : 'text-gray-700'
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-paper-100 transition-colors ${
+                            searchCategory === cat.slug ? 'text-moo-green font-medium' : 'text-ink/80'
                           }`}
                         >
                           {cat.name}
@@ -131,11 +131,11 @@ export default function Navbar() {
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                   placeholder="Search products, categories..."
-                  className="flex-1 px-4 py-2 border border-gray-200 focus:border-[#E63946] focus:ring-0 focus:outline-none text-sm bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-ink/15 focus:border-moo-green focus:ring-0 focus:outline-none text-sm bg-paper-50 transition-colors"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#E63946] text-white rounded-r-xl hover:bg-[#c62d38] transition-colors"
+                  className="px-4 py-2 bg-ink text-paper-50 rounded-r-full hover:bg-moo-green transition-colors"
                 >
                   <Search size={18} />
                 </button>
@@ -147,7 +147,7 @@ export default function Navbar() {
               {/* Mobile Search */}
               <Link
                 to="/products"
-                className="md:hidden p-2 text-gray-600 hover:text-[#E63946] transition-colors"
+                className="md:hidden p-2 text-gray-600 hover:text-moo-green transition-colors"
               >
                 <Search size={22} />
               </Link>
@@ -155,11 +155,11 @@ export default function Navbar() {
               {/* Cart */}
               <Link
                 to="/cart"
-                className="relative p-2 text-gray-600 hover:text-[#E63946] transition-colors"
+                className="relative p-2 text-gray-600 hover:text-moo-green transition-colors"
               >
                 <ShoppingCart size={22} />
                 {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#E63946] text-white text-xs font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-ink text-white text-xs font-bold rounded-full flex items-center justify-center">
                     {itemCount > 99 ? '99+' : itemCount}
                   </span>
                 )}
@@ -170,21 +170,21 @@ export default function Navbar() {
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+                    className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-paper-100 transition-colors"
                   >
                     {user?.avatar ? (
                       <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
                     ) : (
-                      <div className="w-8 h-8 bg-gradient-to-br from-[#E63946] to-[#1D3557] rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-gradient-to-br from-ink to-moo-green rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-bold">{getInitials(user?.name)}</span>
                       </div>
                     )}
                     <ChevronDown size={14} className="hidden sm:block text-gray-500" />
                   </button>
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                    <div className="absolute right-0 top-full mt-2 w-64 bg-paper-50 rounded-xl shadow-xl border border-gray-100 py-2 z-50">
                       <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="text-sm font-semibold text-[#1D3557] truncate">{user?.name}</p>
+                        <p className="text-sm font-semibold text-ink truncate">{user?.name}</p>
                         <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                       </div>
                       <div className="py-1">
@@ -192,7 +192,7 @@ export default function Navbar() {
                           <Link
                             key={link.to}
                             to={link.to}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#E63946] transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-moo-green transition-colors"
                           >
                             <link.icon size={16} />
                             {link.label}
@@ -200,7 +200,7 @@ export default function Navbar() {
                         ))}
                         <Link
                           to="/dashboard/settings"
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#E63946] transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-moo-green transition-colors"
                         >
                           <Settings size={16} />
                           Settings
@@ -210,7 +210,7 @@ export default function Navbar() {
                         <div className="border-t border-gray-100 py-1">
                           <Link
                             to="/admin"
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#E63946] hover:bg-red-50 font-medium transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-moo-green hover:bg-paper-100 font-medium transition-colors"
                           >
                             <Shield size={16} />
                             Admin Dashboard
@@ -233,13 +233,13 @@ export default function Navbar() {
                 <div className="hidden sm:flex items-center gap-2">
                   <Link
                     to="/login"
-                    className="px-4 py-2 text-sm font-medium text-[#1D3557] hover:text-[#E63946] transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-ink hover:text-moo-green transition-colors"
                   >
                     Login
                   </Link>
                   <Link
                     to="/register"
-                    className="px-4 py-2 text-sm font-medium bg-[#E63946] text-white rounded-xl hover:bg-[#c62d38] transition-colors"
+                    className="px-4 py-2 text-sm font-medium bg-ink text-white rounded-xl hover:bg-moo-green transition-colors"
                   >
                     Register
                   </Link>
@@ -249,7 +249,7 @@ export default function Navbar() {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setIsMobileOpen(!isMobileOpen)}
-                className="md:hidden p-2 text-gray-600 hover:text-[#E63946] transition-colors"
+                className="md:hidden p-2 text-gray-600 hover:text-moo-green transition-colors"
               >
                 {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -258,14 +258,14 @@ export default function Navbar() {
         </div>
 
         {/* Desktop Category Bar */}
-        <div className="hidden lg:block border-t border-gray-100 bg-white/80 backdrop-blur-sm">
+        <div className="hidden lg:block border-t border-gray-100 bg-paper-50/80 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-1 h-10 overflow-x-auto scrollbar-hide">
               {PRODUCT_CATEGORIES.map((cat) => (
                 <Link
                   key={cat.slug}
                   to={`/products?category=${cat.slug}`}
-                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-[#E63946] hover:bg-red-50 rounded-lg whitespace-nowrap transition-all"
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-moo-green hover:bg-paper-100 rounded-lg whitespace-nowrap transition-all"
                 >
                   {cat.name}
                 </Link>
@@ -279,10 +279,10 @@ export default function Navbar() {
       {isMobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileOpen(false)} />
-          <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white shadow-2xl z-50 overflow-y-auto">
+          <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-paper-50 shadow-2xl z-50 overflow-y-auto">
             <div className="p-5 border-b border-gray-100">
               <div className="flex items-center justify-between">
-                <span className="text-lg font-bold bg-gradient-to-r from-[#E63946] to-[#c62d38] bg-clip-text text-transparent">
+                <span className="font-display text-lg font-semibold text-ink">
                   PrintJack
                 </span>
                 <button onClick={() => setIsMobileOpen(false)} className="p-2 text-gray-500">
@@ -291,10 +291,10 @@ export default function Navbar() {
               </div>
               {!isAuthenticated && (
                 <div className="mt-4 flex gap-2">
-                  <Link to="/login" onClick={() => setIsMobileOpen(false)} className="flex-1 px-4 py-2.5 text-sm font-medium text-[#1D3557] border border-[#1D3557] rounded-xl text-center hover:bg-gray-50 transition-colors">
+                  <Link to="/login" onClick={() => setIsMobileOpen(false)} className="flex-1 px-4 py-2.5 text-sm font-medium text-ink border border-ink rounded-xl text-center hover:bg-gray-50 transition-colors">
                     Login
                   </Link>
-                  <Link to="/register" onClick={() => setIsMobileOpen(false)} className="flex-1 px-4 py-2.5 text-sm font-medium bg-[#E63946] text-white rounded-xl text-center hover:bg-[#c62d38] transition-colors">
+                  <Link to="/register" onClick={() => setIsMobileOpen(false)} className="flex-1 px-4 py-2.5 text-sm font-medium bg-ink text-white rounded-xl text-center hover:bg-moo-green transition-colors">
                     Register
                   </Link>
                 </div>
@@ -304,12 +304,12 @@ export default function Navbar() {
                   {user?.avatar ? (
                     <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
                   ) : (
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#E63946] to-[#1D3557] rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-ink to-moo-green rounded-full flex items-center justify-center">
                       <span className="text-white text-sm font-bold">{getInitials(user?.name)}</span>
                     </div>
                   )}
                   <div>
-                    <p className="font-semibold text-sm text-[#1D3557]">{user?.name}</p>
+                    <p className="font-semibold text-sm text-ink">{user?.name}</p>
                     <p className="text-xs text-gray-500">{user?.email}</p>
                   </div>
                 </div>
@@ -329,7 +329,7 @@ export default function Navbar() {
                   key={cat.slug}
                   to={`/products?category=${cat.slug}`}
                   onClick={() => setIsMobileOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#E63946] rounded-lg transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-moo-green rounded-lg transition-colors"
                 >
                   {cat.name}
                 </Link>
@@ -344,7 +344,7 @@ export default function Navbar() {
                     key={link.to}
                     to={link.to}
                     onClick={() => setIsMobileOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#E63946] rounded-lg transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-moo-green rounded-lg transition-colors"
                   >
                     <link.icon size={16} />
                     {link.label}
@@ -354,7 +354,7 @@ export default function Navbar() {
                   <Link
                     to="/admin"
                     onClick={() => setIsMobileOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-[#E63946] hover:bg-red-50 rounded-lg font-medium transition-colors"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-moo-green hover:bg-paper-100 rounded-lg font-medium transition-colors"
                   >
                     <Shield size={16} />
                     Admin Dashboard

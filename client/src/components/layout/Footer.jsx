@@ -33,14 +33,14 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-[#1D3557] text-white">
+    <footer className="bg-ink text-paper-100">
       {/* Newsletter Section */}
       <div className="border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="text-xl font-bold">Stay in the loop</h3>
-              <p className="text-gray-300 text-sm mt-1">Get exclusive offers, design tips, and new product updates.</p>
+              <h3 className="font-display text-2xl text-paper-50">Stay in the loop</h3>
+              <p className="text-paper-100/60 text-sm mt-1">Get exclusive offers, design tips, and new product updates.</p>
             </div>
             <form onSubmit={handleNewsletterSubmit} className="flex w-full md:w-auto">
               <input
@@ -48,13 +48,13 @@ export default function Footer() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="flex-1 md:w-72 px-4 py-3 bg-white/10 border border-white/20 rounded-l-xl text-sm placeholder-gray-400 focus:outline-none focus:border-[#E63946] transition-colors"
+                className="flex-1 md:w-72 px-4 py-3 bg-white/10 border border-white/20 rounded-l-full text-sm placeholder-paper-100/40 focus:outline-none focus:border-moo-green transition-colors"
                 required
               />
               <button
                 type="submit"
                 disabled={isSubscribing}
-                className="px-6 py-3 bg-[#E63946] text-white rounded-r-xl font-medium text-sm hover:bg-[#c62d38] transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-3 bg-moo-green text-white rounded-r-full font-medium text-sm hover:bg-paper-200 hover:text-ink transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 <Send size={16} />
                 {isSubscribing ? 'Subscribing...' : 'Subscribe'}
@@ -65,19 +65,19 @@ export default function Footer() {
       </div>
 
       {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Company */}
           <div className="lg:col-span-1">
             <Link to="/" className="inline-block mb-4">
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#E63946] to-pink-400 bg-clip-text text-transparent">
+              <span className="font-display text-2xl text-paper-50">
                 PrintJack
               </span>
             </Link>
-            <p className="text-gray-300 text-sm leading-relaxed mb-4">
+            <p className="text-paper-100/60 text-sm leading-relaxed mb-4">
               India's premium custom printing platform. Turn your ideas into reality with high-quality prints.
             </p>
-            <div className="space-y-2 text-sm text-gray-300">
+            <div className="space-y-2 text-sm text-paper-100/60">
               <p className="flex items-center gap-2"><MapPin size={14} /> Mumbai, Maharashtra, India</p>
               <p className="flex items-center gap-2"><Phone size={14} /> +91 98765 43210</p>
               <p className="flex items-center gap-2"><Mail size={14} /> hello@printjack.in</p>
@@ -86,7 +86,7 @@ export default function Footer() {
 
           {/* Company Links */}
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Company</h4>
+            <h4 className="text-sm font-semibold uppercase tracking-widest mb-4 text-paper-50">Company</h4>
             <ul className="space-y-2.5">
               {[
                 { label: 'About Us', to: '/about' },
@@ -96,7 +96,7 @@ export default function Footer() {
                 { label: 'Bulk Orders', to: '/bulk-orders' },
               ].map((link) => (
                 <li key={link.to}>
-                  <Link to={link.to} className="text-sm text-gray-300 hover:text-[#E63946] transition-colors">
+                  <Link to={link.to} className="text-sm text-paper-100/60 hover:text-moo-green transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -106,11 +106,11 @@ export default function Footer() {
 
           {/* Products Links */}
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Products</h4>
+            <h4 className="text-sm font-semibold uppercase tracking-widest mb-4 text-paper-50">Products</h4>
             <ul className="space-y-2.5">
               {PRODUCT_CATEGORIES.slice(0, 7).map((cat) => (
                 <li key={cat.slug}>
-                  <Link to={`/products?category=${cat.slug}`} className="text-sm text-gray-300 hover:text-[#E63946] transition-colors">
+                  <Link to={`/products?category=${cat.slug}`} className="text-sm text-paper-100/60 hover:text-moo-green transition-colors">
                     {cat.name}
                   </Link>
                 </li>
@@ -120,7 +120,7 @@ export default function Footer() {
 
           {/* Support Links */}
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Support</h4>
+            <h4 className="text-sm font-semibold uppercase tracking-widest mb-4 text-paper-50">Support</h4>
             <ul className="space-y-2.5">
               {[
                 { label: 'FAQ', to: '/faq' },
@@ -130,7 +130,7 @@ export default function Footer() {
                 { label: 'Contact Support', to: '/contact' },
               ].map((link, i) => (
                 <li key={i}>
-                  <Link to={link.to} className="text-sm text-gray-300 hover:text-[#E63946] transition-colors">
+                  <Link to={link.to} className="text-sm text-paper-100/60 hover:text-moo-green transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -140,7 +140,7 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Legal</h4>
+            <h4 className="text-sm font-semibold uppercase tracking-widest mb-4 text-paper-50">Legal</h4>
             <ul className="space-y-2.5">
               {[
                 { label: 'Terms of Service', to: '/terms' },
@@ -149,7 +149,7 @@ export default function Footer() {
                 { label: 'Cookie Policy', to: '/privacy#cookies' },
               ].map((link, i) => (
                 <li key={i}>
-                  <Link to={link.to} className="text-sm text-gray-300 hover:text-[#E63946] transition-colors">
+                  <Link to={link.to} className="text-sm text-paper-100/60 hover:text-moo-green transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -163,7 +163,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-gray-400">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-paper-100/50">
               <p>© 2025 PrintJack. Made with ❤️ in India.</p>
               <p className="text-xs">GSTIN: 27AABCP1234M1Z5 | CIN: U72200MH2020PTC123456</p>
             </div>
@@ -175,7 +175,7 @@ export default function Footer() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-gray-300 hover:bg-[#E63946] hover:text-white transition-all"
+                    className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-paper-100/70 hover:bg-moo-green hover:text-white transition-all"
                     aria-label={social.label}
                   >
                     <social.icon size={14} />
@@ -183,7 +183,7 @@ export default function Footer() {
                 ))}
               </div>
               <div className="h-6 w-px bg-white/20" />
-              <div className="flex items-center gap-2 text-xs text-gray-400">
+              <div className="flex items-center gap-2 text-xs text-paper-100/50">
                 <div className="px-2 py-1 bg-white/10 rounded text-[10px] font-semibold">UPI</div>
                 <div className="px-2 py-1 bg-white/10 rounded text-[10px] font-semibold">VISA</div>
                 <div className="px-2 py-1 bg-white/10 rounded text-[10px] font-semibold">MC</div>
