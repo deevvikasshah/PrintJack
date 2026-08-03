@@ -45,9 +45,62 @@ const calculatorVariableSchema = new mongoose.Schema({
   description: { type: String, default: '' },
 }, { _id: false });
 
+const calculatorChoiceSchema = new mongoose.Schema({
+  label: { type: String, required: true },
+  value: { type: String, required: true },
+  price: { type: Number, default: 0 },
+  perUnit: { type: Boolean, default: false },
+}, { _id: false });
+
+const calculatorOptionSchema = new mongoose.Schema({
+  label: { type: String, required: true },
+  key: { type: String, required: true },
+  type: { type: String, enum: ['select', 'checkbox', 'range', 'number'], required: true },
+  unit: { type: String, default: '' },
+  defaultValue: { type: mongoose.Schema.Types.Mixed, default: '' },
+  min: { type: Number, default: 0 },
+  max: { type: Number, default: 1000 },
+  step: { type: Number, default: 1 },
+  pricePerUnit: { type: Number, default: 0 },
+  isRequired: { type: Boolean, default: false },
+  description: { type: String, default: '' },
+  choices: [calculatorChoiceSchema],
+}, { _id: false });
+
+const calculatorSizeSchema = new mongoose.Schema({
+  label: { type: String, required: true },
+  width: { type: Number, default: 0 },
+  height: { type: Number, default: 0 },
+  pricePerUnit: { type: Number, default: 0 },
+}, { _id: false });
+
+const calculatorMaterialSchema = new mongoose.Schema({
+  label: { type: String, required: true },
+  key: { type: String, required: true },
+  pricePerUnit: { type: Number, default: 0 },
+}, { _id: false });
+
 const calculatorConfigSchema = new mongoose.Schema({
   enabled: { type: Boolean, default: false },
-  baseFormula: { type: String, default: 'basePrice' },
+  baseFormula: { type: String, default: 'unitPrice' },
+  currency: { type: String, default: '₹' },
+  dimensionUnit: { type: String, enum: ['cm', 'inch', 'mm'], default: 'cm' },
+  allowCustomDimensions: { type: Boolean, default: true },
+  defaultWidth: { type: Number, default: 10 },
+  defaultHeight: { type: Number, default: 10 },
+  minWidth: { type: Number, default: 1 },
+  maxWidth: { type: Number, default: 1000 },
+  minHeight: { type: Number, default: 1 },
+  maxHeight: { type: Number, default: 1000 },
+  unitPrice: { type: Number, default: 0 },
+  areaCost: { type: Number, default: 0 },
+  setupFee: { type: Number, default: 0 },
+  shippingFee: { type: Number, default: 0 },
+  deliveryDays: { type: Number, default: 7 },
+  showDesignOptions: { type: Boolean, default: false },
+  sizes: [calculatorSizeSchema],
+  materials: [calculatorMaterialSchema],
+  options: [calculatorOptionSchema],
   variables: [calculatorVariableSchema],
   priceBreakdown: {
     inkCost: { type: Number, default: 0 },
@@ -60,11 +113,6 @@ const calculatorConfigSchema = new mongoose.Schema({
     margin: { type: Number, default: 0 },
     finalPrice: { type: Number, default: 0 },
   },
-  currency: { type: String, default: '₹' },
-  allowCustomDimensions: { type: Boolean, default: true },
-  defaultWidth: { type: Number, default: 0 },
-  defaultHeight: { type: Number, default: 0 },
-  dimensionUnit: { type: String, enum: ['cm', 'inch', 'mm'], default: 'cm' },
 }, { _id: false });
 
 const templateSchema = new mongoose.Schema({

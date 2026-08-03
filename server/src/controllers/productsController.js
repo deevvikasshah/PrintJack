@@ -154,7 +154,7 @@ exports.createProduct = async (req, res, next) => {
       name, description, shortDescription, category, subCategory, brand,
       basePrice, bulkPricing, colors, sizes, material, printingMethod,
       printAreas, tags, specifications, templates, minimumOrderQuantity,
-      isFeatured, metaTitle, metaDescription,
+      isFeatured, metaTitle, metaDescription, calculatorConfig,
     } = req.body;
 
     const productData = {
@@ -162,6 +162,8 @@ exports.createProduct = async (req, res, next) => {
       basePrice, material, printingMethod, minimumOrderQuantity,
       isFeatured, metaTitle, metaDescription,
     };
+
+    if (calculatorConfig) productData.calculatorConfig = typeof calculatorConfig === 'string' ? JSON.parse(calculatorConfig) : calculatorConfig;
 
     if (bulkPricing) productData.bulkPricing = typeof bulkPricing === 'string' ? JSON.parse(bulkPricing) : bulkPricing;
     if (colors) productData.colors = typeof colors === 'string' ? JSON.parse(colors) : colors;
@@ -212,7 +214,7 @@ exports.updateProduct = async (req, res, next) => {
       }
     });
 
-    const jsonFields = ['bulkPricing', 'colors', 'sizes', 'printAreas', 'tags', 'specifications', 'templates', 'images'];
+const jsonFields = ['bulkPricing', 'colors', 'sizes', 'printAreas', 'tags', 'specifications', 'templates', 'images', 'calculatorConfig'];
     jsonFields.forEach((field) => {
       if (req.body[field]) {
         product[field] = typeof req.body[field] === 'string' ? JSON.parse(req.body[field]) : req.body[field];

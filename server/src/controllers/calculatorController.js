@@ -37,15 +37,15 @@ const DESIGN_COST_MULTIPLIERS = {
   paperType: {
     standard: 0,
     premium: 20,
-    'recycled': 25,
+    recycled: 25,
     'art-paper': 30,
     'glossy-photo': 40,
-    'canvas': 60,
-    'waterproof': 35,
-    'craft': 15,
+    canvas: 60,
+    waterproof: 35,
+    craft: 15,
   },
   cutType: {
-    'straight': 0,
+    straight: 0,
     'die-cut': 30,
     'kiss-cut': 25,
     'rounded-corners': 10,
@@ -53,11 +53,11 @@ const DESIGN_COST_MULTIPLIERS = {
   },
   designType: {
     'text-only': 0.8,
-    'logo': 1.0,
-    'illustration': 1.3,
-    'photo': 1.2,
-    'pattern': 1.4,
-    'mixed': 1.5,
+    logo: 1.0,
+    illustration: 1.3,
+    photo: 1.2,
+    pattern: 1.4,
+    mixed: 1.5,
   },
   sizeOption: {
     standard: 1.0,
@@ -67,10 +67,14 @@ const DESIGN_COST_MULTIPLIERS = {
   },
 };
 
+function round2(n) {
+  return Math.round(n * 100) / 100;
+}
+
 exports.calculatePrice = async (req, res, next) => {
   try {
-    const { productId } = req.params;
-    const { width, height, quantity, variables, design } = req.body;
+    const productId = req.params.productId || req.params.id;
+    const { quantity = 1, width, height, sizeKey, materials, options, design } = req.body;
 
     const product = await Product.findById(productId);
     if (!product || !product.isActive) {
@@ -82,226 +86,204 @@ exports.calculatePrice = async (req, res, next) => {
     }
 
     const config = product.calculatorConfig;
-    const calcWidth = width || config.defaultWidth;
-    const calcHeight = height || config.defaultHeight;
-    const calcQuantity = quantity || 1;
+    const qty = Math.max(parseInt(quantity, 10) || 1, 1);
+    const currency = config.currency || '₹';
     const dimUnit = config.dimensionUnit || 'cm';
 
-    let totalInkCost = 0;
-    let totalPaperCost = 0;
-    let totalLaminationCost = 0;
-    let totalFinishingCost = 0;
-    let totalSetupCost = 0;
-    let totalShippingCost = 0;
-
-    const variableResults = {};
-
-    if (config.variables && config.variables.length > 0) {
-      for (const variable of config.variables) {
-        const userValue = variables && variables[variable.name] !== undefined
-          ? variables[variable.name]
-          : variable.defaultValue;
-
-        let cost = 0;
-
-        switch (variable.type) {
-          case 'number':
-          case 'range':
-            cost = parseFloat(userValue) * (variable.pricePerUnit || 0);
-            break;
-          case 'select':
-            const selectedOption = variable.options && variable.options.find(
-              (opt) => opt === userValue
-            );
-            cost = selectedOption ? (variable.pricePerUnit || 0) : 0;
-            break;
-          case 'checkbox':
-            cost = userValue ? (variable.pricePerUnit || 0) : 0;
-            break;
-          default:
-            cost = 0;
+    // Bulk-tier base price (per unit)
+    let unitPrice = config.unitPrice || product.basePrice || 0;
+    if (product.bulkPricing && product.bulkPricing.length > 0) {
+      let best = null;
+      product.bulkPricing.forEach((tier) => {
+        const min = tier.minQty || 0;
+        const max = tier.maxQty || Infinity;
+        if (qty >= min && qty <= max && (best === null || min >= best.minQty)) {
+          best = tier;
         }
+      });
+      if (best) unitPrice = best.price;
+    }
+    unitPrice = round2(unitPrice);
 
-        variableResults[variable.name] = {
-          value: userValue,
-          cost,
-          unit: variable.unit,
-          label: variable.label,
-        };
+    const lineItems = [];
 
-        switch (variable.name.toLowerCase()) {
-          case 'ink':
-          case 'inkcost':
-          case 'ink-cost':
-            totalInkCost += cost;
-            break;
-          case 'paper':
-          case 'papercost':
-          case 'paper-cost':
-            totalPaperCost += cost;
-            break;
-          case 'lamination':
-          case 'laminationcost':
-          case 'lamination-cost':
-            totalLaminationCost += cost;
-            break;
-          case 'finishing':
-          case 'finishingcost':
-          case 'finishing-cost':
-            totalFinishingCost += cost;
-            break;
-          case 'setup':
-          case 'setupcost':
-          case 'setup-cost':
-            totalSetupCost += cost;
-            break;
-          case 'shipping':
-          case 'shippingcost':
-          case 'shipping-cost':
-            totalShippingCost += cost;
-            break;
-          default:
-            break;
+    // Base price
+    const basePrice = round2(unitPrice * qty);
+    lineItems.push({ label: `Base price (${currency}${unitPrice} × ${qty})`, key: 'base', amount: basePrice });
+
+    // Size selection
+    let sizeCost = 0;
+    let chosenSize = null;
+    const sizes = config.sizes || [];
+    if (sizes.length > 0) {
+      chosenSize = sizes.find((s) => !sizeKey || s.label === sizeKey || (s.key && s.key === sizeKey)) || sizes[0];
+      sizeCost = round2((chosenSize.pricePerUnit || 0) * qty);
+      if (sizeCost > 0) {
+        lineItems.push({ label: `Size surcharge (${chosenSize.label})`, key: 'size', amount: sizeCost });
+      }
+    }
+
+    // Area cost (only when using custom dimensions)
+    let areaCost = 0;
+    if (config.allowCustomDimensions && width && height) {
+      const w = parseFloat(width) || 0;
+      const h = parseFloat(height) || 0;
+      if (w > 0 && h > 0) {
+        areaCost = round2((w * h) * (config.areaCost || 0) * qty);
+        if (areaCost > 0) {
+          lineItems.push({ label: `Area cost (${w}×${h} ${dimUnit}²)`, key: 'area', amount: areaCost });
         }
       }
     }
 
-    const area = calcWidth * calcHeight;
-    const areaCost = area * (config.priceBreakdown?.inkCost || 0);
+    // Materials (per-unit surcharge)
+    let materialCost = 0;
+    const materialsList = config.materials || [];
+    const selectedMaterials = Array.isArray(materials) ? materials : [];
+    const materialsDetailed = [];
+    materialsList.forEach((m) => {
+      if (selectedMaterials.includes(m.key) || (m.alwaysIncluded)) {
+        const c = round2((m.pricePerUnit || 0) * qty);
+        materialCost += c;
+        if (c > 0) {
+          lineItems.push({ label: `Material - ${m.label}`, key: 'material', amount: c });
+        }
+        materialsDetailed.push({ label: m.label, key: m.key, pricePerUnit: m.pricePerUnit || 0, amount: c });
+      }
+    });
+    materialCost = round2(materialCost);
 
-    totalInkCost += areaCost;
+    // Options (additive)
+    let optionCost = 0;
+    const optionDetailed = [];
+    const optionValues = options || {};
+    (config.options || []).forEach((opt) => {
+      if (!opt || !opt.key) return;
+      const userVal = optionValues[opt.key] !== undefined ? optionValues[opt.key] : opt.defaultValue;
+      let cost = 0;
+      if (opt.type === 'select') {
+        const choice = (opt.choices || []).find((c) => c.value === userVal);
+        if (choice) {
+          cost = choice.perUnit ? round2((choice.price || 0) * qty) : (choice.price || 0);
+        }
+      } else if (opt.type === 'checkbox') {
+        if (userVal) cost = round2((opt.pricePerUnit || 0) * qty);
+      } else {
+        cost = round2((parseFloat(userVal) || 0) * (opt.pricePerUnit || 0) * qty);
+      }
+      if (cost > 0) {
+        lineItems.push({ label: opt.label, key: 'option', amount: cost });
+      }
+      optionCost += cost;
+      optionDetailed.push({ label: opt.label, key: opt.key, type: opt.type, value: userVal, cost: round2(cost) });
+    });
+    optionCost = round2(optionCost);
 
+    // Fixed fees
+    const setupFee = round2(config.setupFee || 0);
+    const shippingFee = round2(config.shippingFee || 0);
+    if (setupFee > 0) lineItems.push({ label: 'Setup fee', key: 'setup', amount: setupFee });
+    if (shippingFee > 0) lineItems.push({ label: 'Shipping', key: 'shipping', amount: shippingFee });
+
+    // Legacy design options (print details) -> categorized ink/paper/lamination/finish/setup
     const designOptions = design || {};
-    const designFactors = {};
+    let inkCost = 0;
+    let paperCost = 0;
+    let laminationCost = 0;
+    let finishingCost = 0;
+    let setupCost = 0;
+    if (config.showDesignOptions) {
+      const designArea = (width && height) ? (parseFloat(width) || 0) * (parseFloat(height) || 0) : (config.defaultWidth * config.defaultHeight);
+      const inkPerColor = config.priceBreakdown?.inkCost || 2;
+      const colorCount = Math.min(Math.max(parseInt(designOptions.colorCount || 1, 10), 1), 8);
+      const printCoverage = Math.min(Math.max(parseFloat(designOptions.printCoverage || 100), 1), 100) / 100;
+      const printMethod = designOptions.printMethod || 'screen-printing';
+      const sizeOption = designOptions.sizeOption || 'standard';
 
-    const colorCount = parseInt(designOptions.colorCount || designOptions.colors || 1, 10);
-    const inkPerColor = config.priceBreakdown?.inkCost > 0
-      ? config.priceBreakdown.inkCost
-      : (product.calculatorConfig?.priceBreakdown?.inkCost || 2);
-    const inkMultiplier = Math.min(Math.max(colorCount, 1), 8);
-    const inkCostByColor = area * inkPerColor * (inkMultiplier / 100);
-    totalInkCost += inkCostByColor;
-    designFactors.colors = { count: colorCount, cost: inkCostByColor };
+      inkCost = designArea * inkPerColor * (colorCount / 100) * (DESIGN_COST_MULTIPLIERS.printMethod[printMethod] || 1.0) * (DESIGN_COST_MULTIPLIERS.sizeOption[sizeOption] || 1.0) * printCoverage * qty;
 
-    const printCoverage = Math.min(Math.max(parseFloat(designOptions.printCoverage || 100), 1), 100) / 100;
-    totalInkCost *= printCoverage;
+      const paperType = designOptions.paperType || 'standard';
+      paperCost = (DESIGN_COST_MULTIPLIERS.paperType[paperType] || 0) * qty * 0.05;
 
-    const printMethod = designOptions.printMethod || 'screen-printing';
-    const methodMultiplier = DESIGN_COST_MULTIPLIERS.printMethod[printMethod] || 1.0;
-    designFactors.printMethod = { name: printMethod, multiplier: methodMultiplier };
+      const lamination = designOptions.lamination || 'none';
+      laminationCost = (DESIGN_COST_MULTIPLIERS.lamination[lamination] || 0) * qty * 0.1;
 
-    const printSide = designOptions.printSide || 'front';
-    const sideMultiplier = printSide === 'both' ? 1.8 : printSide === 'back' ? 0.9 : 1.0;
-    designFactors.printSide = { name: printSide, multiplier: sideMultiplier };
+      const finish = designOptions.finish || 'none';
+      const specialEffect = designOptions.specialEffects || 'none';
+      const cutType = designOptions.cutType || 'straight';
+      finishingCost = (DESIGN_COST_MULTIPLIERS.specialEffects[specialEffect] || 0) + (DESIGN_COST_MULTIPLIERS.finish[finish] !== undefined ? (DESIGN_COST_MULTIPLIERS.finish[finish] - 1) * 20 : 0) + (DESIGN_COST_MULTIPLIERS.cutType[cutType] || 0);
 
-    const finish = designOptions.finish || 'none';
-    const finishMultiplier = DESIGN_COST_MULTIPLIERS.finish[finish] || 1.0;
-    designFactors.finish = { name: finish, multiplier: finishMultiplier };
+      const rushOrder = designOptions.rushOrder;
+      const proofRequired = designOptions.proofRequired;
+      const revisionCount = Math.max(parseInt(designOptions.revisionCount || 0, 10), 0);
+      setupCost = (rushOrder ? 100 : 0) + (proofRequired ? 25 : 0) + revisionCount * 15;
 
-    const lamination = designOptions.lamination || 'none';
-    const laminationCost = DESIGN_COST_MULTIPLIERS.lamination[lamination] || 0;
-    totalLaminationCost += laminationCost * Math.max(calcQuantity, 1) * 0.1;
-    designFactors.lamination = { name: lamination, cost: laminationCost };
+      const set = (label, key, amount) => {
+        const v = round2(amount);
+        if (v !== 0) lineItems.push({ label, key, amount: v });
+        return v;
+      };
+      inkCost = set('Ink cost', 'ink', inkCost);
+      paperCost = set('Paper cost', 'paper', paperCost);
+      laminationCost = set('Lamination', 'lamination', laminationCost);
+      finishingCost = set('Finishing', 'finishing', finishingCost);
+      setupCost = set('Setup', 'setup', setupCost);
+    }
 
-    const specialEffect = designOptions.specialEffects || 'none';
-    const effectCost = DESIGN_COST_MULTIPLIERS.specialEffects[specialEffect] || 0;
-    totalFinishingCost += effectCost;
-    designFactors.specialEffects = { name: specialEffect, cost: effectCost };
-
-    const designComplexity = designOptions.complexity || 'standard';
-    const complexityMultiplier = designComplexity === 'simple' ? 0.8 : designComplexity === 'complex' ? 1.5 : 1.0;
-    designFactors.complexity = { name: designComplexity, multiplier: complexityMultiplier };
-
-    const paperType = designOptions.paperType || 'standard';
-    const paperCost = DESIGN_COST_MULTIPLIERS.paperType[paperType] || 0;
-    totalPaperCost += paperCost * Math.max(calcQuantity, 1) * 0.05;
-    designFactors.paperType = { name: paperType, cost: paperCost };
-
-    const cutType = designOptions.cutType || 'straight';
-    const cutCost = DESIGN_COST_MULTIPLIERS.cutType[cutType] || 0;
-    totalFinishingCost += cutCost;
-    designFactors.cutType = { name: cutType, cost: cutCost };
-
-    const designType = designOptions.designType || 'logo';
-    const designTypeMultiplier = DESIGN_COST_MULTIPLIERS.designType[designType] || 1.0;
-    designFactors.designType = { name: designType, multiplier: designTypeMultiplier };
-
-    const sizeOption = designOptions.sizeOption || 'standard';
-    const sizeMultiplier = DESIGN_COST_MULTIPLIERS.sizeOption[sizeOption] || 1.0;
-    designFactors.sizeOption = { name: sizeOption, multiplier: sizeMultiplier };
-
-    const rushOrder = designOptions.rushOrder || false;
-    const rushSurcharge = rushOrder ? 100 : 0;
-    totalSetupCost += rushSurcharge;
-    designFactors.rushOrder = { enabled: rushOrder, cost: rushSurcharge };
-
-    const proofRequired = designOptions.proofRequired || false;
-    const proofCost = proofRequired ? 25 : 0;
-    totalSetupCost += proofCost;
-    designFactors.proofRequired = { enabled: proofRequired, cost: proofCost };
-
-    const revisionCount = Math.min(Math.max(parseInt(designOptions.revisionCount || 0, 10), 0), 10);
-    const revisionCost = revisionCount * 15;
-    totalSetupCost += revisionCost;
-    designFactors.revisionCount = { count: revisionCount, cost: revisionCost };
-
-    const designMultiplier = methodMultiplier * finishMultiplier * sideMultiplier * complexityMultiplier * designTypeMultiplier * sizeMultiplier;
-    totalInkCost *= designMultiplier;
-    totalSetupCost += methodMultiplier * 20;
-
-    const subtotal = product.basePrice + totalInkCost + totalPaperCost + totalLaminationCost + totalFinishingCost + totalSetupCost;
-    const totalCost = subtotal + totalShippingCost;
-    const margin = config.priceBreakdown?.margin || 0;
-    const finalPrice = Math.round((totalCost + margin) * 100) / 100;
-    const perUnitPrice = Math.round((finalPrice / Math.max(calcQuantity, 1)) * 100) / 100;
+    const subtotal = round2(basePrice + areaCost + sizeCost + materialCost + optionCost + inkCost + paperCost + laminationCost + finishingCost + setupCost);
+    const finalPrice = round2(subtotal + setupFee + shippingFee);
+    const perUnitPrice = round2(finalPrice / qty);
 
     const priceBreakdown = {
-      basePrice: product.basePrice,
-      inkCost: Math.round(totalInkCost * 100) / 100,
-      paperCost: Math.round(totalPaperCost * 100) / 100,
-      laminationCost: Math.round(totalLaminationCost * 100) / 100,
-      finishingCost: Math.round(totalFinishingCost * 100) / 100,
-      setupCost: Math.round(totalSetupCost * 100) / 100,
-      shippingCost: Math.round(totalShippingCost * 100) / 100,
-      subtotal: Math.round(subtotal * 100) / 100,
-      margin,
-      totalCost: Math.round(totalCost * 100) / 100,
-      finalPrice: Math.round(finalPrice * 100) / 100,
-      perUnitPrice: Math.round(perUnitPrice * 100) / 100,
-      currency: config.currency || '₹',
+      basePrice,
+      areaCost,
+      sizeCost,
+      materialCost,
+      optionCost,
+      inkCost,
+      paperCost,
+      laminationCost,
+      finishingCost,
+      setupCost,
+      setupFee,
+      shippingFee,
+      subtotal,
+      finalPrice,
+      perUnitPrice,
+      currency,
     };
 
-    const result = {
-      product: {
-        id: product._id,
-        name: product.name,
-        basePrice: product.basePrice,
-      },
-      dimensions: {
-        width: calcWidth,
-        height: calcHeight,
-        area,
-        unit: dimUnit,
-      },
-      quantity: calcQuantity,
-      variables: variableResults,
-      designFactors,
-      deliveryEstimate: {
-        minDays: rushOrder ? 1 : 3,
-        maxDays: rushOrder ? 2 : 7,
-        rushOrder: rushOrder || false,
-      },
-      priceBreakdown,
-      bulkPricing: product.bulkPricing && product.bulkPricing.length > 0
-        ? product.bulkPricing.map((tier) => ({
-            minQty: tier.minQty,
-            maxQty: tier.maxQty,
-            price: Math.round(((finalPrice * calcQuantity) / Math.max(tier.minQty, 1)) * 100) / 100,
-          })).filter((tier) => calcQuantity >= tier.minQty)
-        : [],
-    };
+    const bulkPricing = product.bulkPricing && product.bulkPricing.length > 0
+      ? product.bulkPricing.map((tier) => ({
+          minQty: tier.minQty,
+          maxQty: tier.maxQty,
+          price: tier.price,
+          active: qty >= (tier.minQty || 0) && qty <= (tier.maxQty || Infinity),
+        }))
+      : [];
 
-    res.status(200).json({ success: true, calculation: result });
+    res.status(200).json({
+      success: true,
+      calculation: {
+        product: {
+          id: product._id,
+          name: product.name,
+          basePrice: product.basePrice,
+        },
+        quantity: qty,
+        currency,
+        lineItems: lineItems.filter((li) => li.amount !== 0),
+        priceBreakdown,
+        materials: selectedMaterials.map((m) => ({ key: m })),
+        options: optionDetailed,
+        selectedSize: chosenSize || (width && height ? { label: `${width}×${height} ${dimUnit}`, width, height } : null),
+        bulkPricing,
+        deliveryEstimate: {
+          minDays: config.deliveryDays || 7,
+          maxDays: (config.deliveryDays || 7) + 3,
+        },
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -309,7 +291,7 @@ exports.calculatePrice = async (req, res, next) => {
 
 exports.getCalculatorConfig = async (req, res, next) => {
   try {
-    const { productId } = req.params;
+    const productId = req.params.productId || req.params.id;
 
     const product = await Product.findById(productId).select('calculatorConfig name basePrice isActive');
     if (!product || !product.isActive) {
@@ -331,7 +313,7 @@ exports.getCalculatorConfig = async (req, res, next) => {
 
 exports.updateCalculatorConfig = async (req, res, next) => {
   try {
-    const { productId } = req.params;
+    const productId = req.params.productId || req.params.id;
     const { calculatorConfig } = req.body;
 
     const product = await Product.findById(productId);
