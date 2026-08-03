@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, ChevronDown, LogOut, Settings, Package, Heart, LayoutDashboard, Shield, PenTool, MapPin, Star, Users, FileText } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { useCartFly } from '../../context/CartFlyContext';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { useDebounce } from '../../hooks/useDebounce';
 import { PRODUCT_CATEGORIES } from '../../utils/constants';
@@ -11,8 +12,14 @@ import { getInitials } from '../../utils/formatters';
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const { itemCount } = useCart();
+  const { registerCart } = useCartFly();
   const navigate = useNavigate();
   const location = useLocation();
+  const cartIconRef = useRef(null);
+
+  useEffect(() => {
+    if (cartIconRef.current) registerCart(cartIconRef.current);
+  }, [registerCart, isAuthenticated]);
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -154,6 +161,7 @@ export default function Navbar() {
 
               {/* Cart */}
               <Link
+                ref={cartIconRef}
                 to="/cart"
                 className="relative p-2 text-gray-600 hover:text-pj-green transition-colors"
               >

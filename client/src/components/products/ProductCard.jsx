@@ -4,12 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingCart, Eye, Star, Sparkles } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { useCartFly } from '../../context/CartFlyContext';
 
 const quickViewSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { flyToCart } = useCartFly();
   const { isAuthenticated } = useAuth();
   const [wishlisted, setWishlisted] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
@@ -192,10 +194,15 @@ export default function ProductCard({ product }) {
               Customize
             </Link>
             <button
-              onClick={async () => {
+              onClick={async (e) => {
                 if (!isAuthenticated) { navigate('/login'); return; }
+                const btn = e.currentTarget;
                 setAdding(true);
-                try { await addToCart(_id, 1, selectedSize); } finally { setAdding(false); }
+                try {
+                  await addToCart(_id, 1, selectedSize);
+                  flyToCart(btn, image);
+                } catch { /* handled by context */ }
+                finally { setAdding(false); }
               }}
               disabled={adding}
               className="flex items-center justify-center gap-1.5 px-4 py-2.5 border border-ink/20 hover:border-ink text-ink/80 hover:text-ink text-sm font-semibold rounded-full transition-colors disabled:opacity-50"
@@ -282,10 +289,16 @@ export default function ProductCard({ product }) {
                       Customize Now
                     </Link>
                     <button
-                      onClick={async () => {
+                      onClick={async (e) => {
                         if (!isAuthenticated) { navigate('/login'); return; }
+                        const btn = e.currentTarget;
                         setAdding(true);
-                        try { await addToCart(_id, 1, selectedSize); setQuickViewOpen(false); } finally { setAdding(false); }
+                        try {
+                          await addToCart(_id, 1, selectedSize);
+                          setQuickViewOpen(false);
+                          flyToCart(btn, image);
+                        } catch { /* handled by context */ }
+                        finally { setAdding(false); }
                       }}
                       disabled={adding}
                       className="flex items-center justify-center gap-2 px-6 py-3 border border-ink/20 hover:border-ink text-ink/80 font-semibold rounded-full transition-colors disabled:opacity-50"

@@ -7,6 +7,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { CartFlyProvider } from './context/CartFlyContext';
 import './styles/index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -16,8 +17,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || '386863340573-giuhhqa2sg3b8m2bg9uet3phl6l0k0it.apps.googleusercontent.com'}>
           <AuthProvider>
             <CartProvider>
-              <App />
-              <Toaster
+              <CartFlyProvider>
+                <App />
+                <Toaster
                 position="top-right"
                 toastOptions={{
                   duration: 4000,
@@ -37,6 +39,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                   },
                 }}
               />
+              </CartFlyProvider>
             </CartProvider>
           </AuthProvider>
         </GoogleOAuthProvider>

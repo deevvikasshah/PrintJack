@@ -14,6 +14,7 @@ import ReviewForm from '../../components/products/ReviewForm';
 import ProductCalculator from '../../components/products/ProductCalculator';
 import ReviewCard from '../../components/products/ReviewCard';
 import { useCart } from '../../context/CartContext';
+import { useCartFly } from '../../context/CartFlyContext';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 
@@ -39,6 +40,7 @@ export default function ProductDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { addToCart, loading: cartLoading } = useCart();
+  const { flyToCart } = useCartFly();
   const { user, isAuthenticated } = useAuth();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -62,6 +64,7 @@ const [uploadingDesign, setUploadingDesign] = useState(false);
 const [addingToCart, setAddingToCart] = useState(false);
 const [buyingNow, setBuyingNow] = useState(false);
   const fileInputRef = useRef(null);
+  const addToCartRef = useRef(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -112,6 +115,7 @@ const [buyingNow, setBuyingNow] = useState(false);
       const selectedSizeValue = sizes.length > 0 ? (typeof sizes[selectedSize] === 'string' ? sizes[selectedSize] : sizes[selectedSize]?.name) : undefined;
       const selectedColorValue = colors.length > 0 ? colors[selectedColor]?.name : undefined;
       await addToCart(p._id, quantity, selectedSizeValue, selectedColorValue);
+      if (addToCartRef.current) flyToCart(addToCartRef.current, images[selectedImage] || images[0]);
     } catch {
       // toast already shown by CartContext
     } finally {
@@ -130,6 +134,7 @@ const [buyingNow, setBuyingNow] = useState(false);
       const selectedSizeValue = sizes.length > 0 ? (typeof sizes[selectedSize] === 'string' ? sizes[selectedSize] : sizes[selectedSize]?.name) : undefined;
       const selectedColorValue = colors.length > 0 ? colors[selectedColor]?.name : undefined;
       await addToCart(p._id, quantity, selectedSizeValue, selectedColorValue);
+      if (addToCartRef.current) flyToCart(addToCartRef.current, images[selectedImage] || images[0]);
       navigate('/checkout');
     } catch {
       // toast already shown by CartContext
@@ -172,6 +177,7 @@ const [buyingNow, setBuyingNow] = useState(false);
       const selectedColorValue = colors.length > 0 ? colors[selectedColor]?.name : undefined;
       await addToCart(p._id, quantity, selectedSizeValue, selectedColorValue, designId);
       toast.success('Design uploaded and added to cart!');
+      if (addToCartRef.current) flyToCart(addToCartRef.current, images[selectedImage] || images[0]);
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to upload design');
@@ -509,6 +515,7 @@ const [buyingNow, setBuyingNow] = useState(false);
               </button>
 
               <button
+                ref={addToCartRef}
                 onClick={handleAddToCart}
                 disabled={addingToCart || cartLoading}
                 className="flex items-center justify-center gap-2 w-full border-2 border-navy-700 text-navy-700 hover:bg-navy-700 hover:text-white font-bold py-4 rounded-xl transition-colors text-lg disabled:opacity-50"
@@ -777,6 +784,7 @@ const [buyingNow, setBuyingNow] = useState(false);
             {buyingNow ? 'Placing...' : 'Buy Now'}
           </button>
           <button
+            ref={addToCartRef}
             onClick={handleAddToCart}
             disabled={addingToCart || cartLoading}
             className="flex-1 flex items-center justify-center gap-2 border-2 border-navy-700 text-navy-700 font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
