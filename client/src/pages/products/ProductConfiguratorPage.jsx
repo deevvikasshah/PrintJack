@@ -14,6 +14,7 @@ import DesignTemplates from '../../components/editor/DesignTemplates';
 import ClipartPanel from '../../components/editor/ClipartPanel';
 import ImageUploader from '../../components/editor/ImageUploader';
 import { useCart } from '../../context/CartContext';
+import { useCartFly } from '../../context/CartFlyContext';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 
@@ -50,6 +51,7 @@ export default function ProductConfiguratorPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { addToCart: cartAddToCart } = useCart();
+  const { flyToCart } = useCartFly();
 
   const canvasRef = useRef(null);
   const undoStack = useRef([]);
@@ -58,6 +60,7 @@ export default function ProductConfiguratorPage() {
   const designStateRef = useRef(null);
   const canvasJSONRef = useRef(null);
   const previewUrlRef = useRef(null);
+  const addToCartRef = useRef(null);
   const resumeJSONRef = useRef(null);
 
   const { isAuthenticated } = useAuth();
@@ -610,8 +613,9 @@ export default function ProductConfiguratorPage() {
   );
   const totalPrice = useMemo(() => unitPrice * quantity, [unitPrice, quantity]);
 
-  const handleAddToCart = useCallback(async () => {
+  const handleAddToCart = useCallback(async (e) => {
     if (!product) return;
+    const sourceEl = e?.currentTarget || addToCartRef.current;
     setAddingToCart(true);
     try {
       const canvas = canvasRef.current?.getCanvas?.();
@@ -640,12 +644,15 @@ export default function ProductConfiguratorPage() {
       }
       setDraftExists(false);
       toast.success('Added to cart!');
+      if (addToCartRef.current || sourceEl) {
+        flyToCart(sourceEl || addToCartRef.current, productImage || product?.image || product?.images?.[0]?.url || '/placeholder-product.png', { size: 52, trailCount: 24, waveAmp: 34, waveFreq: 3.5 });
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to add to cart');
     } finally {
       setAddingToCart(false);
     }
-  }, [product, productId, quantity, selectedSize, selectedColor, cartAddToCart]);
+  }, [product, productId, quantity, selectedSize, selectedColor, cartAddToCart, flyToCart, productImage]);
 
   if (loading) {
     return (
@@ -1301,6 +1308,7 @@ export default function ProductConfiguratorPage() {
                   Back to Design
                 </button>
                 <button
+                  ref={addToCartRef}
                   onClick={handleAddToCart}
                   disabled={addingToCart}
                   className="flex items-center justify-center gap-2 bg-pj-green hover:bg-ink text-paper-50 font-semibold py-4 rounded-full transition-colors text-lg shadow-lg shadow-pj-green/20 disabled:opacity-60"
