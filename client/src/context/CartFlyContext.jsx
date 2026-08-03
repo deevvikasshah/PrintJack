@@ -5,9 +5,9 @@ const CartFlyContext = createContext(null);
 export const useCartFly = () => useContext(CartFlyContext);
 
 const TRAIL_COLORS = [
-  '#E63946', '#F72585', '#9B5DE5', '#7B2CBF',
-  '#00B4D8', '#2A9D8F', '#FFD166', '#FF9F1C',
-  '#EF476F', '#3A0CA3',
+  '#FF2E97', '#7B2FFF', '#00C6FF', '#00E5A0',
+  '#FFD23F', '#FF5E62', '#6C5CE7', '#29FFC6',
+  '#FF9A3D', '#38BDF8',
 ];
 
 function easeInOutQuad(t) {
@@ -28,7 +28,6 @@ export function CartFlyProvider({ children }) {
   const [trail, setTrail] = useState([]);
   const pidRef = useRef(0);
   const frameRef = useRef({});
-  const trailTimerRef = useRef({});
 
   const registerCart = useCallback((el) => {
     cartRef.current = el;
@@ -38,7 +37,7 @@ export function CartFlyProvider({ children }) {
     const target = cartRef.current;
     if (!source || !target) return;
 
-    const size = opts.size || 56;
+    const size = opts.size || 60;
     const sRect = source.getBoundingClientRect();
     const tRect = target.getBoundingClientRect();
     if (sRect.width === 0 && sRect.height === 0) return;
@@ -56,16 +55,12 @@ export function CartFlyProvider({ children }) {
     const duration = opts.duration || 1000;
     const waveAmp = opts.waveAmp != null ? opts.waveAmp : 26;
     const waveFreq = opts.waveFreq != null ? opts.waveFreq : 3;
-    const trailCount = opts.trailCount != null ? opts.trailCount : 18;
+    const trailCount = opts.trailCount != null ? opts.trailCount : 16;
 
     setFlies((prev) => ({
       ...prev,
       [id]: {
         id,
-        start,
-        c1,
-        c2,
-        end,
         x: start.x,
         y: start.y,
         imageSrc,
@@ -76,12 +71,6 @@ export function CartFlyProvider({ children }) {
         z: 60,
       },
     }));
-
-    // Colourful trail spawn
-    const colors = [];
-    for (let i = 0; i < trailCount; i++) {
-      colors.push(TRAIL_COLORS[Math.floor(Math.random() * TRAIL_COLORS.length)]);
-    }
 
     const t0 = performance.now();
     let lastEmit = 0;
@@ -96,28 +85,31 @@ export function CartFlyProvider({ children }) {
       const wiggle = Math.sin(eased * Math.PI * waveFreq) * waveAmp * (1 - eased * 0.7);
       const point = { x: base.x, y: base.y - wiggle };
 
-      // Emit trail particles along the wave
-      if (now - lastEmit > 26 && emitCount < trailCount * 3) {
+      // Staggered colorful trail particles, each fades independently via CSS
+      if (now - lastEmit > 46 && emitCount < trailCount) {
         lastEmit = now;
         const pId = pidRef.current++;
-        const pColor = emitCount < trailCount ? colors[emitCount] : colors[emitCount % trailCount];
+        const pColor = TRAIL_COLORS[Math.floor(Math.random() * TRAIL_COLORS.length)];
+        const pDelay = Math.min(emitCount * 40, 260); // stagger so they vanish one-by-one
+        const pLife = 1500 + Math.random() * 800;     // ~1.5-2.3s each
 
         setTrail((prev) => [
-          ...prev.slice(-60),
+          ...prev.slice(-80),
           {
             id: pId,
-            x: point.x + (Math.random() - 0.5) * 14,
-            y: point.y + (Math.random() - 0.5) * 14,
+            x: point.x + (Math.random() - 0.5) * 22,
+            y: point.y + (Math.random() - 0.5) * 22,
             color: pColor,
-            size: 6 + Math.random() * 10,
-            life: 3000,
-            born: performance.now(),
+            size: 8 + Math.random() * 14,
+            delayMs: pDelay,
+            lifeMs: pLife,
+            styleIdx: Math.floor(Math.random() * 3),
           },
         ]);
-        trailTimerRef.current[pId] = setTimeout(() => {
+        // Remove from DOM after animation completes
+        setTimeout(() => {
           setTrail((prev) => prev.filter((q) => q.id !== pId));
-          delete trailTimerRef.current[pId];
-        }, 3000);
+        }, pLife + Math.max(pDelay, 200));
         emitCount++;
       }
 
@@ -168,41 +160,34 @@ export function CartFlyProvider({ children }) {
               height: f.size,
               objectFit: 'contain',
               borderRadius: '50%',
-              border: '3px solid rgba(255,255,255,0.6)',
-              boxShadow:
-                '0 0 0 3px rgba(255,255,255,0.25), 0 0 24px 6px rgba(229,57,70,0.55)',
               transform: `translate(-50%, -50%) scale(${f.scale}) translate(0, ${f.wobble}px) rotate(${f.rotation}deg)`,
               opacity: 1,
+              filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.65)) drop-shadow(0 4px 14px rgba(0,0,0,0.25))',
               zIndex: 60,
               pointerEvents: 'none',
               willChange: 'transform, left, top',
             }}
           />
         ))}
-        {trail.map((p) => {
-          const age = performance.now() - p.born;
-          const remain = 1 - Math.max(0, age / p.life);
-          return (
-            <span
-              key={p.id}
-              style={{
-                position: 'absolute',
-                left: p.x,
-                top: p.y,
-                width: p.size,
-                height: p.size,
-                borderRadius: '50%',
-                background: `radial-gradient(circle at 35% 35%, #ffffff, ${p.color} 55%, ${p.color})`,
-                boxShadow: `0 0 12px 2px ${p.color}`,
-                transform: 'translate(-50%, -50%)',
-                opacity: Math.min(1, remain * 1.4),
-                zIndex: 55,
-                pointerEvents: 'none',
-                willChange: 'transform, opacity',
-              }}
-            />
-          );
-        })}
+        {trail.map((p) => (
+          <span
+            key={p.id}
+            className="cart-fly-bubble"
+            style={{
+              position: 'absolute',
+              left: p.x,
+              top: p.y,
+              width: p.size,
+              height: p.size,
+              '--bubble-color': p.color,
+              '--bubble-delay': `${p.delayMs}ms`,
+              '--bubble-dur': `${p.lifeMs}ms`,
+              '--bubble-idx': String(p.styleIdx),
+              zIndex: 55,
+              pointerEvents: 'none',
+            }}
+          />
+        ))}
       </div>
     </CartFlyContext.Provider>
   );
