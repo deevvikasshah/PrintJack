@@ -435,35 +435,23 @@ export default function DesignsPage() {
         <div className="space-y-3 max-h-96 overflow-y-auto">
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-500">Base Price</p>
-              <p className="text-lg font-bold text-gray-900">₹{calculation.priceBreakdown.basePrice}</p>
+              <p className="text-xs text-gray-500">Quantity</p>
+              <p className="text-lg font-bold text-gray-900">{calculation.quantity || 1} pcs</p>
             </div>
             <div className="p-3 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-500">Dimensions</p>
-              <p className="text-lg font-bold text-gray-900">{calculation.dimensions.width}x{calculation.dimensions.height}{calculation.dimensions.unit}</p>
+              <p className="text-xs text-gray-500">Per Unit</p>
+              <p className="text-lg font-bold text-gray-900">₹{calculation.priceBreakdown.perUnitPrice}</p>
             </div>
           </div>
-          {calculation.priceBreakdown.inkCost > 0 && (
-            <div className="flex justify-between text-sm"><span className="text-gray-600">Ink Cost</span><span className="font-medium">₹{calculation.priceBreakdown.inkCost}</span></div>
-          )}
-          {calculation.priceBreakdown.paperCost > 0 && (
-            <div className="flex justify-between text-sm"><span className="text-gray-600">Paper Cost</span><span className="font-medium">₹{calculation.priceBreakdown.paperCost}</span></div>
-          )}
-          {calculation.priceBreakdown.laminationCost > 0 && (
-            <div className="flex justify-between text-sm"><span className="text-gray-600">Lamination</span><span className="font-medium">₹{calculation.priceBreakdown.laminationCost}</span></div>
-          )}
-          {calculation.priceBreakdown.finishingCost > 0 && (
-            <div className="flex justify-between text-sm"><span className="text-gray-600">Finishing</span><span className="font-medium">₹{calculation.priceBreakdown.finishingCost}</span></div>
-          )}
-          {calculation.priceBreakdown.setupCost > 0 && (
-            <div className="flex justify-between text-sm"><span className="text-gray-600">Setup</span><span className="font-medium">₹{calculation.priceBreakdown.setupCost}</span></div>
-          )}
-          {calculation.priceBreakdown.shippingCost > 0 && (
-            <div className="flex justify-between text-sm"><span className="text-gray-600">Shipping</span><span className="font-medium">₹{calculation.priceBreakdown.shippingCost}</span></div>
-          )}
+          {(calculation.lineItems || []).map((item, i) => (
+            <div key={i} className="flex justify-between text-sm">
+              <span className="text-gray-600">{item.label}</span>
+              <span className="font-medium">{calculation.currency || '₹'}{item.amount}</span>
+            </div>
+          ))}
           <div className="border-t border-gray-200 pt-2 flex justify-between">
             <span className="font-semibold">Total</span>
-            <span className="font-bold text-[#E63946]">₹{calculation.priceBreakdown.finalPrice}</span>
+            <span className="font-bold text-[#E63946]">{(calculation.currency || '₹')}{calculation.priceBreakdown.finalPrice}</span>
           </div>
           {calculation.deliveryEstimate && (
             <p className="text-xs text-gray-500 text-center">Est. delivery: {calculation.deliveryEstimate.minDays}-{calculation.deliveryEstimate.maxDays} days</p>

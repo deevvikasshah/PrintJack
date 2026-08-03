@@ -21,6 +21,23 @@ const emptyProduct = {
   tags: '', specifications: [{ key: '', value: '' }],
   minimumOrderQuantity: '', featured: false,
   metaTitle: '', metaDescription: '', stockStatus: 'in_stock',
+  calculatorConfig: {
+    enabled: false,
+    unitPrice: '',
+    currency: '₹',
+    dimensionUnit: 'cm',
+    allowCustomDimensions: true,
+    defaultWidth: 10,
+    defaultHeight: 10,
+    areaCost: 0,
+    setupFee: 0,
+    shippingFee: 0,
+    deliveryDays: 7,
+    showDesignOptions: false,
+    sizes: [],
+    materials: [],
+    options: [],
+  },
 };
 
 export default function AdminProducts() {
@@ -85,6 +102,23 @@ export default function AdminProducts() {
       metaTitle: product.metaTitle || '',
       metaDescription: product.metaDescription || '',
       stockStatus: product.stockStatus || 'in_stock',
+      calculatorConfig: {
+        enabled: product.calculatorConfig?.enabled || false,
+        unitPrice: product.calculatorConfig?.unitPrice ?? '',
+        currency: product.calculatorConfig?.currency || '₹',
+        dimensionUnit: product.calculatorConfig?.dimensionUnit || 'cm',
+        allowCustomDimensions: product.calculatorConfig?.allowCustomDimensions ?? true,
+        defaultWidth: product.calculatorConfig?.defaultWidth ?? 10,
+        defaultHeight: product.calculatorConfig?.defaultHeight ?? 10,
+        areaCost: product.calculatorConfig?.areaCost ?? 0,
+        setupFee: product.calculatorConfig?.setupFee ?? 0,
+        shippingFee: product.calculatorConfig?.shippingFee ?? 0,
+        deliveryDays: product.calculatorConfig?.deliveryDays ?? 7,
+        showDesignOptions: product.calculatorConfig?.showDesignOptions || false,
+        sizes: product.calculatorConfig?.sizes?.length ? product.calculatorConfig.sizes : [],
+        materials: product.calculatorConfig?.materials?.length ? product.calculatorConfig.materials : [],
+        options: product.calculatorConfig?.options?.length ? product.calculatorConfig.options : [],
+      },
     });
     setShowForm(true);
   };
@@ -103,6 +137,47 @@ export default function AdminProducts() {
         printAreas: form.printAreas.filter((p) => p.name).map((p) => ({ ...p, width: Number(p.width), height: Number(p.height) })),
         specifications: form.specifications.filter((s) => s.key && s.value),
         tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
+        calculatorConfig: {
+          ...form.calculatorConfig,
+          unitPrice: Number(form.calculatorConfig.unitPrice) || 0,
+          defaultWidth: Number(form.calculatorConfig.defaultWidth) || 0,
+          defaultHeight: Number(form.calculatorConfig.defaultHeight) || 0,
+          areaCost: Number(form.calculatorConfig.areaCost) || 0,
+          setupFee: Number(form.calculatorConfig.setupFee) || 0,
+          shippingFee: Number(form.calculatorConfig.shippingFee) || 0,
+          deliveryDays: Number(form.calculatorConfig.deliveryDays) || 7,
+          showDesignOptions: Boolean(form.calculatorConfig.showDesignOptions),
+          sizes: form.calculatorConfig.sizes.filter((s) => s.label).map((s) => ({
+            label: s.label,
+            width: Number(s.width) || 0,
+            height: Number(s.height) || 0,
+            pricePerUnit: Number(s.pricePerUnit) || 0,
+          })),
+          materials: form.calculatorConfig.materials.filter((m) => m.key).map((m) => ({
+            label: m.label,
+            key: m.key,
+            pricePerUnit: Number(m.pricePerUnit) || 0,
+          })),
+          options: form.calculatorConfig.options.filter((o) => o.key).map((o) => ({
+            label: o.label,
+            key: o.key,
+            type: o.type,
+            unit: o.unit || '',
+            defaultValue: o.defaultValue,
+            min: Number(o.min) || 0,
+            max: Number(o.max) || 100,
+            step: Number(o.step) || 1,
+            pricePerUnit: Number(o.pricePerUnit) || 0,
+            isRequired: Boolean(o.isRequired),
+            description: o.description || '',
+            choices: (o.choices || []).filter((c) => c.value).map((c) => ({
+              label: c.label,
+              value: c.value,
+              price: Number(c.price) || 0,
+              perUnit: Boolean(c.perUnit),
+            })),
+          })),
+        },
       };
 
       if (editingProduct) {
@@ -207,6 +282,64 @@ export default function AdminProducts() {
     const updated = [...form.specifications];
     updated[index][field] = value;
     setForm((prev) => ({ ...prev, specifications: updated }));
+  };
+
+  const updateCalcConfig = (field, value) => {
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, [field]: value } }));
+  };
+
+  const addCalcSize = () => {
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, sizes: [...prev.calculatorConfig.sizes, { label: '', width: '', height: '', pricePerUnit: '' }] } }));
+  };
+  const removeCalcSize = (index) => {
+    setForm((prev) => {
+      const sizes = prev.calculatorConfig.sizes.filter((_, i) => i !== index);
+      return { ...prev, calculatorConfig: { ...prev.calculatorConfig, sizes } };
+    });
+  };
+  const updateCalcSize = (index, field, value) => {
+    const sizes = [...form.calculatorConfig.sizes];
+    sizes[index][field] = value;
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, sizes } }));
+  };
+
+  const addCalcMaterial = () => {
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, materials: [...prev.calculatorConfig.materials, { label: '', key: '', pricePerUnit: '' }] } }));
+  };
+  const removeCalcMaterial = (index) => {
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, materials: prev.calculatorConfig.materials.filter((_, i) => i !== index) } }));
+  };
+  const updateCalcMaterial = (index, field, value) => {
+    const materials = [...form.calculatorConfig.materials];
+    materials[index][field] = value;
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, materials } }));
+  };
+
+  const addCalcOption = () => {
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, options: [...prev.calculatorConfig.options, { label: '', key: '', type: 'select', choices: [{ label: '', value: '', price: 0, perUnit: false }], pricePerUnit: '', isRequired: false, min: 0, max: 100, step: 1 }] } }));
+  };
+  const removeCalcOption = (index) => {
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, options: prev.calculatorConfig.options.filter((_, i) => i !== index) } }));
+  };
+  const updateCalcOption = (index, field, value) => {
+    const options = [...form.calculatorConfig.options];
+    options[index][field] = value;
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, options } }));
+  };
+  const addCalcChoice = (optionIndex) => {
+    const options = [...form.calculatorConfig.options];
+    options[optionIndex].choices = [...(options[optionIndex].choices || []), { label: '', value: '', price: 0, perUnit: false }];
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, options } }));
+  };
+  const removeCalcChoice = (optionIndex, choiceIndex) => {
+    const options = [...form.calculatorConfig.options];
+    options[optionIndex].choices = options[optionIndex].choices.filter((_, i) => i !== choiceIndex);
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, options } }));
+  };
+  const updateCalcChoice = (optionIndex, choiceIndex, field, value) => {
+    const options = [...form.calculatorConfig.options];
+    options[optionIndex].choices[choiceIndex][field] = value;
+    setForm((prev) => ({ ...prev, calculatorConfig: { ...prev.calculatorConfig, options } }));
   };
 
   return (
@@ -419,6 +552,242 @@ export default function AdminProducts() {
                   {form.bulkPricing.length > 1 && (
                     <button type="button" onClick={() => removeBulkPricingRow(i)} className="p-1 text-gray-400 hover:text-red-500"><XIcon size={14} /></button>
                   )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Price Calculator Config */}
+          <div className="border-t border-gray-100 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-[#1D3557]">Price Calculator</h3>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.calculatorConfig.enabled}
+                  onChange={(e) => updateCalcConfig('enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]"
+                />
+                <span className="text-xs font-medium text-gray-600">Enable calculator</span>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Unit Price (₹) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.calculatorConfig.unitPrice}
+                  onChange={(e) => updateCalcConfig('unitPrice', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none"
+                  placeholder="Per unit price"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Area Cost (₹/cm²)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.calculatorConfig.areaCost}
+                  onChange={(e) => updateCalcConfig('areaCost', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Setup Fee (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.calculatorConfig.setupFee}
+                  onChange={(e) => updateCalcConfig('setupFee', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Shipping Fee (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.calculatorConfig.shippingFee}
+                  onChange={(e) => updateCalcConfig('shippingFee', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Default Width</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={form.calculatorConfig.defaultWidth}
+                  onChange={(e) => updateCalcConfig('defaultWidth', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Default Height</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={form.calculatorConfig.defaultHeight}
+                  onChange={(e) => updateCalcConfig('defaultHeight', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Delivery Days</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={form.calculatorConfig.deliveryDays}
+                  onChange={(e) => updateCalcConfig('deliveryDays', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Dimension Unit</label>
+                <select
+                  value={form.calculatorConfig.dimensionUnit}
+                  onChange={(e) => updateCalcConfig('dimensionUnit', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none"
+                >
+                  <option value="cm">cm</option>
+                  <option value="inch">inch</option>
+                  <option value="mm">mm</option>
+                </select>
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 mb-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.calculatorConfig.allowCustomDimensions}
+                onChange={(e) => updateCalcConfig('allowCustomDimensions', e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]"
+              />
+              <span className="text-sm font-medium text-gray-600">Allow custom dimensions</span>
+            </label>
+
+            <label className="flex items-center gap-2 mb-4 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.calculatorConfig.showDesignOptions}
+                onChange={(e) => updateCalcConfig('showDesignOptions', e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]"
+              />
+              <span className="text-sm font-medium text-gray-600">Show legacy design options (ink/paper/lamination/finish/setup)</span>
+            </label>
+
+            {/* Sizes */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-600">Preset Sizes</label>
+                <button type="button" onClick={addCalcSize} className="text-xs text-[#E63946] hover:underline">+ Add Size</button>
+              </div>
+              {form.calculatorConfig.sizes.map((size, i) => (
+                <div key={i} className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+                  <input type="text" placeholder="Label (e.g. A5)" value={size.label} onChange={(e) => updateCalcSize(i, 'label', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                  <input type="number" placeholder="Width" value={size.width} onChange={(e) => updateCalcSize(i, 'width', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                  <input type="number" placeholder="Height" value={size.height} onChange={(e) => updateCalcSize(i, 'height', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                  <div className="flex items-center gap-2">
+                    <input type="number" placeholder="+₹/unit" value={size.pricePerUnit} onChange={(e) => updateCalcSize(i, 'pricePerUnit', e.target.value)} className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                    {form.calculatorConfig.sizes.length > 1 && (
+                      <button type="button" onClick={() => removeCalcSize(i)} className="p-1 text-gray-400 hover:text-red-500"><XIcon size={14} /></button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Materials */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-600">Material Surcharges</label>
+                <button type="button" onClick={addCalcMaterial} className="text-xs text-[#E63946] hover:underline">+ Add Material</button>
+              </div>
+              {form.calculatorConfig.materials.map((mat, i) => (
+                <div key={i} className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+                  <input type="text" placeholder="Label (e.g. Waterproof)" value={mat.label} onChange={(e) => updateCalcMaterial(i, 'label', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                  <input type="text" placeholder="Key (e.g. waterproof)" value={mat.key} onChange={(e) => updateCalcMaterial(i, 'key', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                  <input type="number" placeholder="+₹/unit" value={mat.pricePerUnit} onChange={(e) => updateCalcMaterial(i, 'pricePerUnit', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                  {form.calculatorConfig.materials.length > 1 && (
+                    <button type="button" onClick={() => removeCalcMaterial(i)} className="p-1 text-gray-400 hover:text-red-500 self-center"><XIcon size={14} /></button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Options */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-600">Custom Options</label>
+                <button type="button" onClick={addCalcOption} className="text-xs text-[#E63946] hover:underline">+ Add Option</button>
+              </div>
+              {form.calculatorConfig.options.map((opt, i) => (
+                <div key={i} className="bg-gray-50 rounded-xl p-3 mb-3 space-y-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <input type="text" placeholder="Label (e.g. Paper Type)" value={opt.label} onChange={(e) => updateCalcOption(i, 'label', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                    <input type="text" placeholder="Key (e.g. paperType)" value={opt.key} onChange={(e) => updateCalcOption(i, 'key', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                    <select value={opt.type} onChange={(e) => updateCalcOption(i, 'type', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none">
+                      <option value="select">Select</option>
+                      <option value="checkbox">Checkbox</option>
+                      <option value="number">Number</option>
+                      <option value="range">Range</option>
+                    </select>
+                    <div className="flex items-center gap-2">
+                      <input type="number" placeholder="+₹/unit" value={opt.pricePerUnit} onChange={(e) => updateCalcOption(i, 'pricePerUnit', e.target.value)} className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                      {form.calculatorConfig.options.length > 1 && (
+                        <button type="button" onClick={() => removeCalcOption(i)} className="p-1 text-gray-400 hover:text-red-500"><XIcon size={14} /></button>
+                      )}
+                    </div>
+                  </div>
+
+                  {opt.type === 'select' && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-gray-500">Choices</span>
+                        <button type="button" onClick={() => addCalcChoice(i)} className="text-xs text-[#E63946] hover:underline">+ Add Choice</button>
+                      </div>
+                      {(opt.choices || []).map((choice, ci) => (
+                        <div key={ci} className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-1 items-center">
+                          <input type="text" placeholder="Label" value={choice.label} onChange={(e) => updateCalcChoice(i, ci, 'label', e.target.value)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none" />
+                          <input type="text" placeholder="Value" value={choice.value} onChange={(e) => updateCalcChoice(i, ci, 'value', e.target.value)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none" />
+                          <input type="number" placeholder="+₹" value={choice.price} onChange={(e) => updateCalcChoice(i, ci, 'price', e.target.value)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none" />
+                          <div className="flex items-center gap-2">
+                            <label className="flex items-center gap-1 cursor-pointer">
+                              <input type="checkbox" checked={choice.perUnit} onChange={(e) => updateCalcChoice(i, ci, 'perUnit', e.target.checked)} className="w-3.5 h-3.5 rounded border-gray-300 text-[#E63946]" />
+                              <span className="text-xs text-gray-500">per unit</span>
+                            </label>
+                            {(opt.choices || []).length > 1 && (
+                              <button type="button" onClick={() => removeCalcChoice(i, ci)} className="p-1 text-gray-400 hover:text-red-500"><XIcon size={14} /></button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {opt.type !== 'select' && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      <input type="number" placeholder="Min" value={opt.min} onChange={(e) => updateCalcOption(i, 'min', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                      <input type="number" placeholder="Max" value={opt.max} onChange={(e) => updateCalcOption(i, 'max', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                      <input type="number" placeholder="Step" value={opt.step} onChange={(e) => updateCalcOption(i, 'step', e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none" />
+                    </div>
+                  )}
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(opt.isRequired)}
+                      onChange={(e) => updateCalcOption(i, 'isRequired', e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]"
+                    />
+                    <span className="text-sm text-gray-600">Required</span>
+                  </label>
                 </div>
               ))}
             </div>
