@@ -73,6 +73,7 @@ export default function App() {
         <Route path="/products/:slug" element={<PublicLayout><ProductDetailPage /></PublicLayout>} />
         <Route path="/configure/:productId" element={<PublicLayout><ProductConfiguratorPage /></PublicLayout>} />
         <Route path="/editor/:productId" element={<PublicLayout><EditorPage /></PublicLayout>} />
+        <Route path="/editor" element={<Navigate to="/products" replace />} />
         <Route path="/blog" element={<PublicLayout><BlogListPage /></PublicLayout>} />
         <Route path="/blog/:slug" element={<PublicLayout><BlogDetailPage /></PublicLayout>} />
         <Route path="/about" element={<PublicLayout><AboutPage /></PublicLayout>} />

@@ -166,29 +166,31 @@ export default function HomePage() {
   return (
     <div className="bg-paper-100">
       {/* ===== HERO ===== */}
-      <section className="relative bg-paper-100 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-28 lg:pb-32 text-center">
-          <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="inline-flex items-center gap-2 text-sm text-ink/60 mb-8">
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(/hero-background.png)' }}></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/20"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-28 lg:pb-32 text-center">
+          <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="inline-flex items-center gap-2 text-sm text-white/80 mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-pj-green" /> Trusted by 10,000+ businesses across India
           </motion.span>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="font-display text-4xl sm:text-5xl lg:text-7xl text-ink leading-[1.05] font-semibold tracking-tight">
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="font-display text-4xl sm:text-5xl lg:text-7xl text-white leading-[1.05] font-semibold tracking-tight">
             Custom printed products<br />
-            <span className="italic text-ink/70">that mean business.</span>
+            <span className="italic text-white/80">that mean business.</span>
           </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.7 }} className="mt-6 text-lg text-ink/60 max-w-2xl mx-auto leading-relaxed">
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.7 }} className="mt-6 text-lg text-white/80 max-w-2xl mx-auto leading-relaxed">
             From business cards to branded merchandise — design, customize, and order
             premium printed products with pan-India delivery.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.7 }} className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Link
               to="/products"
-              className="inline-flex items-center gap-2 bg-ink text-paper-50 font-semibold px-8 py-4 rounded-full hover:bg-pj-green transition-colors"
+              className="inline-flex items-center gap-2 bg-white text-ink font-semibold px-8 py-4 rounded-full hover:bg-pj-green hover:text-white transition-colors"
             >
               Shop Products <ArrowRight size={18} />
             </Link>
             <Link
               to="/editor"
-              className="inline-flex items-center gap-2 border border-ink/20 text-ink font-semibold px-8 py-4 rounded-full hover:border-ink transition-colors"
+              className="inline-flex items-center gap-2 border border-white/50 text-white font-semibold px-8 py-4 rounded-full hover:border-white hover:bg-white/10 transition-colors"
             >
               Start Designing
             </Link>
