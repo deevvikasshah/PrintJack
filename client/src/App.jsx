@@ -8,6 +8,7 @@ import AdminRoute from './components/common/AdminRoute';
 import Loading from './components/common/Loading';
 import WhatsAppButton from './components/marketing/LiveChatWidget';
 import BackToTop from './components/common/BackToTop';
+import SmokeCursor from './components/common/SmokeCursor';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const ProductsPage = lazy(() => import('./pages/products/ProductsPage'));
@@ -65,6 +66,7 @@ function PublicLayout({ children }) {
 export default function App() {
   return (
     <Suspense fallback={<Loading />}>
+      <SmokeCursor />
       <ScrollToTop />
       <Routes>
         {/* Public routes with Navbar & Footer */}
