@@ -23,7 +23,7 @@ export default function SmokeCursor() {
 
     const config = {
       SIM_RESOLUTION: 128,
-      DYE_RESOLUTION: 512,
+      DYE_RESOLUTION: 256,
       DENSITY_DISSIPATION: 0.97,
       VELOCITY_DISSIPATION: 0.98,
       PRESSURE_DISSIPATION: 0.8,
@@ -59,7 +59,7 @@ export default function SmokeCursor() {
     pointers.push(new pointerPrototype());
 
     if (isWebGL2) gl.getExtension('EXT_color_buffer_float');
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
     const ext = getWebGLContext(gl);
 
@@ -251,18 +251,6 @@ export default function SmokeCursor() {
 
     void main () {
       gl_FragColor = value * texture2D(uTexture, vUv);
-    }
-    `
-    );
-
-    const colorShader = compileShader(
-      gl.FRAGMENT_SHADER,
-      `
-    precision mediump float;
-    uniform vec4 color;
-
-    void main () {
-      gl_FragColor = color;
     }
     `
     );
@@ -529,7 +517,6 @@ export default function SmokeCursor() {
     let pressure;
 
     const clearProgram = new GLProgram(baseVertexShader, clearShader);
-    const colorProgram = new GLProgram(baseVertexShader, colorShader);
     const displayProgram = new GLProgram(baseVertexShader, displayShader);
     const splatProgram = new GLProgram(baseVertexShader, splatShader);
     const advectionProgram = new GLProgram(
@@ -724,18 +711,12 @@ export default function SmokeCursor() {
     }
 
     function render() {
+      gl.disable(gl.BLEND);
+      gl.viewport(0, 0, width, height);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       gl.enable(gl.BLEND);
-
-      const targetWidth = width;
-      const targetHeight = height;
-
-      gl.viewport(0, 0, targetWidth, targetHeight);
-
-      colorProgram.bind();
-      const bc = config.BACK_COLOR;
-      gl.uniform4f(colorProgram.uniforms.color, bc.r / 255, bc.g / 255, bc.b / 255, 1);
-      blit(null);
 
       displayProgram.bind();
       gl.uniform1i(displayProgram.uniforms.uTexture, density.read.attach(0));
@@ -799,17 +780,34 @@ export default function SmokeCursor() {
     }
 
     let rafId;
+    let lastActivity = Date.now();
+    let running = true;
+
     function update() {
       resizeCanvas();
+      if (Date.now() - lastActivity > 1500) {
+        running = false;
+        return;
+      }
       input();
       if (!config.PAUSED) step(0.016);
       render();
       rafId = requestAnimationFrame(update);
     }
 
+    function startLoop() {
+      if (running) return;
+      running = true;
+      lastActivity = Date.now();
+      cancelAnimationFrame(rafId);
+      update();
+    }
+
     update();
 
     const onMouseMove1 = (e) => {
+      if (!running) startLoop();
+      lastActivity = Date.now();
       pointers[0].moved = pointers[0].down;
       pointers[0].dx = (e.clientX - pointers[0].x) * 5.0;
       pointers[0].dy = (e.clientY - pointers[0].y) * 5.0;
@@ -822,12 +820,24 @@ export default function SmokeCursor() {
       pointers[0].color = generateColor();
     };
 
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        running = false;
+        cancelAnimationFrame(rafId);
+      } else if (!document.hidden) {
+        lastActivity = Date.now();
+        startLoop();
+      }
+    };
+
     document.body.addEventListener('mousemove', onMouseMove1);
     document.body.addEventListener('mousemove', onMouseMove2);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     return () => {
       document.body.removeEventListener('mousemove', onMouseMove1);
       document.body.removeEventListener('mousemove', onMouseMove2);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       cancelAnimationFrame(rafId);
     };
   }, []);
