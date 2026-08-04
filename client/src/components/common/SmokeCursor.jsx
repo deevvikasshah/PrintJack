@@ -68,6 +68,8 @@ export default function SmokeCursor() {
       config.BLOOM = false;
     }
 
+    if (!ext.formatRGBA || !ext.formatRG || !ext.formatR) return undefined;
+
     function getWebGLContext(context) {
       let supportLinearFiltering;
       let halfFloat;
@@ -95,13 +97,11 @@ export default function SmokeCursor() {
       }
 
       return {
-        ext: {
-          formatRGBA,
-          formatRG,
-          formatR,
-          halfFloatTexType,
-          supportLinearFiltering,
-        },
+        formatRGBA,
+        formatRG,
+        formatR,
+        halfFloatTexType,
+        supportLinearFiltering,
       };
     }
 
