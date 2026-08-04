@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { User } = require('../models');
+const { User, Referral } = require('../models');
 const { sendEmail } = require('../services/email');
 const { sendSMS } = require('../services/sms');
 const { AppError } = require('../middleware/errorHandler');
@@ -31,7 +31,7 @@ const generateOTP = () => String(Math.floor(100000 + Math.random() * 900000));
 
 exports.register = async (req, res, next) => {
   try {
-    const { name, phone, password } = req.body;
+    const { name, phone, password, referralCode } = req.body;
     const email = req.body.email?.toLowerCase();
 
     if (!name || !email || !password) {
@@ -44,6 +44,22 @@ exports.register = async (req, res, next) => {
     }
 
     const user = await User.create({ name, email, phone, password });
+
+    if (referralCode) {
+      const referrer = await User.findOne({ referralCode: String(referralCode).toUpperCase() });
+      if (referrer && referrer._id.toString() !== user._id.toString()) {
+        const referralRewardAmount = 50;
+        user.referredBy = referrer._id;
+        user.loyaltyPoints = (user.loyaltyPoints || 0) + Math.round(referralRewardAmount * 0.5);
+        await Referral.create({
+          referrer: referrer._id,
+          referredUser: user._id,
+          referralCode: String(referralCode).toUpperCase(),
+          status: 'pending',
+          rewardAmount: referralRewardAmount,
+        });
+      }
+    }
 
     const otp = generateOTP();
     user.otp = { code: otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000) };

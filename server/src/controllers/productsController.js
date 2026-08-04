@@ -13,6 +13,8 @@ exports.getAllProducts = async (req, res, next) => {
       maxPrice,
       color,
       size,
+      material,
+      rating,
       tag,
       featured,
       sort: sortParam = 'newest',
@@ -38,9 +40,10 @@ exports.getAllProducts = async (req, res, next) => {
     }
 
     if (category) {
-      const cat = await Category.findOne({ slug: category });
-      if (cat) {
-        query.category = cat._id;
+      const slugs = typeof category === 'string' ? category.split(',') : category;
+      const cats = await Category.find({ slug: { $in: slugs } });
+      if (cats.length > 0) {
+        query.category = { $in: cats.map((c) => c._id) };
       }
     }
 
@@ -51,11 +54,22 @@ exports.getAllProducts = async (req, res, next) => {
     }
 
     if (color) {
-      query['colors.name'] = { $regex: color, $options: 'i' };
+      const values = typeof color === 'string' ? color.split(',') : color;
+      query['colors.name'] = { $in: values.map((v) => new RegExp(v, 'i')) };
     }
 
     if (size) {
-      query['sizes.name'] = { $regex: size, $options: 'i' };
+      const values = typeof size === 'string' ? size.split(',') : size;
+      query['sizes.name'] = { $in: values.map((v) => new RegExp(v, 'i')) };
+    }
+
+    if (material) {
+      const values = typeof material === 'string' ? material.split(',') : material;
+      query.material = { $in: values.map((v) => new RegExp(v, 'i')) };
+    }
+
+    if (rating) {
+      query.averageRating = { $gte: parseFloat(rating) };
     }
 
     if (tag) {

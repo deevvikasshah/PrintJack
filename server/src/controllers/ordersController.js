@@ -4,6 +4,7 @@ const { sendEmail, sendOrderConfirmation } = require('../services/email');
 const { sendSMS, sendWhatsApp } = require('../services/sms');
 const { generateInvoice } = require('../utils/helpers');
 const { notifyAdmins } = require('../utils/notifyAdmins');
+const { completeReferral } = require('./referralsController');
 let razorpayService;
 try { razorpayService = require('../services/razorpay'); } catch { razorpayService = null; }
 
@@ -117,6 +118,8 @@ exports.checkoutFromCart = async (req, res, next) => {
       cart.coupon = undefined;
       cart.discount = 0;
       await cart.save();
+
+      await completeReferral(req.user._id);
 
       await Notification.create({
         user: req.user._id,
@@ -243,6 +246,8 @@ exports.verifyPaymentFromCheckout = async (req, res, next) => {
     for (const item of order.items) {
       await Product.findByIdAndUpdate(item.product, { $inc: { totalSold: item.quantity } });
     }
+
+    await completeReferral(order.user);
 
     await Cart.updateOne(
       { user: order.user },

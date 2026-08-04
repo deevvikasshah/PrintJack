@@ -110,6 +110,9 @@ export default function ProductsPage() {
         if (flatCategories) params.set('category', flatCategories);
         if (filters.priceRange.min) params.set('minPrice', filters.priceRange.min);
         if (filters.priceRange.max) params.set('maxPrice', filters.priceRange.max);
+        if (filters.selectedColors.length > 0) params.set('color', filters.selectedColors.join(','));
+        if (filters.selectedSizes.length > 0) params.set('size', filters.selectedSizes.join(','));
+        if (filters.selectedMaterials.length > 0) params.set('material', filters.selectedMaterials.join(','));
         if (filters.selectedRating) params.set('rating', filters.selectedRating);
         if (searchQuery) params.set('search', searchQuery);
         if (sortBy) params.set('sort', sortBy);
@@ -338,7 +341,7 @@ export default function ProductsPage() {
                 className={`grid gap-6 ${view === 'grid' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}
               >
                 <AnimatePresence>
-                  {products.slice((currentPage - 1) * perPage, currentPage * perPage).map((product) => (
+                  {products.map((product) => (
                     <ProductCard key={product._id} product={product} />
                   ))}
                 </AnimatePresence>

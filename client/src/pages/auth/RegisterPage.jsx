@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Mail, Lock, Eye, EyeOff, User, Phone, ArrowRight, Loader2, Gift } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterPage() {
+  const [searchParams] = useSearchParams();
   const [form, setForm] = useState({
     name: '',
     email: '',
     phone: '',
     password: '',
     confirmPassword: '',
-    referralCode: '',
+    referralCode: searchParams.get('ref') || '',
     agreeTerms: false,
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -78,7 +79,7 @@ export default function RegisterPage() {
     if (!validate()) return;
     setIsLoading(true);
     try {
-      await register(form.name, form.email, form.password, form.phone);
+      await register(form.name, form.email, form.password, form.phone, form.referralCode);
       navigate('/dashboard', { replace: true });
     } catch {
       // error handled by AuthContext

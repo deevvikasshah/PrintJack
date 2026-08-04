@@ -33,7 +33,7 @@ export default function AdminUsers() {
       if (roleFilter) params.role = roleFilter;
       const { data } = await get('/admin/users', { params });
       setUsers(data.users || data || []);
-      setTotalPages(data.totalPages || 1);
+      setTotalPages(data.pagination?.pages || data.totalPages || 1);
     } catch (err) {
       toast.error('Failed to load users');
     } finally {
@@ -58,7 +58,7 @@ export default function AdminUsers() {
 
   const toggleActive = async (user) => {
     try {
-      await put(`/admin/users/${user._id}`, { isActive: user.active === false });
+      await put(`/admin/users/${user._id}`, { isActive: user.isActive === false });
       fetchUsers();
     } catch (err) {
       toast.error('Failed to update user status');
@@ -87,7 +87,7 @@ export default function AdminUsers() {
       u.ordersCount || 0,
       u.loyaltyPoints || 0,
       new Date(u.createdAt).toISOString(),
-      u.active !== false ? 'Active' : 'Inactive',
+      u.isActive !== false ? 'Active' : 'Inactive',
     ]);
     const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -130,8 +130,9 @@ export default function AdminUsers() {
           className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none"
         >
           <option value="">All Roles</option>
-          <option value="user">User</option>
+          <option value="customer">User</option>
           <option value="admin">Admin</option>
+          <option value="super_admin">Super Admin</option>
         </select>
       </div>
 
@@ -198,10 +199,10 @@ export default function AdminUsers() {
                             <button
                               onClick={() => toggleActive(user)}
                               className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                user.active !== false ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                user.isActive !== false ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                               }`}
                             >
-                              {user.active !== false ? 'Active' : 'Inactive'}
+                              {user.isActive !== false ? 'Active' : 'Inactive'}
                             </button>
                           </td>
                           <td className="px-4 py-3">
@@ -318,8 +319,9 @@ export default function AdminUsers() {
               onChange={(e) => setNewRole(e.target.value)}
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none"
             >
-              <option value="user">User</option>
+              <option value="customer">User</option>
               <option value="admin">Admin</option>
+              <option value="super_admin">Super Admin</option>
             </select>
             <div className="flex items-center justify-end gap-3">
               <button onClick={() => setShowRoleModal(null)} className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-xl">Cancel</button>

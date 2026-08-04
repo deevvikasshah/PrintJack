@@ -10,7 +10,7 @@ exports.getMyReferralCode = async (req, res, next) => {
       await user.save({ validateBeforeSave: false });
     }
 
-    const referralLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/signup?ref=${user.referralCode}`;
+    const referralLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register?ref=${user.referralCode}`;
 
     res.status(200).json({
       success: true,
@@ -85,12 +85,9 @@ exports.applyReferral = async (req, res, next) => {
       referrer: referrer._id,
       referredUser: req.user._id,
       referralCode: referralCode.toUpperCase(),
-      status: 'completed',
+      status: 'pending',
       rewardAmount: referralRewardAmount,
     });
-
-    referrer.loyaltyPoints = (referrer.loyaltyPoints || 0) + referralRewardAmount;
-    await referrer.save({ validateBeforeSave: false });
 
     req.user.referredBy = referrer._id;
     req.user.loyaltyPoints = (req.user.loyaltyPoints || 0) + Math.round(referralRewardAmount * 0.5);
@@ -107,6 +104,23 @@ exports.applyReferral = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+exports.completeReferral = async (referredUserId) => {
+  try {
+    const referral = await Referral.findOne({ referredUser: referredUserId, status: 'pending' });
+    if (!referral) return null;
+    const referrer = await User.findById(referral.referrer);
+    if (!referrer) return null;
+    referral.status = 'completed';
+    await referral.save({ validateBeforeSave: false });
+    referrer.loyaltyPoints = (referrer.loyaltyPoints || 0) + referral.rewardAmount;
+    await referrer.save({ validateBeforeSave: false });
+    return referral;
+  } catch (err) {
+    console.error('Failed to complete referral:', err.message);
+    return null;
   }
 };
 

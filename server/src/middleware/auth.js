@@ -24,7 +24,7 @@ const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
 
-    if (!user) {
+    if (!user || user.isActive === false) {
       return res.status(401).json({
         success: false,
         message: "User belonging to this token no longer exists",
@@ -83,7 +83,7 @@ const optionalAuth = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
 
-    if (user) {
+    if (user && user.isActive !== false) {
       req.user = user;
     }
   } catch (err) {

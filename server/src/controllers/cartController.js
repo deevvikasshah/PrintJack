@@ -1,11 +1,92 @@
 const { Cart, Product, Coupon } = require('../models');
 const { AppError } = require('../middleware/errorHandler');
 
+const computeBulkUnitPrice = (product, quantity, size, color) => {
+  let unitPrice = product.basePrice;
+  if (size) {
+    const sizeOption = product.sizes.find((s) => s.name === size && s.available);
+    if (sizeOption) unitPrice += sizeOption.additionalPrice;
+  }
+  if (color) {
+    const colorOption = product.colors.find((c) => c.name === color && c.available);
+    if (colorOption) unitPrice += colorOption.additionalPrice;
+  }
+  if (quantity >= product.minimumOrderQuantity && product.bulkPricing && product.bulkPricing.length > 0) {
+    const bulkTier = product.bulkPricing
+      .filter((b) => quantity >= b.minQty && quantity <= b.maxQty)
+      .sort((a, b) => b.minQty - a.minQty)[0];
+    if (bulkTier) {
+      unitPrice = bulkTier.price;
+    }
+  }
+  return unitPrice;
+};
+
 const recalcTotal = async (cart) => {
   await cart.populate('items.product');
   cart.totalAmount = cart.items.reduce((sum, item) => {
     return sum + (item.unitPrice * item.quantity);
   }, 0);
+};
+
+const recalcCouponDiscount = async (cart) => {
+  if (!cart.coupon || cart.items.length === 0) {
+    cart.discount = cart.coupon ? cart.discount : 0;
+    return;
+  }
+  const coupon = await Coupon.findById(cart.coupon);
+  const now = new Date();
+  if (
+    !coupon ||
+    !coupon.isActive ||
+    now < coupon.validFrom ||
+    now > coupon.validTill ||
+    (coupon.usageLimit > 0 && coupon.usedCount >= coupon.usageLimit) ||
+    (coupon.minimumOrderAmount > 0 && cart.totalAmount < coupon.minimumOrderAmount)
+  ) {
+    cart.coupon = undefined;
+    cart.discount = 0;
+    return;
+  }
+
+  let discount = 0;
+  const filterApplicable = (predicate) =>
+    cart.items.filter(predicate).reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+
+  if (coupon.applicableProducts && coupon.applicableProducts.length > 0) {
+    const applicableTotal = filterApplicable((item) =>
+      coupon.applicableProducts.some((pId) => pId.toString() === item.product?._id?.toString())
+    );
+    if (coupon.discountType === 'percentage') discount = Math.round(applicableTotal * (coupon.discountValue / 100));
+    else if (coupon.discountType === 'fixed') discount = Math.min(coupon.discountValue, applicableTotal);
+  } else if (coupon.applicableCategories && coupon.applicableCategories.length > 0) {
+    const applicableTotal = filterApplicable((item) =>
+      coupon.applicableCategories.some((cId) => cId.toString() === item.product?.category?.toString())
+    );
+    if (coupon.discountType === 'percentage') discount = Math.round(applicableTotal * (coupon.discountValue / 100));
+    else if (coupon.discountType === 'fixed') discount = Math.min(coupon.discountValue, applicableTotal);
+  } else {
+    if (coupon.discountType === 'percentage') discount = Math.round(cart.totalAmount * (coupon.discountValue / 100));
+    else if (coupon.discountType === 'fixed') discount = Math.min(coupon.discountValue, cart.totalAmount);
+    else if (coupon.discountType === 'free_shipping') discount = 99;
+  }
+
+  if (coupon.maximumDiscountAmount > 0 && discount > coupon.maximumDiscountAmount) {
+    discount = coupon.maximumDiscountAmount;
+  }
+  discount = Math.min(discount, cart.totalAmount);
+  cart.discount = discount;
+};
+
+const recomputeCart = async (cart) => {
+  await cart.populate('items.product');
+  cart.items = cart.items.filter((item) => item.product && item.product.isActive);
+  for (const item of cart.items) {
+    item.unitPrice = computeBulkUnitPrice(item.product, item.quantity, item.size, item.color);
+  }
+  cart.totalAmount = cart.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  await recalcCouponDiscount(cart);
+  return cart;
 };
 
 exports.getCart = async (req, res, next) => {
@@ -111,13 +192,13 @@ exports.addToCart = async (req, res, next) => {
       });
     }
 
-    await recalcTotal(cart);
+    await recomputeCart(cart);
     await cart.save();
 
     cart = await Cart.findById(cart._id).populate({
       path: 'items.product',
       select: 'name slug images basePrice colors sizes',
-    });
+    }).populate('coupon', 'code discountType discountValue maximumDiscountAmount');
 
     res.status(200).json({ success: true, cart });
   } catch (err) {

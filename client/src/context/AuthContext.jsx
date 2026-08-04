@@ -62,10 +62,10 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const register = async (name, email, password, phone) => {
+  const register = async (name, email, password, phone, referralCode) => {
     try {
       setError(null);
-      const { data } = await api.post('/auth/register', { name, email, password, phone });
+      const { data } = await api.post('/auth/register', { name, email, password, phone, referralCode: referralCode || undefined });
       localStorage.setItem('printjack_token', data.token);
       setToken(data.token);
       setUser(data.user);

@@ -73,6 +73,9 @@ exports.updateUser = async (req, res, next) => {
       if (!['customer', 'admin', 'super_admin'].includes(role)) {
         throw new AppError('Invalid role', 400);
       }
+      if (role === 'super_admin' && req.user.role !== 'super_admin') {
+        throw new AppError('Only a super admin can assign the super_admin role', 403);
+      }
       user.role = role;
     }
 

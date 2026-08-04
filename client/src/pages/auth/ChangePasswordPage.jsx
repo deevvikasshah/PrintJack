@@ -42,6 +42,7 @@ export default function ChangePasswordPage() {
     try {
       await changePassword(currentPassword, newPassword);
       setIsSuccess(true);
+      setTimeout(() => navigate('/dashboard'), 1500);
     } catch {
       // error handled by AuthContext
     } finally {
