@@ -134,7 +134,7 @@ const blogPosts = [
   { title: 'Bulk Printing: Tips to Save Money Without Compromising Quality', excerpt: 'Discover how to optimize your print orders for the best value and quality balance.', image: 'https://images.unsplash.com/photo-1562408590-e32931084e23?w=600', date: 'Dec 28, 2025', slug: 'bulk-printing-tips' },
 ];
 
-const defaultTrustLogos = ['Startup India', 'Make in India', 'Digital India', 'ISO 9001', 'Google Pay', 'Shopify'];
+const defaultTrustLogos = ['Startup India', 'Make in India', 'Digital India', 'ISO 9001', 'Google Pay', 'Shopify', 'Razorpay', 'Myntra'];
 const defaultTestimonials = testimonials;
 const defaultTrustBar = [
   { icon: 'truck', text: 'Free Shipping on ₹999+' },
@@ -740,6 +740,31 @@ export default function HomePage() {
         </AnimatedSection>
       </section>
 
+      {/* ===== TRUSTED BY STRIP ===== */}
+      <section className="py-12 lg:py-16 border-y border-ink/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-sm font-semibold text-ink/40 uppercase tracking-widest mb-8">
+            Trusted by leading brands across India
+          </p>
+          <div className="flex items-center justify-between gap-8 md:gap-12 overflow-x-auto scrollbar-hide">
+            {trustLogos.map((logo, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.06 }}
+                className="flex-shrink-0"
+              >
+                <span className="block whitespace-nowrap font-display text-lg md:text-xl tracking-tight text-ink/35 grayscale hover:text-pj-green hover:grayscale-0 hover:scale-105 transition-all duration-300 cursor-default">
+                  {logo}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ===== FAQ ===== */}
       <section id="faqs" className="py-20 lg:py-28 bg-paper-50 border-y border-ink/10">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -816,27 +841,6 @@ export default function HomePage() {
             <p className="mt-3 text-white/50 text-xs">No spam, unsubscribe anytime.</p>
           </motion.div>
         </AnimatedSection>
-      </section>
-
-      {/* ===== TRUSTED BY ===== */}
-      <section className="py-16 bg-paper-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm font-semibold text-ink/40 uppercase tracking-widest mb-8">Trusted by 10,000+ businesses across India</p>
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14">
-            {trustLogos.map((logo, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="text-ink/30 hover:text-ink/60 transition-colors"
-              >
-                <span className="text-xl font-display tracking-tight">{logo}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
       </section>
     </div>
   );
