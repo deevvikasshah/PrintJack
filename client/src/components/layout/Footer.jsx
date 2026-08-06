@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Send, MapPin, Phone, Mail } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaTwitter, FaLinkedin, FaYoutube } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import { PRODUCT_CATEGORIES } from '../../utils/constants';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
@@ -30,6 +29,29 @@ export default function Footer() {
     { icon: FaTwitter, href: 'https://twitter.com/printjack', label: 'Twitter' },
     { icon: FaLinkedin, href: 'https://linkedin.com/company/printjack', label: 'LinkedIn' },
     { icon: FaYoutube, href: 'https://youtube.com/printjack', label: 'YouTube' },
+  ];
+
+  const quickLinks = [
+    { label: 'About Us', to: '/about' },
+    { label: 'Careers', to: '/careers' },
+    { label: 'Blog', to: '/blog' },
+    { label: 'Bulk Orders', to: '/bulk-orders' },
+    { label: 'Contact', to: '/contact' },
+  ];
+
+  const supportLinks = [
+    { label: 'Contact', to: '/contact' },
+    { label: 'Track Order', to: '/track-order' },
+    { label: 'FAQs', to: '/faq' },
+    { label: 'Shipping Info', to: '/faq#shipping' },
+    { label: 'Returns & Refunds', to: '/faq#returns' },
+  ];
+
+  const legalLinks = [
+    { label: 'Terms of Service', to: '/terms' },
+    { label: 'Privacy Policy', to: '/privacy' },
+    { label: 'Refund Policy', to: '/faq#refunds' },
+    { label: 'Cookie Policy', to: '/privacy#cookies' },
   ];
 
   return (
@@ -66,35 +88,29 @@ export default function Footer() {
 
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
-          {/* Company */}
-          <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          {/* Company Info */}
+          <div>
             <Link to="/" className="inline-block mb-4">
               <span className="font-display text-2xl text-paper-50">
                 PrintJack
               </span>
             </Link>
-            <p className="text-paper-100/60 text-sm leading-relaxed mb-4">
+            <p className="text-paper-100/60 text-sm leading-relaxed mb-5">
               India's premium custom printing platform. Turn your ideas into reality with high-quality prints.
             </p>
-            <div className="space-y-2 text-sm text-paper-100/60">
-              <p className="flex items-center gap-2"><MapPin size={14} /> Mumbai, Maharashtra, India</p>
-              <p className="flex items-center gap-2"><Phone size={14} /> +91 98765 43210</p>
-              <p className="flex items-center gap-2"><Mail size={14} /> hello@printjack.in</p>
+            <div className="space-y-2.5 text-sm text-paper-100/60">
+              <p className="flex items-center gap-2.5"><MapPin size={15} className="flex-shrink-0 text-paper-100/40" /> Mumbai, Maharashtra, India</p>
+              <p className="flex items-center gap-2.5"><Phone size={15} className="flex-shrink-0 text-paper-100/40" /> +91 98765 43210</p>
+              <p className="flex items-center gap-2.5"><Mail size={15} className="flex-shrink-0 text-paper-100/40" /> hello@printjack.in</p>
             </div>
           </div>
 
-          {/* Company Links */}
+          {/* Quick Links */}
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-widest mb-4 text-paper-50">Company</h4>
-            <ul className="space-y-2.5">
-              {[
-                { label: 'About Us', to: '/about' },
-                { label: 'Careers', to: '/careers' },
-                { label: 'Blog', to: '/blog' },
-                { label: 'Contact', to: '/contact' },
-                { label: 'Bulk Orders', to: '/bulk-orders' },
-              ].map((link) => (
+            <h4 className="text-sm font-semibold uppercase tracking-widest mb-5 text-paper-50">Quick Links</h4>
+            <ul className="space-y-3">
+              {quickLinks.map((link) => (
                 <li key={link.to}>
                   <Link to={link.to} className="text-sm text-paper-100/60 hover:text-pj-green transition-colors">
                     {link.label}
@@ -104,32 +120,12 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Products Links */}
+          {/* Customer Support */}
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-widest mb-4 text-paper-50">Products</h4>
-            <ul className="space-y-2.5">
-              {PRODUCT_CATEGORIES.slice(0, 7).map((cat) => (
-                <li key={cat.slug}>
-                  <Link to={`/products?category=${cat.slug}`} className="text-sm text-paper-100/60 hover:text-pj-green transition-colors">
-                    {cat.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Support Links */}
-          <div>
-            <h4 className="text-sm font-semibold uppercase tracking-widest mb-4 text-paper-50">Support</h4>
-            <ul className="space-y-2.5">
-              {[
-                { label: 'FAQ', to: '/faq' },
-                { label: 'Track Order', to: '/track-order' },
-                { label: 'Shipping Info', to: '/faq#shipping' },
-                { label: 'Returns & Refunds', to: '/faq#returns' },
-                { label: 'Contact Support', to: '/contact' },
-              ].map((link, i) => (
-                <li key={i}>
+            <h4 className="text-sm font-semibold uppercase tracking-widest mb-5 text-paper-50">Customer Support</h4>
+            <ul className="space-y-3">
+              {supportLinks.map((link) => (
+                <li key={link.label}>
                   <Link to={link.to} className="text-sm text-paper-100/60 hover:text-pj-green transition-colors">
                     {link.label}
                   </Link>
@@ -138,17 +134,12 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Legal Links */}
+          {/* Legal */}
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-widest mb-4 text-paper-50">Legal</h4>
-            <ul className="space-y-2.5">
-              {[
-                { label: 'Terms of Service', to: '/terms' },
-                { label: 'Privacy Policy', to: '/privacy' },
-                { label: 'Refund Policy', to: '/faq#refunds' },
-                { label: 'Cookie Policy', to: '/privacy#cookies' },
-              ].map((link, i) => (
-                <li key={i}>
+            <h4 className="text-sm font-semibold uppercase tracking-widest mb-5 text-paper-50">Legal</h4>
+            <ul className="space-y-3">
+              {legalLinks.map((link) => (
+                <li key={link.label}>
                   <Link to={link.to} className="text-sm text-paper-100/60 hover:text-pj-green transition-colors">
                     {link.label}
                   </Link>
@@ -159,37 +150,43 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom Bar */}
+      {/* Bottom Bar: Social + Payment + Copyright */}
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-paper-100/50">
-              <p>© 2025 PrintJack. Made with ❤️ in India.</p>
-              <p className="text-xs">GSTIN: 27AABCP1234M1Z5 | CIN: U72200MH2020PTC123456</p>
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+            {/* Social Icons */}
+            <div className="flex items-center gap-3">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center text-paper-100/70 hover:bg-pj-green hover:text-white transition-all"
+                  aria-label={social.label}
+                >
+                  <social.icon size={15} />
+                </a>
+              ))}
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                {socialLinks.map((social) => (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-paper-100/70 hover:bg-pj-green hover:text-white transition-all"
-                    aria-label={social.label}
-                  >
-                    <social.icon size={14} />
-                  </a>
-                ))}
-              </div>
-              <div className="h-6 w-px bg-white/20" />
-              <div className="flex items-center gap-2 text-xs text-paper-100/50">
-                <div className="px-2 py-1 bg-white/10 rounded text-[10px] font-semibold">UPI</div>
-                <div className="px-2 py-1 bg-white/10 rounded text-[10px] font-semibold">VISA</div>
-                <div className="px-2 py-1 bg-white/10 rounded text-[10px] font-semibold">MC</div>
-                <div className="px-2 py-1 bg-white/10 rounded text-[10px] font-semibold">Razorpay</div>
-              </div>
+
+            {/* Payment Methods */}
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-paper-100/60">
+              <span className="text-paper-100/40 mr-1">We accept</span>
+              <div className="px-2.5 py-1.5 bg-white/10 rounded text-[10px] font-semibold tracking-wide">UPI</div>
+              <div className="px-2.5 py-1.5 bg-white/10 rounded text-[10px] font-semibold tracking-wide">VISA</div>
+              <div className="px-2.5 py-1.5 bg-white/10 rounded text-[10px] font-semibold tracking-wide">MASTERCARD</div>
+              <div className="px-2.5 py-1.5 bg-white/10 rounded text-[10px] font-semibold tracking-wide">NETBANKING</div>
+              <div className="px-2.5 py-1.5 bg-white/10 rounded text-[10px] font-semibold tracking-wide">RAZORPAY</div>
             </div>
+          </div>
+
+          {/* Copyright */}
+          <div className="mt-6 pt-6 border-t border-white/10 text-center">
+            <p className="text-sm text-paper-100/50">© 2026 PrintJack. All rights reserved.</p>
+            <p className="mt-1.5 text-xs text-paper-100/35">
+              GSTIN: 27AABCP1234M1Z5 | CIN: U72200MH2020PTC123456
+            </p>
           </div>
         </div>
       </div>
