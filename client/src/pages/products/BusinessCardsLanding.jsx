@@ -17,7 +17,7 @@ const SIZES = {
     mult: 1,
   },
   moo: {
-    label: 'MOO',
+    label: 'Euro',
     dims: '85 × 55 mm',
     details: 'A little wider and shorter than standard. Distinctive and memorable.',
     mult: 1.15,
