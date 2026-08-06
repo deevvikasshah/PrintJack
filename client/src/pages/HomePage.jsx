@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useRef } from 'react';
 import {
   ArrowRight, Truck, ShieldCheck, MapPin, Headphones,
