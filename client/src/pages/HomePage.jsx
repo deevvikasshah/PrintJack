@@ -5,7 +5,7 @@ import { useRef } from 'react';
 import {
   ArrowRight, Truck, ShieldCheck, MapPin, Headphones,
   CreditCard, Shirt, StickyNote, Megaphone, Maximize, Coffee,
-  MousePointerClick, Palette, CheckCircle, Package, Star,
+  Palette, CheckCircle, Package, Star,
   Send, ChevronDown, Quote, ChevronLeft, ChevronRight, Clock, BadgePercent,
 } from 'lucide-react';
 
@@ -60,10 +60,10 @@ const finishes = [
 ];
 
 const steps = [
-  { icon: MousePointerClick, title: 'Choose Product', desc: 'Browse our catalog and pick the perfect product for your brand.' },
-  { icon: Palette, title: 'Upload or Create', desc: 'Upload your design or use our online editor to create from scratch.' },
-  { icon: CheckCircle, title: 'Preview & Approve', desc: 'See a live preview of your product and approve before printing.' },
-  { icon: Package, title: 'We Print & Deliver', desc: 'We handle printing, quality check, and deliver to your doorstep.' },
+  { title: 'Design', desc: 'Create or upload your artwork with our free online editor.', image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80' },
+  { title: 'Print', desc: 'Vivid, precision printing on premium, sustainably sourced materials.', image: 'https://images.unsplash.com/photo-1591405351990-4726e331f141?w=800&q=80' },
+  { title: 'Quality Check', desc: 'Every single piece is hand-inspected before it leaves our facility.', image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=800&q=80' },
+  { title: 'Delivery', desc: 'Safely packed and shipped to your doorstep across India.', image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=800&q=80' },
 ];
 
 const featuredProducts = [
@@ -631,22 +631,31 @@ export default function HomePage() {
       <section id="how-it-works" className="py-20 lg:py-28 bg-paper-50 border-y border-ink/10">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-sm text-pj-green font-medium uppercase tracking-widest">How It Works</span>
+            <span className="text-sm text-pj-green font-medium uppercase tracking-widest">Our Process</span>
             <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">From idea to doorstep in 4 steps</h2>
           </motion.div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, i) => (
-              <motion.div key={i} variants={fadeUp} className="text-center relative">
-                <div className="relative mx-auto w-20 h-20 mb-6">
-                  <div className="w-20 h-20 rounded-full bg-white border border-ink/10 flex items-center justify-center shadow-sm">
-                    <step.icon size={28} className="text-pj-green" />
-                  </div>
-                  <span className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-ink text-paper-50 text-xs font-bold flex items-center justify-center">
+              <motion.div
+                key={i}
+                variants={fadeUp}
+                className="group bg-white rounded-2xl overflow-hidden border border-ink/10 hover:border-ink/30 hover:-translate-y-1 transition-all"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-paper-200">
+                  <img
+                    src={step.image}
+                    alt={step.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <span className="absolute top-3 left-3 w-8 h-8 rounded-full bg-ink/80 text-paper-50 text-xs font-bold flex items-center justify-center">
                     {i + 1}
                   </span>
                 </div>
-                <h3 className="font-display text-lg text-ink">{step.title}</h3>
-                <p className="mt-2 text-sm text-ink/60 leading-relaxed">{step.desc}</p>
+                <div className="p-5">
+                  <h3 className="font-display text-lg text-ink">{step.title}</h3>
+                  <p className="mt-1.5 text-sm text-ink/60 leading-relaxed">{step.desc}</p>
+                </div>
               </motion.div>
             ))}
           </div>
