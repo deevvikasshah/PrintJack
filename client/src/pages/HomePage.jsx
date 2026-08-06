@@ -203,6 +203,22 @@ export default function HomePage() {
 
   const displayFeatured = featuredItems.length > 0 ? featuredItems : featuredProducts;
 
+  const [testiIndex, setTestiIndex] = useState(0);
+  const [isTestiPaused, setIsTestiPaused] = useState(false);
+  const goToTesti = (i) => setTestiIndex((i + siteTestimonials.length) % siteTestimonials.length);
+
+  useEffect(() => {
+    if (siteTestimonials.length > 0 && testiIndex >= siteTestimonials.length) {
+      setTestiIndex(0);
+    }
+  }, [siteTestimonials.length, testiIndex]);
+
+  useEffect(() => {
+    if (isTestiPaused || siteTestimonials.length <= 1) return undefined;
+    const timer = setInterval(() => setTestiIndex((prev) => (prev + 1) % siteTestimonials.length), 6000);
+    return () => clearInterval(timer);
+  }, [isTestiPaused, siteTestimonials.length]);
+
   useEffect(() => {
     const loadContent = async () => {
       try {
@@ -640,32 +656,87 @@ export default function HomePage() {
       {/* ===== TESTIMONIALS ===== */}
       <section className="py-20 lg:py-28">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto mb-16">
+          <motion.div variants={fadeUp} className="text-center max-w-2xl mx-auto mb-14">
             <span className="text-sm text-pj-green font-medium uppercase tracking-widest">Testimonials</span>
             <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">What our customers say</h2>
           </motion.div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {siteTestimonials.map((t, i) => (
-              <motion.div key={i} variants={fadeUp} className="bg-paper-50 rounded-2xl p-6 border border-ink/10">
-                <Quote size={22} className="text-pj-green/40 mb-4" />
-                <p className="text-sm text-ink/70 leading-relaxed">{t.text}</p>
-                <div className="flex mt-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} size={13} className={j < t.rating ? 'text-amber-500 fill-amber-500' : 'text-ink/15 fill-ink/15'} />
-                  ))}
-                </div>
-                <div className="mt-5 flex items-center gap-3 pt-5 border-t border-ink/10">
-                  <div className="w-10 h-10 rounded-full bg-pj-green text-white flex items-center justify-center text-sm font-bold">
-                    {t.avatar || t.name?.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-ink">{t.name}</h4>
-                    <p className="text-xs text-ink/50">{t.role}</p>
-                  </div>
-                </div>
+
+          <motion.div
+            variants={fadeUp}
+            className="relative max-w-3xl mx-auto"
+            onMouseEnter={() => setIsTestiPaused(true)}
+            onMouseLeave={() => setIsTestiPaused(false)}
+          >
+            {/* Arrow Nav */}
+            <button
+              onClick={() => goToTesti(testiIndex - 1)}
+              aria-label="Previous testimonial"
+              className="absolute left-0 lg:-left-16 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-paper-50 border border-ink/15 hover:bg-pj-green hover:text-white text-ink/70 flex items-center justify-center transition-colors"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              onClick={() => goToTesti(testiIndex + 1)}
+              aria-label="Next testimonial"
+              className="absolute right-0 lg:-right-16 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-paper-50 border border-ink/15 hover:bg-pj-green hover:text-white text-ink/70 flex items-center justify-center transition-colors"
+            >
+              <ChevronRight size={20} />
+            </button>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={testiIndex}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="bg-paper-50 rounded-3xl p-8 sm:p-12 border border-ink/10 shadow-sm text-center"
+              >
+                {siteTestimonials[testiIndex] && (() => {
+                  const t = siteTestimonials[testiIndex];
+                  return (
+                    <>
+                      <Quote size={40} className="text-pj-green/30 mx-auto mb-6" />
+                      <div className="flex justify-center gap-1 mb-6">
+                        {[...Array(5)].map((_, j) => (
+                          <Star
+                            key={j}
+                            size={16}
+                            className={j < (t.rating || 5) ? 'text-amber-500 fill-amber-500' : 'text-ink/15 fill-ink/15'}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-lg sm:text-xl text-ink/80 leading-relaxed">“{t.text}”</p>
+                      <div className="mt-8 flex flex-col items-center gap-3">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-pj-green to-ink text-white flex items-center justify-center text-base font-bold">
+                          {t.avatar || t.name?.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 className="text-base font-semibold text-ink">{t.name}</h4>
+                          <p className="text-sm text-ink/50">{t.role}</p>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </motion.div>
-            ))}
-          </div>
+            </AnimatePresence>
+
+            {/* Dot Indicators */}
+            <div className="mt-8 flex justify-center gap-2">
+              {siteTestimonials.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goToTesti(i)}
+                  aria-label={`Go to testimonial ${i + 1}`}
+                  aria-current={i === testiIndex}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                    i === testiIndex ? 'w-8 bg-pj-green' : 'w-2.5 bg-ink/20 hover:bg-ink/40'
+                  }`}
+                />
+              ))}
+            </div>
+          </motion.div>
         </AnimatedSection>
       </section>
 
