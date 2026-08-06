@@ -186,6 +186,10 @@ export default function HomePage() {
   const goToSlide = (i) => setCurrentSlide((i + heroSlides.length) % heroSlides.length);
   const goToNext = () => setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
   const goToPrev = () => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  const popularCatRef = useRef(null);
+  const scrollCategories = (dir) => {
+    popularCatRef.current?.scrollBy({ left: dir * 264, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     if (isHeroPaused) return undefined;
@@ -419,6 +423,60 @@ export default function HomePage() {
                 </motion.div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== POPULAR CATEGORIES ===== */}
+      <section className="py-14 lg:py-20 bg-paper-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <span className="text-sm text-pj-green font-medium uppercase tracking-widest">Popular</span>
+              <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Popular Categories</h2>
+            </div>
+            <div className="hidden sm:flex items-center gap-2">
+              <button
+                onClick={() => scrollCategories(-1)}
+                aria-label="Scroll categories left"
+                className="w-10 h-10 rounded-full border border-ink/15 hover:bg-paper-50 text-ink/70 hover:text-pj-green flex items-center justify-center transition-colors"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                onClick={() => scrollCategories(1)}
+                aria-label="Scroll categories right"
+                className="w-10 h-10 rounded-full border border-ink/15 hover:bg-paper-50 text-ink/70 hover:text-pj-green flex items-center justify-center transition-colors"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div
+            ref={popularCatRef}
+            className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4 -mx-4 px-4 sm:mx-0 sm:px-0"
+          >
+            {categories.map((cat) => (
+              <Link
+                key={cat.slug}
+                to={`/products?category=${cat.slug}`}
+                className="group flex-shrink-0 snap-start w-40 sm:w-48 lg:w-56 rounded-2xl overflow-hidden relative aspect-[4/5]"
+              >
+                <img
+                  src={cat.image}
+                  alt={cat.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <h3 className="font-display text-lg text-white font-semibold leading-tight">{cat.name}</h3>
+                  <p className="text-xs text-white/70 mt-0.5">from ₹{cat.priceFrom}</p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
