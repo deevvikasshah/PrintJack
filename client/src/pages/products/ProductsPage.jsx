@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import ProductCard from '../../components/products/ProductCard';
 import ProductFilter from '../../components/products/ProductFilter';
+import BusinessCardsLanding from './BusinessCardsLanding';
 import api from '../../utils/api';
 
 const sortOptions = [
@@ -159,6 +160,17 @@ export default function ProductsPage() {
     setCurrentPage(1);
   };
 
+  const isBusinessCardsOnly =
+    filters.selectedCategories.length === 1 &&
+    filters.selectedCategories[0].toLowerCase() === 'business-cards' &&
+    !filters.priceRange.min &&
+    !filters.priceRange.max &&
+    filters.selectedColors.length === 0 &&
+    filters.selectedSizes.length === 0 &&
+    filters.selectedMaterials.length === 0 &&
+    !filters.selectedRating &&
+    !searchQuery;
+
   const activeFilterTags = [];
   filters.selectedCategories.forEach((c) => activeFilterTags.push({ type: 'category', value: c, label: c }));
   filters.selectedColors.forEach((c) => activeFilterTags.push({ type: 'color', value: c, label: c }));
@@ -193,6 +205,10 @@ export default function ProductsPage() {
         break;
     }
   };
+
+  if (isBusinessCardsOnly) {
+    return <BusinessCardsLanding />;
+  }
 
   return (
     <div className="min-h-screen bg-paper-100">
