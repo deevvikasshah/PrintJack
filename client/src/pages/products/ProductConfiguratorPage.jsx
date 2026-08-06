@@ -1033,8 +1033,7 @@ export default function ProductConfiguratorPage() {
 
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Left toolbar */}
-            <aside className="lg:w-72 flex-shrink-0 bg-paper-50 rounded-2xl border border-paper-200 overflow-hidden flex flex-col">
-              <div className="flex border-b border-paper-200 overflow-x-auto no-scrollbar">
+            <aside className="lg:w-72 flex-shrink-0 bg-paper-50 rounded-2xl border border-paper-200 overflow-hidden flex flex-col">              <div className="flex border-b border-paper-200 overflow-x-auto no-scrollbar">
                 {DESIGN_TABS.map((tab) => (
                   <button
                     key={tab.id}
@@ -1190,27 +1189,129 @@ export default function ProductConfiguratorPage() {
                 <span>X: {cursorPos.x} Y: {cursorPos.y}</span>
               </div>
             </main>
+
+            {/* Right options panel */}
+            <aside className="lg:w-80 flex-shrink-0">
+              <div className="sticky top-20 space-y-4">
+                <div className="bg-white rounded-2xl border border-paper-200 shadow-card p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="w-14 h-14 rounded-xl bg-pj-sage flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {productImage || product.image || product.images?.[0]?.url ? (
+                        <img src={productImage || product.image || product.images?.[0]?.url} alt={product.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <Package className="w-6 h-6 text-pj-green" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-display font-semibold text-ink leading-snug">{product.name}</h3>
+                      {product.material && (
+                        <p className="text-xs text-ink/50 mt-0.5 truncate">{product.material}</p>
+                      )}
+                      {!hideQuantity && selectedSize && (
+                        <p className="text-xs text-ink/50 mt-0.5">Size: {selectedSize}</p>
+                      )}
+                      {!hideQuantity && selectedColor && (
+                        <p className="text-xs text-ink/50 mt-0.5">Color: {selectedColor}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {!hideQuantity && (
+                    <div className="mt-5">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-ink/60 uppercase tracking-wider">Quantity</span>
+                        <span className="text-xs text-ink/40">{quantity} cards</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setQuantity(Math.max(product.minimumOrderQuantity || 1, quantity - 1))}
+                          className="w-9 h-9 rounded-full border-2 border-paper-300 flex items-center justify-center hover:border-ink/40 transition-colors"
+                          aria-label="Decrease quantity"
+                        >
+                          <Minus className="w-4 h-4 text-ink" />
+                        </button>
+                        <input
+                          type="number"
+                          min={product.minimumOrderQuantity || 1}
+                          max={10000}
+                          value={quantity}
+                          onChange={(e) => setQuantity(Math.max(product.minimumOrderQuantity || 1, parseInt(e.target.value) || 1))}
+                          className="w-full text-center px-3 py-2 border-2 border-paper-300 rounded-xl text-lg font-bold text-ink outline-none focus:border-pj-green"
+                        />
+                        <button
+                          onClick={() => setQuantity(quantity + 1)}
+                          className="w-9 h-9 rounded-full border-2 border-paper-300 flex items-center justify-center hover:border-ink/40 transition-colors"
+                          aria-label="Increase quantity"
+                        >
+                          <Plus className="w-4 h-4 text-ink" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="my-4 border-t border-dashed border-paper-300" />
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-ink/50">Unit price</span>
+                    <span className="font-semibold text-ink">₹{unitPrice}</span>
+                  </div>
+                  {!hideQuantity && (
+                    <div className="flex items-center justify-between text-sm mt-1.5">
+                      <span className="text-ink/50">Quantity</span>
+                      <span className="font-semibold text-ink">× {quantity}</span>
+                    </div>
+                  )}
+                  {!hideQuantity && pricingTier && pricingTier.priceMultiplier < 1 && (
+                    <div className="flex items-center justify-between text-sm mt-1.5 text-pj-green">
+                      <span>Bulk discount</span>
+                      <span className="font-semibold">-₹{(basePrice * quantity - totalPrice).toLocaleString()}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-paper-200">
+                    <span className="font-semibold text-ink">Total</span>
+                    <span className="font-display text-2xl font-bold text-ink">₹{totalPrice.toLocaleString()}</span>
+                  </div>
+
+                  <button
+                    ref={addToCartRef}
+                    onClick={handleAddToCart}
+                    disabled={addingToCart}
+                    className="mt-4 w-full flex items-center justify-center gap-2 bg-pj-green hover:bg-ink text-paper-50 font-semibold py-3.5 rounded-full transition-colors text-lg shadow-lg shadow-pj-green/20 disabled:opacity-60"
+                  >
+                    {addingToCart ? (
+                      <><Loader2 className="w-5 h-5 animate-spin" /> Adding...</>
+                    ) : (
+                      <><ShoppingCart className="w-5 h-5" /> Add to Cart</>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleSaveDraft}
+                    disabled={savingDraft}
+                    className="mt-2.5 w-full flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-paper-300 text-ink font-semibold hover:border-pj-green hover:text-pj-green transition-colors disabled:opacity-60"
+                  >
+                    {savingDraft ? <Loader2 className="w-4 h-4 animate-spin" /> : <Archive className="w-4 h-4" />}
+                    {savingDraft ? 'Saving...' : 'Save Draft'}
+                  </button>
+                </div>
+
+                <div className="bg-pj-sage rounded-2xl border border-pj-green/30 p-4 text-xs text-ink/70">
+                  <p className="font-semibold text-ink mb-1">PrintFinity</p>
+                  Print a different design on every card in your pack — free with PrintFinity.
+                </div>
+              </div>
+            </aside>
           </div>
 
           {/* Bottom actions */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-6 max-w-2xl mx-auto">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => goToStep('details')}
-                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border-2 border-paper-300 text-ink font-semibold hover:border-ink transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Back to Details
-              </button>
-              <button
-                onClick={handleSaveDraft}
-                disabled={savingDraft}
-                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border-2 border-pj-green text-pj-green font-semibold hover:bg-pj-sage transition-colors disabled:opacity-60"
-              >
-                {savingDraft ? <Loader2 className="w-4 h-4 animate-spin" /> : <Archive className="w-4 h-4" />}
-                {savingDraft ? 'Saving...' : 'Save Draft'}
-              </button>
-            </div>
+            <button
+              onClick={() => goToStep('details')}
+              className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border-2 border-paper-300 text-ink font-semibold hover:border-ink transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Back to Details
+            </button>
             <button
               onClick={() => goToStep('review')}
               className="flex items-center justify-center gap-2 bg-pj-green hover:bg-ink text-paper-50 font-semibold py-3.5 rounded-full transition-colors text-lg shadow-lg shadow-pj-green/20"

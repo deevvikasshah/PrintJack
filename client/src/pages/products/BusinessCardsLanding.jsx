@@ -229,7 +229,7 @@ export default function BusinessCardsLanding() {
 
   const quickQtys = [100, 250, 500, 1000, 2500];
   const effectivePaper = product || { name: 'Original Business Cards', material: '350 GSM Art Card', slug: 'business-cards' };
-  const configureUrl = product && product._id ? `/configure/${product._id}` : `/products?category=business-cards`;
+  const configureUrl = product && product._id ? `/configure/${product._id}#stage=design` : `/products?category=business-cards`;
 
   const avgRating = products.length
     ? (products.reduce((s, p) => s + (p.rating || 0), 0) / products.length).toFixed(1)
@@ -454,7 +454,7 @@ export default function BusinessCardsLanding() {
                 Start making <ArrowRight size={18} />
               </Link>
               <Link
-                to="/editor"
+                to={configureUrl}
                 className="mt-3 w-full inline-flex items-center justify-center gap-2 border-2 border-ink/10 text-ink font-semibold py-3 rounded-xl hover:border-pj-green hover:text-pj-green transition-colors"
               >
                 <Upload size={16} /> Upload your own design
