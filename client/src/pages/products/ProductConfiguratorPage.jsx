@@ -57,16 +57,20 @@ export default function ProductConfiguratorPage() {
   const undoStack = useRef([]);
   const redoStack = useRef([]);
   const designIdRef = useRef(null);
+  const backDesignIdRef = useRef(null);
   const designStateRef = useRef(null);
   const canvasJSONRef = useRef(null);
   const previewUrlRef = useRef(null);
   const addToCartRef = useRef(null);
   const resumeJSONRef = useRef(null);
+  const facesRef = useRef([{ canvasJSON: null, previewUrl: null, designState: null }]);
 
   const { isAuthenticated } = useAuth();
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const hideQuantity = searchParams.get('hideOptions') === 'true';
   const designKey = searchParams.get('area');
+  const isDoubleSided = searchParams.get('sides') === 'double';
+  const faceLabels = ['Front', 'Back'];
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -82,6 +86,8 @@ export default function ProductConfiguratorPage() {
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [designPreviewUrl, setDesignPreviewUrl] = useState(null);
+  const [activeFace, setActiveFace] = useState(0);
+  const [facePreviews, setFacePreviews] = useState([]);
 
   const [activeDesignTab, setActiveDesignTab] = useState('templates');
   const [canUndo, setCanUndo] = useState(false);
@@ -132,6 +138,10 @@ export default function ProductConfiguratorPage() {
           setSelectedColor(colors[0]?.name || '');
         }
         setQuantity(prod.minimumOrderQuantity || 1);
+        const qtyParam = parseInt(searchParams.get('qty') || '', 10);
+        if (qtyParam >= (prod.minimumOrderQuantity || 1)) {
+          setQuantity(qtyParam);
+        }
 
         setupCanvas(prod, areas[initialIdx] || null);
       } catch (err) {
@@ -558,6 +568,13 @@ export default function ProductConfiguratorPage() {
         if (hasDesign) {
           canvasJSONRef.current = canvasRef.current.toJSON?.() || null;
           previewUrlRef.current = canvasRef.current.toDataUrl?.() || null;
+          if (isDoubleSided) {
+            facesRef.current[activeFace] = {
+              canvasJSON: canvasJSONRef.current,
+              previewUrl: previewUrlRef.current,
+              designState: serializeDesign(canvas),
+            };
+          }
         }
       }
       if (step === 'design' && s !== 'design' && canvas) {
@@ -570,11 +587,23 @@ export default function ProductConfiguratorPage() {
       setStep(s);
       window.location.hash = `stage=${s}`;
       if (s === 'review') {
-        const url = canvasRef.current?.toDataUrl?.() || previewUrlRef.current;
-        setDesignPreviewUrl(url || null);
+        if (isDoubleSided) {
+          const previews = (facesRef.current || []).map((f) => f?.previewUrl || null);
+          setFacePreviews(previews);
+          setDesignPreviewUrl(previews[0] || null);
+          const emptyFace = faceLabels.findIndex((_, i) => !previews[i]);
+          if (emptyFace !== -1) {
+            toast(`You haven't designed the ${faceLabels[emptyFace]} yet — you can still review.`, {
+              icon: '⚠️',
+            });
+          }
+        } else {
+          const url = canvasRef.current?.toDataUrl?.() || previewUrlRef.current;
+          setDesignPreviewUrl(url || null);
+        }
       }
     },
-    [step, serializeDesign]
+    [step, serializeDesign, isDoubleSided, activeFace]
   );
 
   const handleCanvasReady = useCallback(() => {
@@ -585,6 +614,26 @@ export default function ProductConfiguratorPage() {
       refreshObjects();
       return;
     }
+    if (isDoubleSided) {
+      const face = facesRef.current[activeFace];
+      if (face?.designState) {
+        applyDesignState(face.designState, () => {
+          refreshObjects();
+          undoStack.current = [];
+          redoStack.current = [];
+        });
+        return;
+      }
+      if (designStateRef.current) {
+        applyDesignState(designStateRef.current, () => {
+          designStateRef.current = null;
+          refreshObjects();
+          undoStack.current = [];
+          redoStack.current = [];
+        });
+      }
+      return;
+    }
     if (designStateRef.current) {
       applyDesignState(designStateRef.current, () => {
         designStateRef.current = null;
@@ -593,7 +642,39 @@ export default function ProductConfiguratorPage() {
         redoStack.current = [];
       });
     }
-  }, [applyDesignState, refreshObjects]);
+  }, [applyDesignState, refreshObjects, isDoubleSided, activeFace]);
+
+  const saveActiveFaceState = useCallback(() => {
+    const canvas = canvasRef.current?.getCanvas?.();
+    if (!canvas) return;
+    facesRef.current[activeFace] = {
+      canvasJSON: canvasRef.current.toJSON?.() || null,
+      previewUrl: canvasRef.current.toDataUrl?.() || null,
+      designState: serializeDesign(canvas),
+    };
+  }, [activeFace, serializeDesign]);
+
+  const switchFace = useCallback(
+    (idx) => {
+      if (idx === activeFace) return;
+      saveActiveFaceState();
+      setActiveFace(idx);
+      undoStack.current = [];
+      redoStack.current = [];
+      setCanUndo(false);
+      setCanRedo(false);
+      const face = facesRef.current[idx];
+      if (face?.designState) {
+        applyDesignState(face.designState, () => {
+          refreshObjects();
+        });
+      } else {
+        canvasRef.current?.clearCanvas?.();
+        refreshObjects();
+      }
+    },
+    [activeFace, saveActiveFaceState, applyDesignState, refreshObjects]
+  );
 
   const loadProductTemplate = useCallback(
     (template) => {
@@ -627,25 +708,69 @@ export default function ProductConfiguratorPage() {
     const sourceEl = e?.currentTarget || addToCartRef.current;
     setAddingToCart(true);
     try {
-      const canvas = canvasRef.current?.getCanvas?.();
-      const json = canvas ? canvasRef.current.toJSON?.() : canvasJSONRef.current;
-      const previewUrl = canvas ? canvasRef.current.toDataUrl?.() : previewUrlRef.current;
-      const hasDesign = json?.objects?.length > 0;
-      let designId;
-      if (hasDesign) {
-        designId = designIdRef.current;
-        if (!designId) {
-          const { data } = await api.post('/designs', {
-            productId,
-            canvasJSON: json,
-            previewImage: previewUrl,
-            isDraft: false,
-          });
-          designId = data.design?._id || data._id;
-          designIdRef.current = designId;
+      if (isDoubleSided) {
+        saveActiveFaceState();
+        const faces = [];
+        let primaryDesignId;
+        for (let i = 0; i < 2; i++) {
+          const face = facesRef.current[i];
+          const json = face?.canvasJSON || (i === activeFace ? canvasRef.current?.toJSON?.() : null);
+          const previewUrl = face?.previewUrl || (i === activeFace ? canvasRef.current?.toDataUrl?.() : null);
+          const hasDesign = json?.objects?.length > 0;
+          if (!hasDesign) {
+            toast.error(`Please design the ${faceLabels[i]} of your card first`);
+            setAddingToCart(false);
+            return;
+          }
+          let designId = i === 0 ? designIdRef.current : backDesignIdRef.current;
+          if (!designId) {
+            const { data } = await api.post('/designs', {
+              productId,
+              name: `${product.name} — ${faceLabels[i]}`,
+              canvasJSON: json,
+              previewImage: previewUrl,
+              isDraft: false,
+            });
+            designId = data.design?._id || data._id;
+            if (i === 0) designIdRef.current = designId;
+            else backDesignIdRef.current = designId;
+          }
+          faces.push({ name: faceLabels[i], designId, preview: previewUrl });
+          if (i === 0) primaryDesignId = designId;
         }
+        await cartAddToCart(
+          productId,
+          quantity,
+          selectedSize || undefined,
+          selectedColor || undefined,
+          primaryDesignId,
+          {
+            sides: 'double',
+            faces,
+            preview: faces[0]?.preview || null,
+          }
+        );
+      } else {
+        const canvas = canvasRef.current?.getCanvas?.();
+        const json = canvas ? canvasRef.current.toJSON?.() : canvasJSONRef.current;
+        const previewUrl = canvas ? canvasRef.current.toDataUrl?.() : previewUrlRef.current;
+        const hasDesign = json?.objects?.length > 0;
+        let designId;
+        if (hasDesign) {
+          designId = designIdRef.current;
+          if (!designId) {
+            const { data } = await api.post('/designs', {
+              productId,
+              canvasJSON: json,
+              previewImage: previewUrl,
+              isDraft: false,
+            });
+            designId = data.design?._id || data._id;
+            designIdRef.current = designId;
+          }
+        }
+        await cartAddToCart(productId, quantity, selectedSize || undefined, selectedColor || undefined, designId);
       }
-      await cartAddToCart(productId, quantity, selectedSize || undefined, selectedColor || undefined, designId);
       try {
         localStorage.removeItem(DRAFT_KEY(productId));
       } catch {
@@ -661,7 +786,7 @@ export default function ProductConfiguratorPage() {
     } finally {
       setAddingToCart(false);
     }
-  }, [product, productId, quantity, selectedSize, selectedColor, cartAddToCart, flyToCart, productImage]);
+  }, [product, productId, quantity, selectedSize, selectedColor, cartAddToCart, flyToCart, productImage, isDoubleSided, activeFace, saveActiveFaceState]);
 
   if (loading) {
     return (
@@ -728,7 +853,9 @@ export default function ProductConfiguratorPage() {
                   {product.name}
                 </h1>
                 <p className="text-xs text-ink/50 hidden sm:block truncate">
-                  {printAreas[selectedPrintArea]?.name || 'Custom print'}
+                  {isDoubleSided
+                    ? `${faceLabels[activeFace]} side · ${printAreas[selectedPrintArea]?.name || 'Custom print'}`
+                    : printAreas[selectedPrintArea]?.name || 'Custom print'}
                 </p>
               </div>
             </div>
@@ -1028,10 +1155,14 @@ export default function ProductConfiguratorPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs font-semibold text-pj-green uppercase tracking-widest mb-1">Step 2 of 3</p>
-              <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink">Design your print</h2>
+              <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink">
+                {isDoubleSided ? `Design your ${faceLabels[activeFace].toLowerCase()} side` : 'Design your print'}
+              </h2>
             </div>
             <p className="hidden md:block text-sm text-ink/50">
-              Add text, upload artwork, or start from a template — all online.
+              {isDoubleSided
+                ? 'You will design both the front and back of your card.'
+                : 'Add text, upload artwork, or start from a template — all online.'}
             </p>
           </div>
 
@@ -1179,6 +1310,31 @@ export default function ProductConfiguratorPage() {
 
             {/* Canvas */}
             <main className="flex-1 bg-paper-50 rounded-2xl border border-paper-200 p-4 min-h-[520px]">
+              {isDoubleSided && (
+                <div className="flex items-center gap-2 mb-4">
+                  {faceLabels.map((label, i) => (
+                    <button
+                      key={label}
+                      onClick={() => switchFace(i)}
+                      className={clsx(
+                        'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors',
+                        activeFace === i
+                          ? 'bg-ink text-paper-50'
+                          : 'bg-paper-100 border border-paper-300 text-ink/60 hover:border-ink/40'
+                      )}
+                    >
+                      <span className={clsx('w-2 h-2 rounded-full', activeFace === i ? 'bg-pj-green' : 'bg-paper-300')} />
+                      Design {i + 1} · {label}
+                      {facesRef.current[i]?.designState && activeFace !== i && (
+                        <Check className="w-3.5 h-3.5 text-pj-green" />
+                      )}
+                    </button>
+                  ))}
+                  <span className="ml-auto hidden md:inline text-xs text-ink/40">
+                    {faceLabels[activeFace]} side — add your {faceLabels[activeFace].toLowerCase()} design below
+                  </span>
+                </div>
+              )}
               {printAreas.length > 1 && (
                 <div className="flex flex-wrap gap-2 mb-4">
                   {printAreas.map((area, i) => (
@@ -1364,24 +1520,54 @@ export default function ProductConfiguratorPage() {
           <div className="grid md:grid-cols-2 gap-6">
             {/* Mockup */}
             <div className="bg-paper-50 rounded-2xl border border-paper-200 p-6 flex items-center justify-center min-h-[400px]">
-              <div className="relative max-w-sm w-full">
-                {product.image && (
-                  <img src={product.image} alt={product.name} className="w-full rounded-xl shadow-lg" />
-                )}
-                {designPreviewUrl && (
-                  <img
-                    src={designPreviewUrl}
-                    alt="Design overlay"
-                    className="absolute inset-0 w-full h-full object-contain"
-                    style={{ mixBlendMode: 'multiply' }}
-                  />
-                )}
-                {!product.image && !designPreviewUrl && (
-                  <div className="w-full aspect-square bg-paper-200 rounded-xl flex items-center justify-center">
-                    <Package className="w-16 h-16 text-ink/30" />
-                  </div>
-                )}
-              </div>
+              {isDoubleSided ? (
+                <div className="w-full max-w-sm space-y-4">
+                  {faceLabels.map((label, i) => (
+                    <div key={label}>
+                      <p className="text-xs font-semibold text-ink/60 uppercase tracking-wider mb-2">
+                        {label} design
+                      </p>
+                      <div className="relative">
+                        {product.image && (
+                          <img src={product.image} alt={product.name} className="w-full rounded-xl shadow-lg" />
+                        )}
+                        {facePreviews[i] && (
+                          <img
+                            src={facePreviews[i]}
+                            alt={`${product.name} ${label} design`}
+                            className="absolute inset-0 w-full h-full object-contain"
+                            style={{ mixBlendMode: 'multiply' }}
+                          />
+                        )}
+                        {!product.image && !facePreviews[i] && (
+                          <div className="w-full aspect-[4/2] bg-paper-200 rounded-xl flex items-center justify-center">
+                            <Package className="w-10 h-10 text-ink/30" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="relative max-w-sm w-full">
+                  {product.image && (
+                    <img src={product.image} alt={product.name} className="w-full rounded-xl shadow-lg" />
+                  )}
+                  {designPreviewUrl && (
+                    <img
+                      src={designPreviewUrl}
+                      alt="Design overlay"
+                      className="absolute inset-0 w-full h-full object-contain"
+                      style={{ mixBlendMode: 'multiply' }}
+                    />
+                  )}
+                  {!product.image && !designPreviewUrl && (
+                    <div className="w-full aspect-square bg-paper-200 rounded-xl flex items-center justify-center">
+                      <Package className="w-16 h-16 text-ink/30" />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Summary */}
@@ -1393,6 +1579,12 @@ export default function ProductConfiguratorPage() {
                   <dt className="text-ink/50">Product</dt>
                   <dd className="font-semibold text-ink text-right">{product.name}</dd>
                 </div>
+                {isDoubleSided && (
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-ink/50">Printing</dt>
+                    <dd className="font-semibold text-ink text-right">Double sided (Front + Back)</dd>
+                  </div>
+                )}
                 {printAreas[selectedPrintArea] && (
                   <div className="flex justify-between gap-4">
                     <dt className="text-ink/50">Print area</dt>

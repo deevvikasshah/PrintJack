@@ -64,7 +64,7 @@ const GUIDELINES = {
     ],
   },
   moo: {
-    label: 'MOO Size',
+    label: 'Euro Size',
     trim: '85 × 55 mm',
     bleed: '89 × 59 mm',
     safe: '81 × 51 mm',
@@ -229,7 +229,10 @@ export default function BusinessCardsLanding() {
 
   const quickQtys = [100, 250, 500, 1000, 2500];
   const effectivePaper = product || { name: 'Original Business Cards', material: '350 GSM Art Card', slug: 'business-cards' };
-  const configureUrl = product && product._id ? `/configure/${product._id}#stage=design` : `/products?category=business-cards`;
+  const sidesParam = side.label === 'Double sided' ? 'sides=double' : 'sides=single';
+  const configureUrl = product && product._id
+    ? `/configure/${product._id}?${sidesParam}&size=${encodeURIComponent(sizeKey)}&qty=${quantity}#stage=design`
+    : `/products?category=business-cards`;
 
   const avgRating = products.length
     ? (products.reduce((s, p) => s + (p.rating || 0), 0) / products.length).toFixed(1)
