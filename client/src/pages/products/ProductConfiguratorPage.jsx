@@ -1527,9 +1527,13 @@ export default function ProductConfiguratorPage() {
                       <p className="text-xs font-semibold text-ink/60 uppercase tracking-wider mb-2">
                         {label} design
                       </p>
-                      <div className="relative">
-                        {product.image && (
-                          <img src={product.image} alt={product.name} className="w-full rounded-xl shadow-lg" />
+                      <div className="relative aspect-[2/1.1] rounded-xl overflow-hidden border border-paper-200 bg-white">
+                        {(product.image || product.images?.[0]?.url) && (
+                          <img
+                            src={product.image || product.images?.[0]?.url}
+                            alt={product.name}
+                            className="absolute inset-0 w-full h-full object-contain"
+                          />
                         )}
                         {facePreviews[i] && (
                           <img
@@ -1539,8 +1543,8 @@ export default function ProductConfiguratorPage() {
                             style={{ mixBlendMode: 'multiply' }}
                           />
                         )}
-                        {!product.image && !facePreviews[i] && (
-                          <div className="w-full aspect-[4/2] bg-paper-200 rounded-xl flex items-center justify-center">
+                        {!facePreviews[i] && (
+                          <div className="w-full h-full bg-paper-200 flex items-center justify-center">
                             <Package className="w-10 h-10 text-ink/30" />
                           </div>
                         )}
@@ -1549,20 +1553,23 @@ export default function ProductConfiguratorPage() {
                   ))}
                 </div>
               ) : (
-                <div className="relative max-w-sm w-full">
-                  {product.image && (
-                    <img src={product.image} alt={product.name} className="w-full rounded-xl shadow-lg" />
+                <div className="relative aspect-[4/2] w-full max-w-sm rounded-xl overflow-hidden bg-white">
+                  {(product.image || product.images?.[0]?.url) && (
+                    <img
+                      src={product.image || product.images?.[0]?.url}
+                      alt={product.name}
+                      className="absolute inset-0 w-full h-full object-contain"
+                    />
                   )}
                   {designPreviewUrl && (
                     <img
                       src={designPreviewUrl}
                       alt="Design overlay"
                       className="absolute inset-0 w-full h-full object-contain"
-                      style={{ mixBlendMode: 'multiply' }}
                     />
                   )}
-                  {!product.image && !designPreviewUrl && (
-                    <div className="w-full aspect-square bg-paper-200 rounded-xl flex items-center justify-center">
+                  {!designPreviewUrl && (
+                    <div className="w-full h-full bg-paper-200 flex items-center justify-center">
                       <Package className="w-16 h-16 text-ink/30" />
                     </div>
                   )}
