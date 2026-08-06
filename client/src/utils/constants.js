@@ -37,6 +37,51 @@ export const PRODUCT_CATEGORIES = [
   { slug: 'custom-prints', name: 'Custom Prints', icon: 'Paintbrush' },
 ];
 
+export const MEGA_MENU_FALLBACK = [
+  {
+    name: 'Apparel',
+    slug: null,
+    subcategories: [
+      { name: 'T-Shirts', slug: 't-shirts' },
+      { name: 'Hoodies', slug: 'hoodies' },
+      { name: 'Caps & Hats', slug: 'caps' },
+    ],
+  },
+  {
+    name: 'Drinkware',
+    slug: null,
+    subcategories: [{ name: 'Mugs', slug: 'mugs' }],
+  },
+  {
+    name: 'Accessories',
+    slug: null,
+    subcategories: [
+      { name: 'Phone Cases', slug: 'phone-cases' },
+      { name: 'Tote Bags', slug: 'tote-bags' },
+      { name: 'Notebooks', slug: 'notebooks' },
+      { name: 'Mouse Pads', slug: 'mousepads' },
+    ],
+  },
+  {
+    name: 'Print Media',
+    slug: null,
+    subcategories: [
+      { name: 'Posters', slug: 'posters' },
+      { name: 'Stickers', slug: 'stickers' },
+      { name: 'Flyers', slug: 'flyers' },
+      { name: 'Banners', slug: 'banners' },
+    ],
+  },
+  {
+    name: 'Stationery',
+    slug: null,
+    subcategories: [
+      { name: 'Business Cards', slug: 'business-cards' },
+      { name: 'Custom Prints', slug: 'custom-prints' },
+    ],
+  },
+];
+
 export const COLORS = [
   { name: 'White', hex: '#FFFFFF' },
   { name: 'Black', hex: '#000000' },

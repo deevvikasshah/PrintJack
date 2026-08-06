@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { fabric } from 'fabric';
 import toast from 'react-hot-toast';
 import {
@@ -40,6 +40,8 @@ const MAX_UNDO = 50;
 export default function EditorPage() {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const designParam = searchParams.get('design');
   const { addToCart: cartAddToCart } = useCart();
 
   const canvasRef = useRef(null);
@@ -47,6 +49,7 @@ export default function EditorPage() {
   const redoStack = useRef([]);
   const autoSaveTimer = useRef(null);
   const designIdRef = useRef(null);
+  const pendingDesignStateRef = useRef(null);
   const handleSaveRef = useRef(null);
 
   const [product, setProduct] = useState(null);
@@ -107,6 +110,22 @@ export default function EditorPage() {
         setCanvasWidth(normalizedPA.width + (normalizedPA.x || 0) * 2 || 500);
         setCanvasHeight(normalizedPA.height + (normalizedPA.y || 0) * 2 || 500);
         setProductImage(prod.mockupImage || prod.image || null);
+
+        if (designParam) {
+          try {
+            const { data: designRes } = await api.get(`/designs/${designParam}`);
+            const design = designRes.design || designRes;
+            if (design?.canvasData && Array.isArray(design.canvasData)) {
+              designIdRef.current = design._id;
+              pendingDesignStateRef.current = JSON.stringify(design.canvasData);
+            } else if (typeof design?.canvasData === 'string') {
+              designIdRef.current = design._id;
+              pendingDesignStateRef.current = design.canvasData;
+            }
+          } catch (err) {
+            toast.error('Could not load design');
+          }
+        }
       } catch (err) {
         toast.error('Failed to load product');
         navigate('/products');
@@ -115,7 +134,7 @@ export default function EditorPage() {
       }
     };
     fetchProduct();
-  }, [productId, navigate]);
+  }, [productId, navigate, designParam]);
 
   const isDecorationObject = useCallback((o) => {
     return o._isGrid === true || o._isBackground === true || o._isPrintArea === true;
@@ -724,8 +743,18 @@ export default function EditorPage() {
   }, []);
 
   const handleCanvasReady = useCallback(() => {
+    if (pendingDesignStateRef.current) {
+      const state = pendingDesignStateRef.current;
+      pendingDesignStateRef.current = null;
+      applyDesignState(state, () => {
+        undoStack.current.push(state);
+        setCanUndo(true);
+        refreshObjects();
+      });
+      return;
+    }
     refreshObjects();
-  }, [refreshObjects]);
+  }, [applyDesignState, refreshObjects]);
 
   const handleObjectSelected = useCallback((obj) => {
     setSelectedObject(obj);

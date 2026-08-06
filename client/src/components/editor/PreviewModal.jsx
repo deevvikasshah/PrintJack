@@ -26,14 +26,23 @@ export default function PreviewModal({
   const [addingToCart, setAddingToCart] = useState(false);
 
   const basePrice = product?.basePrice || product?.price || 299;
+  const bulkTiers = Array.isArray(product?.bulkPricing) && product.bulkPricing.length > 0 ? product.bulkPricing : null;
 
   const pricingTier = useMemo(
-    () => QUANTITY_TIERS.find((t) => quantity >= t.min && quantity <= t.max),
-    [quantity]
+    () => {
+      if (bulkTiers) {
+        const tier = bulkTiers
+          .filter((b) => quantity >= b.minQty && quantity <= (b.maxQty ?? Infinity))
+          .sort((a, b) => b.minQty - a.minQty)[0];
+        return tier ? { price: tier.price, isBulk: true } : null;
+      }
+      return QUANTITY_TIERS.find((t) => quantity >= t.min && quantity <= t.max);
+    },
+    [quantity, bulkTiers]
   );
 
   const unitPrice = useMemo(
-    () => Math.round(basePrice * (pricingTier?.priceMultiplier || 1)),
+    () => (pricingTier?.isBulk ? pricingTier.price : Math.round(basePrice * (pricingTier?.priceMultiplier || 1))),
     [basePrice, pricingTier]
   );
 
@@ -185,7 +194,12 @@ export default function PreviewModal({
                 </div>
                 {pricingTier && (
                   <div className="flex justify-between text-sm text-green-600">
-                    <span>Bulk discount ({Math.round((1 - pricingTier.priceMultiplier) * 100)}% off)</span>
+                    <span>
+                      Bulk discount{' '}
+                      ({pricingTier.isBulk
+                        ? `${Math.round((1 - pricingTier.price / basePrice) * 100)}% off`
+                        : `${Math.round((1 - pricingTier.priceMultiplier) * 100)}% off`})
+                    </span>
                     <span>-₹{(basePrice * quantity - totalPrice).toLocaleString()}</span>
                   </div>
                 )}

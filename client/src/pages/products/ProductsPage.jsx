@@ -138,7 +138,7 @@ export default function ProductsPage() {
       }
     };
     fetchProducts();
-  }, [sortBy, searchQuery, filters.selectedCategories, filters.priceRange, filters.selectedRating, currentPage]);
+  }, [sortBy, searchQuery, filters.selectedCategories, filters.selectedColors, filters.selectedSizes, filters.selectedMaterials, filters.priceRange, filters.selectedRating, currentPage]);
 
   const handleFilterChange = useCallback((update) => {
     setFilters((prev) => ({ ...prev, ...update }));

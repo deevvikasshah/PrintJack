@@ -6,7 +6,7 @@ import {
   ArrowRight, Truck, ShieldCheck, MapPin, Headphones,
   CreditCard, Shirt, StickyNote, Megaphone, Maximize, Coffee,
   MousePointerClick, Palette, CheckCircle, Package, Star,
-  Send, ChevronDown, Quote,
+  Send, ChevronDown, Quote, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 
 const fadeUp = {
@@ -75,6 +75,36 @@ const featuredProducts = [
   { id: 6, name: 'A5 Flyer Single-Sided', price: 99, bulkPrice: 49, image: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400', category: 'Marketing', rating: 4.4, reviews: 678, features: ['Gloss or matte', 'Fast turnaround', 'Full colour'] },
 ];
 
+const heroSlides = [
+  {
+    id: 1,
+    image: 'https://images.unsplash.com/photo-1591405351990-4726e331f141?w=1600&q=80',
+    badge: 'Trusted by 10,000+ businesses across India',
+    title: ['Custom printed products', 'that mean business.'],
+    subtitle: 'From business cards to branded merchandise — design, customize, and order premium printed products with pan-India delivery.',
+    primary: { label: 'Shop Products', to: '/products' },
+    secondary: { label: 'Start Designing', to: '/editor' },
+  },
+  {
+    id: 2,
+    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1600&q=80',
+    badge: 'Free online design studio',
+    title: ['Design online.', 'Print premium.'],
+    subtitle: 'Create custom apparel, mugs, and more in minutes with 30+ fonts, clipart, and ready-made templates in our free editor.',
+    primary: { label: 'Start Designing', to: '/editor' },
+    secondary: { label: 'Shop Products', to: '/products' },
+  },
+  {
+    id: 3,
+    image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=1600&q=80',
+    badge: 'Bulk pricing that scales',
+    title: ['Bulk printing that', 'saves you big.'],
+    subtitle: 'Tiered discounts on every product — the more you order, the lower the per-unit price. Perfect for businesses and events.',
+    primary: { label: 'Get a Quote', to: '/contact' },
+    secondary: { label: 'Shop Products', to: '/products' },
+  },
+];
+
 const testimonials = [
   { name: 'Priya Sharma', role: 'Founder, Brew Coffee', rating: 5, text: 'PrintJack delivered our branded merchandise faster than expected. The print quality is outstanding. We have ordered 5 times already!', avatar: 'PS' },
   { name: 'Rahul Mehta', role: 'Marketing Lead, TechNova', rating: 5, text: 'The online editor made it so easy to design our promotional banners. Great customer support too. Highly recommended for businesses!', avatar: 'RM' },
@@ -141,10 +171,25 @@ function FaqAccordion({ items }) {
 export default function HomePage() {
   const [email, setEmail] = useState('');
   const [content, setContent] = useState(null);
+  const [featuredItems, setFeaturedItems] = useState([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHeroPaused, setIsHeroPaused] = useState(false);
+
+  const goToSlide = (i) => setCurrentSlide((i + heroSlides.length) % heroSlides.length);
+  const goToNext = () => setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  const goToPrev = () => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+
+  useEffect(() => {
+    if (isHeroPaused) return undefined;
+    const timer = setInterval(goToNext, 5000);
+    return () => clearInterval(timer);
+  }, [isHeroPaused]);
 
   const trustLogos = content?.trustLogos || defaultTrustLogos;
   const siteTestimonials = content?.testimonials || defaultTestimonials;
   const trustBar = content?.trustBar || defaultTrustBar;
+
+  const displayFeatured = featuredItems.length > 0 ? featuredItems : featuredProducts;
 
   useEffect(() => {
     const loadContent = async () => {
@@ -163,38 +208,143 @@ export default function HomePage() {
     loadContent();
   }, []);
 
+  useEffect(() => {
+    const loadFeatured = async () => {
+      try {
+        const res = await fetch('/api/products/featured');
+        if (!res.ok) return;
+        const data = await res.json();
+        const list = data.products || data.data || [];
+        if (list.length === 0) return;
+        setFeaturedItems(
+          list.map((p) => ({
+            id: p._id,
+            slug: p.slug,
+            name: p.name,
+            price: p.basePrice || p.price || 0,
+            bulkPrice: p.bulkPrice || (p.bulkPricing && p.bulkPricing[0]?.price) || null,
+            image:
+              (p.images && p.images[0] && (typeof p.images[0] === 'string' ? p.images[0] : p.images[0].url)) ||
+              '/placeholder-product.png',
+            category: p.category?.name || p.category || 'Products',
+            rating: p.averageRating || p.rating || 0,
+            reviews: p.totalReviews || p.reviewCount || 0,
+            discount: p.discount || 0,
+            features: [
+              p.material ? `Material · ${p.material}` : null,
+              p.printingMethod ? `Print · ${p.printingMethod}` : null,
+              'Free online preview',
+            ].filter(Boolean),
+          }))
+        );
+      } catch (e) {
+        // Fall back to hardcoded featured products
+      }
+    };
+    loadFeatured();
+  }, []);
+
   return (
     <div className="bg-paper-100">
-      {/* ===== HERO ===== */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(/hero-background.png)' }}></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-28 lg:pb-32 text-center">
-          <motion.span initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="inline-flex items-center gap-2 text-sm text-white/80 mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-pj-green" /> Trusted by 10,000+ businesses across India
-          </motion.span>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="font-display text-4xl sm:text-5xl lg:text-7xl text-white leading-[1.05] font-semibold tracking-tight">
-            Custom printed products<br />
-            <span className="italic text-white/80">that mean business.</span>
-          </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.7 }} className="mt-6 text-lg text-white/80 max-w-2xl mx-auto leading-relaxed">
-            From business cards to branded merchandise — design, customize, and order
-            premium printed products with pan-India delivery.
-          </motion.p>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.7 }} className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              to="/products"
-              className="inline-flex items-center gap-2 bg-white text-ink font-semibold px-8 py-4 rounded-full hover:bg-pj-green hover:text-white transition-colors"
-            >
-              Shop Products <ArrowRight size={18} />
-            </Link>
-            <Link
-              to="/editor"
-              className="inline-flex items-center gap-2 border border-white/50 text-white font-semibold px-8 py-4 rounded-full hover:border-white hover:bg-white/10 transition-colors"
-            >
-              Start Designing
-            </Link>
-          </motion.div>
+      {/* ===== HERO CAROUSEL ===== */}
+      <section
+        className="relative overflow-hidden"
+        onMouseEnter={() => setIsHeroPaused(true)}
+        onMouseLeave={() => setIsHeroPaused(false)}
+      >
+        <div className="relative h-[560px] sm:h-[600px] lg:h-[680px]">
+          {heroSlides.map((slide, i) => {
+            const isActive = i === currentSlide;
+            return (
+              <div
+                key={slide.id}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                  isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                }`}
+              >
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${slide.image})` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/20" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <motion.div
+                      initial={false}
+                      animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
+                    >
+                      <motion.span
+                        initial={false}
+                        animate={isActive ? { opacity: 1 } : { opacity: 0 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        className="inline-flex items-center gap-2 text-sm text-white/80 mb-8"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-pj-green" /> {slide.badge}
+                      </motion.span>
+                      <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl text-white leading-[1.05] font-semibold tracking-tight">
+                        {slide.title[0]}
+                        <br />
+                        <span className="italic text-white/80">{slide.title[1]}</span>
+                      </h1>
+                      <p className="mt-6 text-lg text-white/80 max-w-2xl mx-auto leading-relaxed">
+                        {slide.subtitle}
+                      </p>
+                      <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+                        <Link
+                          to={slide.primary.to}
+                          className="inline-flex items-center gap-2 bg-white text-ink font-semibold px-8 py-4 rounded-full hover:bg-pj-green hover:text-white transition-colors"
+                        >
+                          {slide.primary.label} <ArrowRight size={18} />
+                        </Link>
+                        {slide.secondary && (
+                          <Link
+                            to={slide.secondary.to}
+                            className="inline-flex items-center gap-2 border border-white/50 text-white font-semibold px-8 py-4 rounded-full hover:border-white hover:bg-white/10 transition-colors"
+                          >
+                            {slide.secondary.label}
+                          </Link>
+                        )}
+                      </div>
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Left / Right Arrows */}
+        <button
+          onClick={goToPrev}
+          aria-label="Previous slide"
+          className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/30 hover:bg-black/60 border border-white/20 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
+        >
+          <ChevronLeft size={22} />
+        </button>
+        <button
+          onClick={goToNext}
+          aria-label="Next slide"
+          className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/30 hover:bg-black/60 border border-white/20 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
+        >
+          <ChevronRight size={22} />
+        </button>
+
+        {/* Dot Indicators */}
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+          {heroSlides.map((slide, i) => (
+            <button
+              key={slide.id}
+              onClick={() => goToSlide(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              aria-current={i === currentSlide}
+              className={`h-2.5 rounded-full transition-all duration-300 ${
+                i === currentSlide
+                  ? 'w-8 bg-white'
+                  : 'w-2.5 bg-white/50 hover:bg-white/80'
+              }`}
+            />
+          ))}
         </div>
       </section>
 
@@ -314,7 +464,7 @@ export default function HomePage() {
             </Link>
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProducts.map((p, i) => (
+            {displayFeatured.map((p, i) => (
               <motion.div key={p.id} variants={fadeUp} className="group bg-paper-50 rounded-2xl overflow-hidden border border-ink/10 hover:border-ink/30 transition-all hover:-translate-y-1">
                 <div className="relative aspect-[4/3] overflow-hidden bg-paper-200">
                   <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />

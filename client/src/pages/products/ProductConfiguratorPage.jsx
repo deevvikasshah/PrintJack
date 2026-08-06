@@ -603,12 +603,21 @@ export default function ProductConfiguratorPage() {
   );
 
   const basePrice = product?.basePrice || product?.price || 299;
+  const bulkTiers = Array.isArray(product?.bulkPricing) && product.bulkPricing.length > 0 ? product.bulkPricing : null;
   const pricingTier = useMemo(
-    () => QUANTITY_TIERS.find((t) => quantity >= t.min && quantity <= t.max),
-    [quantity]
+    () => {
+      if (bulkTiers) {
+        const tier = bulkTiers
+          .filter((b) => quantity >= b.minQty && quantity <= (b.maxQty ?? Infinity))
+          .sort((a, b) => b.minQty - a.minQty)[0];
+        return tier ? { price: tier.price, isBulk: true } : null;
+      }
+      return QUANTITY_TIERS.find((t) => quantity >= t.min && quantity <= t.max);
+    },
+    [quantity, bulkTiers]
   );
   const unitPrice = useMemo(
-    () => Math.round(basePrice * (pricingTier?.priceMultiplier || 1)),
+    () => (pricingTier?.isBulk ? pricingTier.price : Math.round(basePrice * (pricingTier?.priceMultiplier || 1))),
     [basePrice, pricingTier]
   );
   const totalPrice = useMemo(() => unitPrice * quantity, [unitPrice, quantity]);
@@ -950,21 +959,24 @@ export default function ProductConfiguratorPage() {
                   </div>
 
                   <div className="mt-5 space-y-2">
-                    {QUANTITY_TIERS.map((tier) => {
-                      const active = quantity >= tier.min && quantity <= tier.max;
+                    {(bulkTiers || QUANTITY_TIERS).map((tier) => {
+                      const min = tier.minQty ?? tier.min;
+                      const max = tier.maxQty ?? tier.max;
+                      const price = tier.price ?? Math.round(basePrice * tier.priceMultiplier);
+                      const active = quantity >= min && quantity <= max;
                       return (
                         <div
-                          key={tier.min}
+                          key={min}
                           className={clsx(
                             'flex items-center justify-between px-4 py-2.5 rounded-xl text-sm transition-colors',
                             active ? 'bg-pj-sage border border-pj-green/40' : 'border border-transparent'
                           )}
                         >
                           <span className="text-ink/70">
-                            {tier.max === Infinity ? `${tier.min}+` : `${tier.min} – ${tier.max}`} units
+                            {max === Infinity ? `${min}+` : `${min} – ${max}`} units
                           </span>
                           <span className="font-semibold text-ink">
-                            ₹{Math.round(basePrice * tier.priceMultiplier)}
+                            ₹{price}
                             <span className="text-xs font-normal text-ink/50 ml-1">/unit</span>
                           </span>
                         </div>
