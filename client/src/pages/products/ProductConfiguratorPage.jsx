@@ -1025,38 +1025,41 @@ export default function ProductConfiguratorPage() {
       {/* STEP 2: DESIGN */}
       {step === 'design' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          <div className="text-center mb-6">
-            <p className="text-xs font-semibold text-pj-green uppercase tracking-widest mb-2">Step 2 of 3</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink">Design your print</h2>
-            <p className="mt-2 text-ink/60">Add text, upload artwork, or start from a template.</p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs font-semibold text-pj-green uppercase tracking-widest mb-1">Step 2 of 3</p>
+              <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink">Design your print</h2>
+            </div>
+            <p className="hidden md:block text-sm text-ink/50">
+              Add text, upload artwork, or start from a template — all online.
+            </p>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Left toolbar */}
-            <aside className="lg:w-72 flex-shrink-0 bg-paper-50 rounded-2xl border border-paper-200 overflow-hidden flex flex-col">              <div className="flex border-b border-paper-200 overflow-x-auto no-scrollbar">
+            {/* Left: slim tool rail + content panel */}
+            <div className="flex gap-3 lg:w-80 flex-shrink-0">
+              <aside className="w-16 flex-shrink-0 bg-paper-50 rounded-2xl border border-paper-200 overflow-hidden flex flex-col items-center py-2">
                 {DESIGN_TABS.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveDesignTab(tab.id)}
                     className={clsx(
-                      'flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors min-w-[64px]',
+                      'w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors mb-1',
                       activeDesignTab === tab.id
-                        ? 'text-pj-green bg-pj-sage/60'
+                        ? 'text-pj-green bg-pj-sage'
                         : 'text-ink/50 hover:text-ink/80 hover:bg-paper-100'
                     )}
+                    title={tab.label}
                   >
-                    <tab.icon className="w-4 h-4" />
+                    <tab.icon className="w-5 h-5" />
                     {tab.label}
                   </button>
                 ))}
-              </div>
-
-              <div className="flex items-center justify-between px-4 py-2 border-b border-paper-200">
-                <div className="flex gap-1">
+                <div className="mt-auto pt-2 border-t border-paper-200 w-full flex flex-col items-center gap-1 py-1">
                   <button
                     onClick={undo}
                     disabled={!canUndo}
-                    className="p-1.5 rounded-lg hover:bg-paper-200 transition-colors disabled:opacity-30"
+                    className="w-12 h-10 rounded-lg hover:bg-paper-200 transition-colors disabled:opacity-30 flex items-center justify-center"
                     title="Undo (Ctrl+Z)"
                   >
                     <Undo2 className="w-4 h-4 text-ink" />
@@ -1064,25 +1067,31 @@ export default function ProductConfiguratorPage() {
                   <button
                     onClick={redo}
                     disabled={!canRedo}
-                    className="p-1.5 rounded-lg hover:bg-paper-200 transition-colors disabled:opacity-30"
+                    className="w-12 h-10 rounded-lg hover:bg-paper-200 transition-colors disabled:opacity-30 flex items-center justify-center"
                     title="Redo (Ctrl+Y)"
                   >
                     <Redo2 className="w-4 h-4 text-ink" />
                   </button>
+                  <button
+                    onClick={() => setShowGrid(!showGrid)}
+                    className={clsx(
+                      'w-12 h-10 rounded-lg transition-colors flex items-center justify-center',
+                      showGrid ? 'text-pj-green bg-pj-sage' : 'text-ink/60 hover:bg-paper-200'
+                    )}
+                    title="Toggle Grid"
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowGrid(!showGrid)}
-                  className={clsx(
-                    'p-1.5 rounded-lg transition-colors',
-                    showGrid ? 'text-pj-green bg-pj-sage' : 'text-ink/60 hover:bg-paper-200'
-                  )}
-                  title="Toggle Grid"
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                </button>
-              </div>
+              </aside>
 
-              <div className="flex-1 overflow-y-auto p-3 max-h-[420px]">
+              <div className="flex-1 min-w-0 bg-paper-50 rounded-2xl border border-paper-200 overflow-hidden flex flex-col">
+                <div className="px-4 py-3 border-b border-paper-200">
+                  <h4 className="text-sm font-semibold text-ink">
+                    {DESIGN_TABS.find((t) => t.id === activeDesignTab)?.label || 'Tools'}
+                  </h4>
+                </div>
+                <div className="flex-1 overflow-y-auto p-3 max-h-[440px]">
                 {activeDesignTab === 'templates' && (
                   <div className="space-y-4">
                     {product.templates?.length > 0 && (
@@ -1164,11 +1173,31 @@ export default function ProductConfiguratorPage() {
                   </div>
                 )}
                 {activeDesignTab === 'clipart' && <ClipartPanel onClipartAdd={addClipart} />}
+                </div>
               </div>
-            </aside>
+            </div>
 
             {/* Canvas */}
             <main className="flex-1 bg-paper-50 rounded-2xl border border-paper-200 p-4 min-h-[520px]">
+              {printAreas.length > 1 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {printAreas.map((area, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handlePrintAreaChange(i)}
+                      className={clsx(
+                        'px-4 py-2 rounded-full text-sm font-semibold transition-colors',
+                        selectedPrintArea === i
+                          ? 'bg-ink text-paper-50'
+                          : 'bg-paper-100 border border-paper-300 text-ink/60 hover:border-ink/40'
+                      )}
+                    >
+                      {area.name || `Print Area ${i + 1}`}
+                      {area.description ? ` · ${area.description}` : ''}
+                    </button>
+                  ))}
+                </div>
+              )}
               <EditorCanvas
                 ref={canvasRef}
                 productImageUrl={productImage}
