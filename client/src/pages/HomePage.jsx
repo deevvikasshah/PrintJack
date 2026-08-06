@@ -129,9 +129,10 @@ const faqs = [
 ];
 
 const blogPosts = [
-  { title: '10 Business Card Design Trends for 2026', excerpt: 'Stay ahead with these modern business card trends that will make your brand memorable.', image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600', date: 'Jan 10, 2026', slug: 'business-card-trends-2026' },
-  { title: 'How to Design Merchandise Your Customers Will Love', excerpt: 'Learn the secrets of creating branded products that people actually want to use and wear.', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600', date: 'Jan 5, 2026', slug: 'design-merchandise-guide' },
-  { title: 'Bulk Printing: Tips to Save Money Without Compromising Quality', excerpt: 'Discover how to optimize your print orders for the best value and quality balance.', image: 'https://images.unsplash.com/photo-1562408590-e32931084e23?w=600', date: 'Dec 28, 2025', slug: 'bulk-printing-tips' },
+  { title: '10 Business Card Design Trends for 2026', excerpt: 'Stay ahead with these modern business card trends that will make your brand memorable.', image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600', readTime: '5 min read', slug: 'business-card-trends-2026' },
+  { title: 'How to Design Merchandise Your Customers Will Love', excerpt: 'Learn the secrets of creating branded products that people actually want to use and wear.', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600', readTime: '6 min read', slug: 'design-merchandise-guide' },
+  { title: 'Bulk Printing: Tips to Save Money Without Compromising Quality', excerpt: 'Discover how to optimize your print orders for the best value and quality balance.', image: 'https://images.unsplash.com/photo-1562408590-e32931084e23?w=600', readTime: '4 min read', slug: 'bulk-printing-tips' },
+  { title: 'DPI, Bleed & Safe Areas: Print File Specs Explained', excerpt: 'A quick guide to file setup so your prints come out pixel-perfect every single time.', image: 'https://images.unsplash.com/photo-1549476464-37392f717541?w=600', readTime: '5 min read', slug: 'print-file-specs-guide' },
 ];
 
 const defaultTrustLogos = ['Startup India', 'Make in India', 'Digital India', 'ISO 9001', 'Google Pay', 'Shopify', 'Razorpay', 'Myntra'];
@@ -787,32 +788,31 @@ export default function HomePage() {
         </AnimatedSection>
       </section>
 
-      {/* ===== BLOG PREVIEW ===== */}
+      {/* ===== TIPS & GUIDES ===== */}
       <section className="py-20 lg:py-28">
         <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div variants={fadeUp} className="flex items-end justify-between mb-14">
             <div>
-              <span className="text-sm text-pj-green font-medium uppercase tracking-widest">From Our Blog</span>
-              <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Latest articles</h2>
+              <span className="text-sm text-pj-green font-medium uppercase tracking-widest">Learn & Improve</span>
+              <h2 className="mt-3 font-display text-3xl sm:text-5xl text-ink">Tips & Guides</h2>
             </div>
             <Link to="/blog" className="hidden sm:inline-flex items-center gap-2 text-pj-green font-semibold hover:gap-3 transition-all">
               View all <ArrowRight size={16} />
             </Link>
           </motion.div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {blogPosts.map((post, i) => (
               <motion.div key={i} variants={fadeUp}>
-                <Link to={`/blog/${post.slug}`} className="group block bg-paper-50 rounded-2xl overflow-hidden border border-ink/10 hover:border-ink/30 transition-all hover:-translate-y-1">
-                  <div className="aspect-[16/10] overflow-hidden bg-paper-200">
+                <Link to="/blog" className="group block bg-paper-50 rounded-2xl overflow-hidden border border-ink/10 hover:border-ink/30 transition-all hover:-translate-y-1">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-paper-200">
                     <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                  </div>
-                  <div className="p-6">
-                    <span className="text-xs text-ink/50">{post.date}</span>
-                    <h3 className="mt-1 font-display text-lg text-ink group-hover:text-pj-green transition-colors leading-snug">{post.title}</h3>
-                    <p className="mt-2 text-sm text-ink/60 line-clamp-2">{post.excerpt}</p>
-                    <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-pj-green group-hover:gap-2 transition-all">
-                      Read More <ArrowRight size={14} />
+                    <span className="absolute top-3 left-3 px-2.5 py-1 bg-black/60 text-paper-50 text-[11px] font-semibold rounded-full backdrop-blur-sm">
+                      {post.readTime}
                     </span>
+                  </div>
+                  <div className="p-5">
+                    <h3 className="font-display text-lg text-ink group-hover:text-pj-green transition-colors leading-snug">{post.title}</h3>
+                    <p className="mt-2 text-sm text-ink/60 line-clamp-2">{post.excerpt}</p>
                   </div>
                 </Link>
               </motion.div>
