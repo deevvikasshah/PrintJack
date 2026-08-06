@@ -6,7 +6,7 @@ import {
   ArrowRight, Truck, ShieldCheck, MapPin, Headphones,
   CreditCard, Shirt, StickyNote, Megaphone, Maximize, Coffee,
   MousePointerClick, Palette, CheckCircle, Package, Star,
-  Send, ChevronDown, Quote, ChevronLeft, ChevronRight,
+  Send, ChevronDown, Quote, ChevronLeft, ChevronRight, Clock, BadgePercent,
 } from 'lucide-react';
 
 const fadeUp = {
@@ -103,6 +103,14 @@ const heroSlides = [
     primary: { label: 'Get a Quote', to: '/contact' },
     secondary: { label: 'Shop Products', to: '/products' },
   },
+];
+
+const whyChooseUs = [
+  { icon: Palette, title: 'Custom Designs', desc: 'Edit online or upload your own artwork for free.' },
+  { icon: Clock, title: 'Fast Turnaround', desc: 'Standard production in just 3–5 business days.' },
+  { icon: BadgePercent, title: 'Bulk Pricing', desc: 'Tiered discounts the more you order.' },
+  { icon: Truck, title: 'Pan-India Delivery', desc: 'Safely shipped to every corner of India.' },
+  { icon: Headphones, title: 'Dedicated Support', desc: 'Real humans here 24/7 to help you.' },
 ];
 
 const testimonials = [
@@ -345,6 +353,30 @@ export default function HomePage() {
               }`}
             />
           ))}
+        </div>
+      </section>
+
+      {/* ===== WHY CHOOSE US ===== */}
+      <section className="bg-paper-100 border-b border-ink/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {whyChooseUs.map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.06, duration: 0.4 }}
+                className="flex flex-col items-center text-center lg:items-start lg:text-left"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-pj-green/10 flex items-center justify-center mb-3">
+                  <item.icon size={22} className="text-pj-green" />
+                </div>
+                <h3 className="font-display text-base font-semibold text-ink">{item.title}</h3>
+                <p className="mt-1 text-sm text-ink/60 leading-snug">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
