@@ -29,7 +29,7 @@ export default function RegisterPage() {
       toast.error('Google Sign-In is loading. Please try again.');
       return;
     }
-    const client = google.accounts.oauth2.initTokenClient({
+    const client = window.google.accounts.oauth2.initTokenClient({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '386863340573-giuhhqa2sg3b8m2bg9uet3phl6l0k0it.apps.googleusercontent.com',
       scope: 'openid email profile',
       callback: async (response) => {
