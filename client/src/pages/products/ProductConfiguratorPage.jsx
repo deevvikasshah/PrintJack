@@ -6,13 +6,14 @@ import toast from 'react-hot-toast';
 import {
   ChevronLeft, Check, Minus, Plus, ShoppingCart, Type,
   Square, Circle, Triangle, Star, Upload, Layout, Palette, Undo2, Redo2,
-  Grid3X3, Loader2, Ruler, Package, ArrowRight, Share2, Archive, X,
+  Grid3X3, Loader2, Ruler, Package, ArrowRight, Share2, Archive, X, Box,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import EditorCanvas from '../../components/editor/EditorCanvas';
 import DesignTemplates from '../../components/editor/DesignTemplates';
 import ClipartPanel from '../../components/editor/ClipartPanel';
 import ImageUploader from '../../components/editor/ImageUploader';
+import BusinessCard3DPreview from '../../components/editor/BusinessCard3DPreview';
 import { useCart } from '../../context/CartContext';
 import { useCartFly } from '../../context/CartFlyContext';
 import { useAuth } from '../../context/AuthContext';
@@ -100,6 +101,15 @@ export default function ProductConfiguratorPage() {
   const [draftExists, setDraftExists] = useState(false);
   const [resuming, setResuming] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [show3DPreview, setShow3DPreview] = useState(false);
+
+  const isBusinessCard = useCallback((prod) => {
+    if (!prod) return false;
+    const slug = prod.slug?.toLowerCase() || '';
+    const name = prod.name?.toLowerCase() || '';
+    const category = prod.category?.name?.toLowerCase() || '';
+    return slug.includes('business-card') || name.includes('business card') || category.includes('business card');
+  }, []);
 
   useEffect(() => {
     const readHash = () => {
@@ -1534,16 +1544,35 @@ export default function ProductConfiguratorPage() {
       {/* STEP 3: REVIEW */}
       {step === 'review' && (
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-          <div className="text-center mb-8">
-            <p className="text-xs font-semibold text-pj-green uppercase tracking-widest mb-2">Step 3 of 3</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink">Review your order</h2>
-            <p className="mt-2 text-ink/60">Make sure everything looks perfect before adding to cart.</p>
+          <div className="flex items-center justify-between mb-8">
+            <div className="text-center">
+              <p className="text-xs font-semibold text-pj-green uppercase tracking-widest mb-2">Step 3 of 3</p>
+              <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink">Review your order</h2>
+              <p className="mt-2 text-ink/60">Make sure everything looks perfect before adding to cart.</p>
+            </div>
+            {isBusinessCard(product) && (
+              <button
+                onClick={() => setShow3DPreview(!show3DPreview)}
+                className="flex items-center gap-2 px-4 py-2 bg-pj-green text-white rounded-xl text-sm font-medium hover:bg-ink transition-colors"
+              >
+                <Box className="w-4 h-4" />
+                {show3DPreview ? '2D View' : '3D View'}
+              </button>
+            )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Mockup */}
             <div className="bg-paper-50 rounded-2xl border border-paper-200 p-6 flex items-center justify-center min-h-[400px]">
-              {isDoubleSided ? (
+              {show3DPreview && isBusinessCard(product) ? (
+                <div className="w-full flex justify-center">
+                  <BusinessCard3DPreview
+                    frontImage={facePreviews[0] || designPreviewUrl}
+                    backImage={facePreviews[1]}
+                    width={350}
+                  />
+                </div>
+              ) : isDoubleSided ? (
                 <div className="w-full max-w-sm space-y-4">
                   {faceLabels.map((label, i) => (
                     <div key={label}>
