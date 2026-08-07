@@ -47,18 +47,24 @@ exports.register = async (req, res, next) => {
 
     if (referralCode) {
       const referrer = await User.findOne({ referralCode: String(referralCode).toUpperCase() });
-      if (referrer && referrer._id.toString() !== user._id.toString()) {
-        const referralRewardAmount = 50;
-        user.referredBy = referrer._id;
-        user.loyaltyPoints = (user.loyaltyPoints || 0) + Math.round(referralRewardAmount * 0.5);
-        await Referral.create({
-          referrer: referrer._id,
-          referredUser: user._id,
-          referralCode: String(referralCode).toUpperCase(),
-          status: 'pending',
-          rewardAmount: referralRewardAmount,
-        });
+      if (!referrer) {
+        await User.findByIdAndDelete(user._id);
+        throw new AppError('Invalid referral code', 400);
       }
+      if (referrer._id.toString() === user._id.toString()) {
+        await User.findByIdAndDelete(user._id);
+        throw new AppError('You cannot use your own referral code', 400);
+      }
+      const referralRewardAmount = 50;
+      user.referredBy = referrer._id;
+      user.loyaltyPoints = (user.loyaltyPoints || 0) + Math.round(referralRewardAmount * 0.5);
+      await Referral.create({
+        referrer: referrer._id,
+        referredUser: user._id,
+        referralCode: String(referralCode).toUpperCase(),
+        status: 'pending',
+        rewardAmount: referralRewardAmount,
+      });
     }
 
     const otp = generateOTP();

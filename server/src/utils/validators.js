@@ -23,7 +23,7 @@ const registerValidator = Joi.object({
   phone: Joi.string().pattern(/^[6-9]\d{9}$/).optional().messages({
     "string.pattern.base": "Please provide a valid 10-digit Indian mobile number",
   }),
-  referralCode: Joi.string().alphanum().length(8).optional(),
+  referralCode: Joi.string().alphanum().length(12).optional(),
 });
 
 const loginValidator = Joi.object({
