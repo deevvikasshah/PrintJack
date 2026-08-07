@@ -317,6 +317,19 @@ export default function ProductConfiguratorPage() {
         .filter((o) => !isDecorationObject(o))
         .map((o) => {
           try {
+            // Fix text objects with undefined styles before serialization
+            if (o.type === 'i-text' || o.type === 'text' || o.type === 'textbox') {
+              if (!o.styles || typeof o.styles !== 'object') {
+                o.styles = {};
+              }
+              // Ensure each line has styles
+              const textLines = o._textLines || (o.text ? o.text.split('\n') : ['']);
+              textLines.forEach((_, lineIndex) => {
+                if (!o.styles[lineIndex]) {
+                  o.styles[lineIndex] = {};
+                }
+              });
+            }
             return o.toObject(['id', 'name']);
           } catch (err) {
             console.warn('Failed to serialize object:', o, err);

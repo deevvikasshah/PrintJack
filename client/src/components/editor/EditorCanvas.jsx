@@ -56,6 +56,18 @@ const EditorCanvas = forwardRef(function EditorCanvas(
           .filter((o) => o !== printAreaRef.current && o._isGrid !== true)
           .map((o) => {
             try {
+              // Fix text objects with undefined styles
+              if (o.type === 'i-text' || o.type === 'text' || o.type === 'textbox') {
+                if (!o.styles || typeof o.styles !== 'object') {
+                  o.styles = {};
+                }
+                const textLines = o._textLines || (o.text ? o.text.split('\n') : ['']);
+                textLines.forEach((_, lineIndex) => {
+                  if (!o.styles[lineIndex]) {
+                    o.styles[lineIndex] = {};
+                  }
+                });
+              }
               return o.toObject(['id', 'name']);
             } catch (e) {
               console.warn('Failed to serialize object:', o, e);
