@@ -584,6 +584,13 @@ export default function ProductConfiguratorPage() {
         setCanUndo(false);
         setCanRedo(false);
       }
+      // Restore face state when going back to design step
+      if (s === 'design' && step === 'review' && isDoubleSided) {
+        const face = facesRef.current[activeFace];
+        if (face?.designState) {
+          designStateRef.current = face.designState;
+        }
+      }
       setStep(s);
       window.location.hash = `stage=${s}`;
       if (s === 'review') {
@@ -643,6 +650,22 @@ export default function ProductConfiguratorPage() {
       });
     }
   }, [applyDesignState, refreshObjects, isDoubleSided, activeFace]);
+
+  // Restore face design when navigating back to design step
+  useEffect(() => {
+    if (step === 'design' && isDoubleSided) {
+      const face = facesRef.current[activeFace];
+      if (face?.designState) {
+        applyDesignState(face.designState, () => {
+          refreshObjects();
+          undoStack.current = [];
+          redoStack.current = [];
+          setCanUndo(false);
+          setCanRedo(false);
+        });
+      }
+    }
+  }, [step, isDoubleSided, activeFace, applyDesignState, refreshObjects]);
 
   const saveActiveFaceState = useCallback(() => {
     const canvas = canvasRef.current?.getCanvas?.();
