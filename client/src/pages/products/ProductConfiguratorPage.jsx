@@ -315,7 +315,15 @@ export default function ProductConfiguratorPage() {
       const objects = canvas
         .getObjects()
         .filter((o) => !isDecorationObject(o))
-        .map((o) => o.toObject(['id', 'name']));
+        .map((o) => {
+          try {
+            return o.toObject(['id', 'name']);
+          } catch (err) {
+            console.warn('Failed to serialize object:', o, err);
+            return null;
+          }
+        })
+        .filter(Boolean);
       return JSON.stringify(objects);
     },
     [isDecorationObject]

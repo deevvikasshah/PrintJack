@@ -41,13 +41,30 @@ const EditorCanvas = forwardRef(function EditorCanvas(
     toJSON: () => {
       const canvas = fabricRef.current;
       if (!canvas) return null;
-      const objects = canvas.getObjects().filter((o) => o !== printAreaRef.current && o._isGrid !== true);
-      const json = canvas.toJSON();
-      json.objects = json.objects.filter((o) => {
-        const obj = canvas.getObjects().find((c) => c.id === o.id);
-        return obj && obj !== printAreaRef.current && obj._isGrid !== true;
-      });
-      return json;
+      try {
+        const objects = canvas.getObjects().filter((o) => o !== printAreaRef.current && o._isGrid !== true);
+        const json = canvas.toJSON();
+        json.objects = json.objects.filter((o) => {
+          const obj = canvas.getObjects().find((c) => c.id === o.id);
+          return obj && obj !== printAreaRef.current && obj._isGrid !== true;
+        });
+        return json;
+      } catch (err) {
+        console.warn('Failed to serialize canvas to JSON:', err);
+        // Fallback: manually serialize objects
+        const fallbackObjects = canvas.getObjects()
+          .filter((o) => o !== printAreaRef.current && o._isGrid !== true)
+          .map((o) => {
+            try {
+              return o.toObject(['id', 'name']);
+            } catch (e) {
+              console.warn('Failed to serialize object:', o, e);
+              return null;
+            }
+          })
+          .filter(Boolean);
+        return { objects: fallbackObjects };
+      }
     },
     toDataUrl: (options) => {
       const canvas = fabricRef.current;
