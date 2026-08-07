@@ -42,6 +42,20 @@ const EditorCanvas = forwardRef(function EditorCanvas(
       const canvas = fabricRef.current;
       if (!canvas) return null;
       try {
+        // Fix text objects with undefined styles BEFORE calling toJSON
+        canvas.getObjects().forEach((o) => {
+          if (o.type === 'i-text' || o.type === 'text' || o.type === 'textbox') {
+            if (!o.styles || typeof o.styles !== 'object') {
+              o.styles = {};
+            }
+            const textLines = o._textLines || (o.text ? o.text.split('\n') : ['']);
+            textLines.forEach((_, lineIndex) => {
+              if (!o.styles[lineIndex]) {
+                o.styles[lineIndex] = {};
+              }
+            });
+          }
+        });
         const objects = canvas.getObjects().filter((o) => o !== printAreaRef.current && o._isGrid !== true);
         const json = canvas.toJSON();
         json.objects = json.objects.filter((o) => {
@@ -56,7 +70,6 @@ const EditorCanvas = forwardRef(function EditorCanvas(
           .filter((o) => o !== printAreaRef.current && o._isGrid !== true)
           .map((o) => {
             try {
-              // Fix text objects with undefined styles
               if (o.type === 'i-text' || o.type === 'text' || o.type === 'textbox') {
                 if (!o.styles || typeof o.styles !== 'object') {
                   o.styles = {};
