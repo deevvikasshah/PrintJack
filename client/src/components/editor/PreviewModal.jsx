@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { X, ShoppingCart, Edit3, Minus, Plus, Package } from 'lucide-react';
+import { X, ShoppingCart, Edit3, Minus, Plus, Package, Box } from 'lucide-react';
 import { clsx } from 'clsx';
+import BusinessCard3DPreview from './BusinessCard3DPreview';
 
 const QUANTITY_TIERS = [
   { min: 1, max: 9, priceMultiplier: 1.0 },
@@ -12,11 +13,20 @@ const QUANTITY_TIERS = [
   { min: 500, max: Infinity, priceMultiplier: 0.4 },
 ];
 
+const isBusinessCard = (product) => {
+  if (!product) return false;
+  const slug = product.slug?.toLowerCase() || '';
+  const name = product.name?.toLowerCase() || '';
+  const category = product.category?.name?.toLowerCase() || '';
+  return slug.includes('business-card') || name.includes('business card') || category.includes('business card');
+};
+
 export default function PreviewModal({
   isOpen,
   onClose,
   product,
   designPreviewUrl,
+  backDesignPreviewUrl,
   onAddToCart,
   onEditDesign,
 }) {
@@ -24,9 +34,12 @@ export default function PreviewModal({
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [addingToCart, setAddingToCart] = useState(false);
+  const [show3D, setShow3D] = useState(false);
 
   const basePrice = product?.basePrice || product?.price || 299;
   const bulkTiers = Array.isArray(product?.bulkPricing) && product.bulkPricing.length > 0 ? product.bulkPricing : null;
+  const isBC = isBusinessCard(product);
+  const hasBackDesign = isBC && backDesignPreviewUrl;
 
   const pricingTier = useMemo(
     () => {
@@ -72,37 +85,69 @@ export default function PreviewModal({
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-bold text-gray-900">Design Preview</h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
+          <div className="flex items-center gap-2">
+            {isBC && (
+              <button
+                onClick={() => setShow3D(!show3D)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors
+                  {show3D ? 'bg-brand-500 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}"
+              >
+                <Cube className="w-4 h-4" />
+                <span className="hidden sm:inline">{show3D ? '2D View' : '3D View'}</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           <div className="flex flex-col md:flex-row">
             <div className="flex-1 p-6 flex items-center justify-center bg-gray-50 min-h-[300px]">
               <div className="relative max-w-sm w-full">
-                {product?.image && (
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full rounded-lg shadow-lg"
-                  />
-                )}
-                {designPreviewUrl && (
-                  <img
-                    src={designPreviewUrl}
-                    alt="Design overlay"
-                    className="absolute inset-0 w-full h-full object-contain"
-                    style={{ mixBlendMode: 'multiply' }}
-                  />
-                )}
-                {!product?.image && !designPreviewUrl && (
-                  <div className="w-full aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
-                    <Package className="w-16 h-16 text-gray-400" />
+                {show3D && isBC && (
+                  <div className="w-full flex justify-center">
+                    <BusinessCard3DPreview
+                      frontImage={designPreviewUrl || product?.image}
+                      backImage={backDesignPreviewUrl}
+                      width={350}
+                    />
                   </div>
+                )}
+                {!show3D && (
+                  <>
+                    {product?.image && !isBC && (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full rounded-lg shadow-lg"
+                      />
+                    )}
+                    {(designPreviewUrl || (isBC && product?.image)) && (
+                      <img
+                        src={designPreviewUrl || product?.image}
+                        alt="Design overlay"
+                        className={clsx(
+                          'absolute inset-0 w-full h-full object-contain rounded-lg shadow-lg',
+                          isBC ? '' : 'mix-blend-mode-multiply'
+                        )}
+                      />
+                    )}
+                    {!product?.image && !designPreviewUrl && (
+                      <div className="w-full aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
+                        <Package className="w-16 h-16 text-gray-400" />
+                      </div>
+                    )}
+                    {isBC && hasBackDesign && !show3D && (
+                      <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs text-gray-600 shadow-lg border border-gray-200">
+                        Double-sided design
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

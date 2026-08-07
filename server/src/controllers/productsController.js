@@ -18,6 +18,7 @@ exports.getAllProducts = async (req, res, next) => {
       tag,
       featured,
       sort: sortParam = 'newest',
+      includeInactive = false,
     } = req.query;
 
     const sortMap = {
@@ -29,7 +30,7 @@ exports.getAllProducts = async (req, res, next) => {
     };
     const sort = sortMap[sortParam] || '-createdAt';
 
-    const query = { isActive: true };
+    const query = includeInactive === 'true' ? {} : { isActive: true };
 
     if (search) {
       query.$or = [

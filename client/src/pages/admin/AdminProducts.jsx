@@ -10,6 +10,7 @@ import Pagination from '../../components/common/Pagination';
 import Modal from '../../components/common/Modal';
 import Loading from '../../components/common/Loading';
 import toast from 'react-hot-toast';
+import { clsx } from 'clsx';
 
 const emptyProduct = {
   name: '', description: '', category: '', subCategory: '', basePrice: '',
@@ -19,7 +20,7 @@ const emptyProduct = {
   material: '', printingMethod: '',
   printAreas: [{ name: '', width: '', height: '', description: '', acceptedFormats: '' }],
   tags: '', specifications: [{ key: '', value: '' }],
-  minimumOrderQuantity: '', featured: false,
+  minimumOrderQuantity: '', featured: false, isActive: true,
   metaTitle: '', metaDescription: '', stockStatus: 'in_stock',
   calculatorConfig: {
     enabled: false,
@@ -53,12 +54,13 @@ export default function AdminProducts() {
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [showInactive, setShowInactive] = useState(false);
   const limit = 15;
 
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const params = { page, limit, sort: '-createdAt' };
+      const params = { page, limit, sort: '-createdAt', includeInactive: showInactive ? 'true' : 'false' };
       if (search) params.search = search;
       if (categoryFilter) params.category = categoryFilter;
       const { data } = await get('/admin/products', { params });
@@ -69,7 +71,7 @@ export default function AdminProducts() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, categoryFilter]);
+  }, [page, search, categoryFilter, showInactive]);
 
   useEffect(() => {
     fetchProducts();
@@ -99,6 +101,7 @@ export default function AdminProducts() {
       specifications: product.specifications?.length ? product.specifications : [{ key: '', value: '' }],
       minimumOrderQuantity: product.minimumOrderQuantity || '',
       featured: product.featured || false,
+      isActive: product.isActive !== false,
       metaTitle: product.metaTitle || '',
       metaDescription: product.metaDescription || '',
       stockStatus: product.stockStatus || 'in_stock',
@@ -204,6 +207,17 @@ export default function AdminProducts() {
       toast.success('Product deleted');
     } catch (err) {
       toast.error('Failed to delete product');
+    }
+  };
+
+  const toggleProductStatus = async (productId, isActive) => {
+    try {
+      await put(`/admin/products/${productId}`, { isActive });
+      fetchProducts();
+      toast.success(`Product ${isActive ? 'activated' : 'deactivated'}`);
+    } catch (err) {
+      toast.error('Failed to update product status');
+      fetchProducts(); // refresh to revert UI
     }
   };
 
@@ -376,6 +390,15 @@ export default function AdminProducts() {
             <option key={c.slug} value={c.slug}>{c.name}</option>
           ))}
         </select>
+        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showInactive}
+            onChange={(e) => { setShowInactive(e.target.checked); setPage(1); }}
+            className="w-4 h-4 rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]"
+          />
+          <span>Show inactive</span>
+        </label>
       </div>
 
       {/* Products Table */}
@@ -392,6 +415,7 @@ export default function AdminProducts() {
                     <th className="px-4 py-3 text-left font-medium text-gray-500">Category</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-500">Price</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-500">Bulk Price</th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500">Status</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-500">Stock</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-500">Featured</th>
                     <th className="px-4 py-3 text-left font-medium text-gray-500">Rating</th>
@@ -400,10 +424,10 @@ export default function AdminProducts() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {products.length === 0 ? (
-                    <tr><td colSpan={8} className="px-6 py-12 text-center text-gray-400">No products found</td></tr>
+                    <tr><td colSpan={9} className="px-6 py-12 text-center text-gray-400">No products found</td></tr>
                   ) : (
                     products.map((product) => (
-                      <tr key={product._id} className="hover:bg-gray-50/50">
+                      <tr key={product._id} className={clsx('hover:bg-gray-50/50', !product.isActive && 'opacity-50 bg-gray-50')}>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
@@ -422,6 +446,19 @@ export default function AdminProducts() {
                         <td className="px-4 py-3 font-medium text-[#1D3557]">{formatPrice(product.basePrice)}</td>
                         <td className="px-4 py-3 text-gray-500">
                           {product.bulkPricing?.length > 0 ? `${product.bulkPricing.length} tiers` : '-'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={product.isActive !== false}
+                              onChange={(e) => toggleProductStatus(product._id, e.target.checked)}
+                              className="w-4 h-4 rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]"
+                            />
+                            <span className={`text-xs font-medium ${product.isActive !== false ? 'text-green-600' : 'text-red-600'}`}>
+                              {product.isActive !== false ? 'Active' : 'Inactive'}
+                            </span>
+                          </label>
                         </td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -892,6 +929,11 @@ export default function AdminProducts() {
           <div className="flex items-center gap-2">
             <input type="checkbox" id="featured" checked={form.featured} onChange={(e) => updateFormField('featured', e.target.checked)} className="rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]" />
             <label htmlFor="featured" className="text-sm font-medium text-gray-600">Featured Product</label>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input type="checkbox" id="isActive" checked={form.isActive !== false} onChange={(e) => updateFormField('isActive', e.target.checked)} className="rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]" />
+            <label htmlFor="isActive" className="text-sm font-medium text-gray-600">Active (visible on storefront)</label>
           </div>
 
           {/* SEO */}

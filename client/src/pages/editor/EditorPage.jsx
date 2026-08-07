@@ -80,6 +80,8 @@ export default function EditorPage() {
   const [bgColor, setBgColor] = useState('#FFFFFF');
   const [mobilePanelOpen, setMobilePanelOpen] = useState(null);
   const [showCollaborators, setShowCollaborators] = useState(false);
+  const [productTemplates, setProductTemplates] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -135,6 +137,23 @@ export default function EditorPage() {
     };
     fetchProduct();
   }, [productId, navigate, designParam]);
+
+  const fetchProductTemplates = useCallback(async () => {
+    if (!productId) return;
+    setLoadingTemplates(true);
+    try {
+      const { data } = await api.get(`/products/${productId}/templates`);
+      setProductTemplates(data.templates || []);
+    } catch (err) {
+      console.error('Failed to load product templates:', err);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  }, [productId]);
+
+  useEffect(() => {
+    fetchProductTemplates();
+  }, [fetchProductTemplates]);
 
   const isDecorationObject = useCallback((o) => {
     return o._isGrid === true || o._isBackground === true || o._isPrintArea === true;
@@ -426,6 +445,21 @@ export default function EditorPage() {
       applyDesignState(JSON.stringify(objects || []), () => {
         refreshObjects();
         toast.success('Template loaded');
+      });
+    },
+    [saveCanvasState, applyDesignState, refreshObjects]
+  );
+
+  const loadProductTemplate = useCallback(
+    (template) => {
+      const canvas = canvasRef.current?.getCanvas?.();
+      if (!canvas) return;
+      saveCanvasState();
+      // Product templates have canvasData field
+      const objects = template.canvasData || template.objects || template;
+      applyDesignState(JSON.stringify(objects || []), () => {
+        refreshObjects();
+        toast.success('Product template loaded');
       });
     },
     [saveCanvasState, applyDesignState, refreshObjects]
@@ -1022,9 +1056,50 @@ export default function EditorPage() {
             )}
 
             {activeLeftTab === 'templates' && (
-              <DesignTemplates
-                onLoadTemplate={loadTemplate}
-              />
+              <div className="space-y-4">
+                {productTemplates.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      Product Templates
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {productTemplates.map((tpl) => (
+                        <button
+                          key={tpl._id || tpl.name}
+                          onClick={() => loadProductTemplate(tpl)}
+                          className="group border border-gray-100 rounded-lg overflow-hidden hover:border-brand-300 hover:shadow-md transition-all"
+                          title={tpl.name}
+                        >
+                          <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center overflow-hidden relative">
+                            {(tpl.thumbnail || tpl.previewImage) ? (
+                              <img
+                                src={tpl.thumbnail || tpl.previewImage}
+                                alt={tpl.name || 'Template'}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy-700 to-brand-500">
+                                <Layout className="w-6 h-6 text-white opacity-50" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-brand-500/0 group-hover:bg-brand-500/10 transition-colors flex items-center justify-center">
+                              <Layout className="w-5 h-5 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
+                            </div>
+                          </div>
+                          <p className="p-2 text-xs font-medium text-gray-700 truncate">{tpl.name}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    Built-in Templates
+                  </h4>
+                  <DesignTemplates onLoadTemplate={loadTemplate} />
+                </div>
+              </div>
             )}
 
             {activeLeftTab === 'clipart' && (
@@ -1212,7 +1287,50 @@ export default function EditorPage() {
                   </div>
                 )}
                 {mobilePanelOpen === 'templates' && (
-                  <DesignTemplates onLoadTemplate={(json) => { loadTemplate(json); setMobilePanelOpen(null); }} />
+                  <div className="space-y-4">
+                    {productTemplates.length > 0 && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                          Product Templates
+                        </h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {productTemplates.map((tpl) => (
+                            <button
+                              key={tpl._id || tpl.name}
+                              onClick={() => { loadProductTemplate(tpl); setMobilePanelOpen(null); }}
+                              className="group border border-gray-100 rounded-lg overflow-hidden hover:border-brand-300 hover:shadow-md transition-all"
+                              title={tpl.name}
+                            >
+                              <div className="aspect-[4/3] bg-gray-50 flex items-center justify-center overflow-hidden relative">
+                                {(tpl.thumbnail || tpl.previewImage) ? (
+                                  <img
+                                    src={tpl.thumbnail || tpl.previewImage}
+                                    alt={tpl.name || 'Template'}
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy-700 to-brand-500">
+                                    <Layout className="w-6 h-6 text-white opacity-50" />
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 bg-brand-500/0 group-hover:bg-brand-500/10 transition-colors flex items-center justify-center">
+                                  <Layout className="w-5 h-5 text-white opacity-0 group-hover:opacity-80 transition-opacity" />
+                                </div>
+                              </div>
+                              <p className="p-2 text-xs font-medium text-gray-700 truncate">{tpl.name}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        Built-in Templates
+                      </h4>
+                      <DesignTemplates onLoadTemplate={(json) => { loadTemplate(json); setMobilePanelOpen(null); }} />
+                    </div>
+                  </div>
                 )}
                 {mobilePanelOpen === 'clipart' && (
                   <ClipartPanel onClipartAdd={(c) => { addClipart(c); setMobilePanelOpen(null); }} />
