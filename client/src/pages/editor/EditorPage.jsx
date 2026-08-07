@@ -190,17 +190,31 @@ export default function EditorPage() {
         .getObjects()
         .filter((o) => !isDecorationObject(o))
         .forEach((o) => canvas.remove(o));
-      const objects = JSON.parse(state);
+      let objects;
+      try {
+        objects = JSON.parse(state);
+      } catch (err) {
+        console.warn('Failed to parse design state:', err);
+        canvas.renderAll();
+        callback?.();
+        return;
+      }
       if (!objects.length) {
         canvas.renderAll();
         callback?.();
         return;
       }
-      fabric.util.enlivenObjects(objects, (enlivened) => {
-        enlivened.forEach((o) => canvas.add(o));
+      try {
+        fabric.util.enlivenObjects(objects, (enlivened) => {
+          enlivened.forEach((o) => canvas.add(o));
+          canvas.renderAll();
+          callback?.();
+        });
+      } catch (err) {
+        console.warn('Failed to enliven objects:', err);
         canvas.renderAll();
         callback?.();
-      });
+      }
     },
     [isDecorationObject]
   );
