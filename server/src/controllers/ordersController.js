@@ -119,8 +119,6 @@ exports.checkoutFromCart = async (req, res, next) => {
       cart.discount = 0;
       await cart.save();
 
-      await completeReferral(req.user._id);
-
       await Notification.create({
         user: req.user._id,
         type: 'order_status',
@@ -573,6 +571,10 @@ exports.updateOrderStatus = async (req, res, next) => {
     if (status === 'delivered') order.deliveredAt = new Date();
 
     await order.save();
+
+    if (order.paymentMethod === 'cod' && status === 'delivered') {
+      await completeReferral(order.user);
+    }
 
     const statusMessages = {
       confirmed: 'has been confirmed',
