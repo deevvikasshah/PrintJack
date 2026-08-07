@@ -15,6 +15,8 @@ const EditorCanvas = forwardRef(function EditorCanvas(
     onModifyStart,
     onCanvasReady,
     onMouseMove,
+    initialCanvasData,
+    readOnly = false,
   },
   ref
 ) {
@@ -127,7 +129,7 @@ const EditorCanvas = forwardRef(function EditorCanvas(
       height: displayH,
       backgroundColor: '#ffffff',
       preserveObjectStacking: true,
-      selection: true,
+      selection: !readOnly,
       selectionColor: 'rgba(230, 57, 70, 0.15)',
       selectionBorderColor: '#E63946',
       selectionLineWidth: 1.5,
@@ -137,15 +139,19 @@ const EditorCanvas = forwardRef(function EditorCanvas(
     fabricRef.current = canvas;
 
     canvas.on('selection:created', (e) => {
+      if (readOnly) return;
       onObjectSelected?.(e.selected?.[0] || null);
     });
     canvas.on('selection:updated', (e) => {
+      if (readOnly) return;
       onObjectSelected?.(e.selected?.[0] || null);
     });
     canvas.on('selection:cleared', () => {
+      if (readOnly) return;
       onObjectSelected?.(null);
     });
     const handleTransformStart = () => {
+      if (readOnly) return;
       if (transformRef.current) return;
       transformRef.current = true;
       onModifyStart?.();
@@ -155,22 +161,36 @@ const EditorCanvas = forwardRef(function EditorCanvas(
     canvas.on('object:rotating', handleTransformStart);
     canvas.on('object:skewing', handleTransformStart);
     canvas.on('object:modified', (e) => {
+      if (readOnly) return;
       transformRef.current = false;
       onObjectModified?.(e.target);
     });
     canvas.on('mouse:up', () => {
+      if (readOnly) return;
       transformRef.current = false;
     });
     canvas.on('mouse:move', (e) => {
+      if (readOnly) return;
       const pointer = canvas.getPointer(e.e);
       onMouseMove?.({ x: Math.round(pointer.x), y: Math.round(pointer.y) });
     });
     canvas.on('mouse:down', (e) => {
+      if (readOnly) return;
       if (!e.target) {
         canvas.discardActiveObject();
         canvas.renderAll();
       }
     });
+
+    // Load initial canvas data if provided
+    if (initialCanvasData) {
+      const data = Array.isArray(initialCanvasData) ? { objects: initialCanvasData } : initialCanvasData;
+      canvas.loadFromJSON(data, () => {
+        canvas.renderAll();
+        drawPrintArea();
+        if (showGrid) drawGrid();
+      });
+    }
 
     onCanvasReady?.(canvas);
 

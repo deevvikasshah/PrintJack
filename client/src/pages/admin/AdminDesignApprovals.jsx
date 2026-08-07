@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   PenTool, Check, X as XIcon, Download, Eye, Filter, CheckCircle2,
   XCircle, Clock, Image as ImageIcon, Package, ChevronDown,
@@ -7,6 +7,7 @@ import { get, put, post } from '../../utils/api';
 import { formatDate } from '../../utils/formatters';
 import Modal from '../../components/common/Modal';
 import Loading from '../../components/common/Loading';
+import EditorCanvas from '../../components/editor/EditorCanvas';
 import toast from 'react-hot-toast';
 
 export default function AdminDesignApprovals() {
@@ -23,6 +24,8 @@ export default function AdminDesignApprovals() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const previewCanvasRef = useRef(null);
+  const [printArea, setPrintArea] = useState({ width: 400, height: 400 });
 
   const fetchDesigns = useCallback(async () => {
     try {
@@ -250,11 +253,20 @@ export default function AdminDesignApprovals() {
         {selectedDesign && (
           <div className="space-y-4">
             <div className="bg-gray-100 rounded-xl overflow-hidden">
-              {selectedDesign.previewImage || selectedDesign.canvasData ? (
+              {selectedDesign.previewImage ? (
                 <img
-                  src={selectedDesign.previewImage || selectedDesign.canvasData}
-                  alt="Design"
+                  src={selectedDesign.previewImage}
+                  alt="Design preview"
                   className="w-full max-h-96 object-contain"
+                />
+              ) : selectedDesign.canvasData ? (
+                <EditorCanvas
+                  ref={previewCanvasRef}
+                  printArea={{ x: 0, y: 0, width: printArea.width, height: printArea.height }}
+                  canvasWidth={printArea.width}
+                  canvasHeight={printArea.height}
+                  initialCanvasData={typeof selectedDesign.canvasData === 'string' ? JSON.parse(selectedDesign.canvasData) : selectedDesign.canvasData}
+                  readOnly
                 />
               ) : (
                 <div className="h-96 flex items-center justify-center text-gray-400">
