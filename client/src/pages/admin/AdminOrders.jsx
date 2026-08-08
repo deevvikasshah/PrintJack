@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Search, Filter, Download, ChevronDown, ChevronUp, Eye, Truck, Package,
   CheckCircle, XCircle, RefreshCw, ChevronLeft, ChevronRight, Calendar,
-  MoreVertical, FileText,
+  MoreVertical, FileText, Sparkles,
 } from 'lucide-react';
 import { get, put } from '../../utils/api';
 import { formatPrice, formatDate, getStatusColor, getStatusLabel } from '../../utils/formatters';
@@ -401,31 +401,39 @@ export default function AdminOrders() {
                                 <div className="md:col-span-2">
                                   <h4 className="text-sm font-semibold text-[#1D3557] mb-3">Items</h4>
                                   <div className="space-y-2">
-                                    {order.items?.map((item, idx) => (
-                                      <div key={idx} className="bg-white rounded-xl p-3 flex items-center gap-4">
-                                        <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                          {item.product?.images?.[0] || item.image ? (
-                                            <img src={item.product?.images?.[0] || item.image} alt="" className="w-full h-full object-cover" />
-                                          ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                              <Package size={20} />
+                                    {order.items?.map((item, idx) => {
+                                      const designPreview = item.design?.previewImage || item.customizationPreview;
+                                      return (
+                                        <div key={idx} className="bg-white rounded-xl p-3 flex items-center gap-4">
+                                          <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                            {item.product?.images?.[0] || item.image ? (
+                                              <img src={item.product?.images?.[0] || item.image} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                <Package size={20} />
+                                              </div>
+                                            )}
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-[#1D3557] truncate">{item.product?.name || item.name}</p>
+                                            <p className="text-xs text-gray-400">
+                                              {item.size && `Size: ${item.size}`} {item.color && `Color: ${item.color}`} &middot; Qty: {item.quantity}
+                                            </p>
+                                            {designPreview && (
+                                              <p className="text-xs text-pj-green mt-1 flex items-center gap-1">
+                                                <Sparkles size={10} /> Custom Design
+                                              </p>
+                                            )}
+                                          </div>
+                                          <p className="text-sm font-semibold text-[#1D3557]">{formatPrice(item.totalPrice || item.unitPrice * item.quantity)}</p>
+                                          {designPreview && (
+                                            <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                              <img src={designPreview} alt="Design preview" className="w-full h-full object-cover" />
                                             </div>
                                           )}
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-sm font-medium text-[#1D3557] truncate">{item.product?.name || item.name}</p>
-                                          <p className="text-xs text-gray-400">
-                                            {item.size && `Size: ${item.size}`} {item.color && `Color: ${item.color}`} &middot; Qty: {item.quantity}
-                                          </p>
-                                        </div>
-                                        <p className="text-sm font-semibold text-[#1D3557]">{formatPrice(item.totalPrice || item.unitPrice * item.quantity)}</p>
-                                        {item.designImage && (
-                                          <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                            <img src={item.designImage} alt="Design" className="w-full h-full object-cover" />
-                                          </div>
-                                        )}
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 </div>
                               </div>

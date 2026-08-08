@@ -94,6 +94,9 @@ exports.getCart = async (req, res, next) => {
     let cart = await Cart.findOne({ user: req.user._id }).populate({
       path: 'items.product',
       select: 'name slug images basePrice colors sizes isActive',
+    }).populate({
+      path: 'items.design',
+      select: 'previewImage canvasData',
     }).populate('coupon', 'code discountType discountValue maximumDiscountAmount');
 
     if (!cart) {
@@ -198,6 +201,9 @@ exports.addToCart = async (req, res, next) => {
     cart = await Cart.findById(cart._id).populate({
       path: 'items.product',
       select: 'name slug images basePrice colors sizes',
+    }).populate({
+      path: 'items.design',
+      select: 'previewImage canvasData',
     }).populate('coupon', 'code discountType discountValue maximumDiscountAmount');
 
     res.status(200).json({ success: true, cart });

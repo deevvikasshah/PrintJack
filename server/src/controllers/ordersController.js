@@ -511,6 +511,7 @@ exports.getAllOrders = async (req, res, next) => {
       populate: [
         { path: 'user', select: 'name email phone' },
         { path: 'items.product', select: 'name slug' },
+        { path: 'items.design', select: 'name previewImage' },
       ],
     });
 

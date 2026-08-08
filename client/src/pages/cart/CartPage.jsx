@@ -161,10 +161,12 @@ export default function CartPage() {
             <AnimatePresence mode="popLayout">
               {items.map((item) => {
                 const product = item.product || {};
+                const design = item.design || {};
                 const image = item.image || product.images?.[0] || '/placeholder-product.png';
+                const designPreview = design.previewImage || design.canvasData;
                 const productName = item.name || product.name || 'Product';
                 const productId = product._id || item.productId;
-                const hasDesign = !!(item.designId || item.design);
+                const hasDesign = !!(item.designId || design._id);
                 const isUpdating = updatingItemId === item._id;
                 const isRemoving = removingItemId === item._id;
 
@@ -178,14 +180,23 @@ export default function CartPage() {
                     transition={{ duration: 0.3 }}
                     className="bg-white rounded-2xl border border-paper-200 p-4 sm:p-6 flex gap-4"
                   >
-                    {/* Product Image */}
+                    {/* Product Image with Design Preview */}
                     <div className="relative flex-shrink-0">
                       <Link to={`/products/${product.slug || productId}`}>
-                        <img
-                          src={image}
-                          alt={productName}
-                          className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover"
-                        />
+                        <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden">
+                          <img
+                            src={image}
+                            alt={productName}
+                            className="w-full h-full object-cover"
+                          />
+                          {designPreview && (
+                            <img
+                              src={designPreview}
+                              alt="Design preview"
+                              className="absolute inset-0 w-full h-full object-contain mix-blend-multiply"
+                            />
+                          )}
+                        </div>
                       </Link>
                       {hasDesign && (
                         <div className="absolute -top-1 -left-1 bg-pj-green text-white rounded-full p-1">
@@ -223,7 +234,7 @@ export default function CartPage() {
                           </div>
                           {hasDesign && (
                             <Link
-                              to={`/editor/${productId}${item.designId ? `?design=${item.designId}` : ''}`}
+                              to={`/editor/${productId}${design._id ? `?design=${design._id}` : ''}`}
                               className="inline-flex items-center gap-1 text-xs text-pj-green hover:underline mt-1.5"
                             >
                               <Sparkles size={12} />
