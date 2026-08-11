@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Phone, Mail, Zap, Truck, RefreshCw, CheckCircle2, Headphones } from 'lucide-react';
+import { MessageCircle, X, Send, Phone, Mail, Zap, Truck, RefreshCw, CheckCircle2, Headphones, Clock } from 'lucide-react';
 import api from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
 
-const WHATSAPP_NUMBER = '919876543210';
-const SUPPORT_EMAIL = 'hello@printjack.in';
-const SUPPORT_PHONE = '+919876543210';
+const WHATSAPP_NUMBER = '917738172709';
+const SUPPORT_EMAIL = 'sparshkothari9@gmail.com';
+const SUPPORT_PHONE = '+917738172709';
 
 const QUICK_REPLIES = [
   {
@@ -35,15 +36,27 @@ const QUICK_REPLIES = [
 ];
 
 export default function LiveChatWidget() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [activeReply, setActiveReply] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [unread, setUnread] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
   const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (user && (user.name || user.email || user.phone)) {
+      setForm((f) => ({
+        ...f,
+        name: f.name || user.name || '',
+        email: f.email || user.email || '',
+        phone: f.phone || user.phone || '',
+      }));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -79,7 +92,7 @@ export default function LiveChatWidget() {
       setSent(true);
       setShowForm(false);
       setActiveReply(null);
-      setForm({ name: '', email: '', phone: '', message: '' });
+      setForm({ name: user?.name || '', email: user?.email || '', phone: user?.phone || '', message: '' });
     } catch {
       // fallback: open WhatsApp with composed message
       const text = `Hi PrintJack! My name is ${form.name}. ${form.message}`;
@@ -119,7 +132,9 @@ export default function LiveChatWidget() {
           <div ref={scrollRef} className="bg-gray-50 p-4 space-y-3 max-h-80 overflow-y-auto flex-1">
             <div className="bg-white rounded-xl rounded-tl-none p-3 shadow-sm max-w-[90%]">
               <p className="text-sm text-gray-700">
-                Hi there! 👋 How can we help you today? Pick a topic below or ask us anything.
+                {user?.name
+                  ? `Hi ${user.name.trim().split(' ')[0]}! 👋 How can we help you today? Pick a topic below or ask us anything.`
+                  : 'Hi there! 👋 How can we help you today? Pick a topic below or ask us anything.'}
               </p>
             </div>
 
@@ -237,6 +252,19 @@ export default function LiveChatWidget() {
             </div>
             <p className="text-center text-[10px] text-gray-400 mt-2">Mon-Sat, 10AM-8PM · We reply within 24 hours</p>
           </div>
+        </div>
+      )}
+
+      {/* Delivery clock pill */}
+      {!isOpen && (
+        <div className="mb-3 flex justify-end">
+          <button
+            onClick={() => setIsOpen(true)}
+            className="inline-flex items-center gap-1.5 bg-white border border-gray-100 rounded-full pl-2.5 pr-3.5 py-2 text-xs font-semibold text-gray-700 shadow-md hover:shadow-lg hover:scale-105 transition-all"
+          >
+            <Clock size={15} className="text-[#E63946]" />
+            Delivered in under 7 days
+          </button>
         </div>
       )}
 

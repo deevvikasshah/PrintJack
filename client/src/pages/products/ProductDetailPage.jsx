@@ -13,6 +13,7 @@ import SizeGuide from '../../components/products/SizeGuide';
 import ReviewForm from '../../components/products/ReviewForm';
 import ProductCalculator from '../../components/products/ProductCalculator';
 import ReviewCard from '../../components/products/ReviewCard';
+import DeliveryNote from '../../components/common/DeliveryNote';
 import { useCart } from '../../context/CartContext';
 import { useCartFly } from '../../context/CartFlyContext';
 import { useAuth } from '../../context/AuthContext';
@@ -500,6 +501,7 @@ const [buyingNow, setBuyingNow] = useState(false);
 
             {/* CTA Buttons */}
             <div className="mt-6 space-y-3">
+              <DeliveryNote category={p.category} />
               <Link
                 to={`/configure/${p._id}`}
                 className="flex items-center justify-center gap-2 w-full bg-pj-green hover:bg-pj-green/90 text-white font-bold py-4 rounded-xl transition-colors text-lg shadow-lg shadow-pj-green/20"

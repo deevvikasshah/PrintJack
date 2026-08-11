@@ -14,6 +14,7 @@ import DesignTemplates from '../../components/editor/DesignTemplates';
 import ClipartPanel from '../../components/editor/ClipartPanel';
 import ImageUploader from '../../components/editor/ImageUploader';
 import BusinessCard3DPreview from '../../components/editor/BusinessCard3DPreview';
+import DeliveryNote from '../../components/common/DeliveryNote';
 import { useCart } from '../../context/CartContext';
 import { useCartFly } from '../../context/CartFlyContext';
 import { useAuth } from '../../context/AuthContext';
@@ -1728,6 +1729,7 @@ export default function ProductConfiguratorPage() {
               </div>
 
               <div className="flex flex-col gap-3 mt-6">
+                <DeliveryNote category={product?.category} />
                 <button
                   onClick={() => goToStep('design')}
                   className="flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-paper-300 text-ink font-semibold hover:border-ink transition-colors"

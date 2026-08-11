@@ -8,6 +8,7 @@ import {
   ShieldCheck, Upload, PenTool, Plus, Minus,
 } from 'lucide-react';
 import api from '../../utils/api';
+import DeliveryNote from '../../components/common/DeliveryNote';
 
 const SIZES = {
   standard: {
@@ -450,6 +451,7 @@ export default function BusinessCardsLanding() {
                 </div>
               </div>
 
+              <DeliveryNote category={product?.category || 'Business Cards'} className="mt-4 mb-1" />
               <Link
                 to={configureUrl}
                 className="mt-5 w-full inline-flex items-center justify-center gap-2 bg-pj-green hover:bg-[#166b4d] text-white font-semibold py-3.5 rounded-xl transition-colors"
@@ -464,7 +466,7 @@ export default function BusinessCardsLanding() {
               </Link>
               <div className="mt-4 flex items-center justify-center gap-3 text-xs text-ink/50">
                 <span className="flex items-center gap-1"><Truck size={14} className="text-pj-green" /> Free shipping over ₹999</span>
-                <span className="flex items-center gap-1"><Clock size={14} className="text-pj-green" /> 3–10 day delivery</span>
+                <span className="flex items-center gap-1"><Clock size={14} className="text-pj-green" /> Delivered in under 7 days</span>
               </div>
             </div>
           </div>

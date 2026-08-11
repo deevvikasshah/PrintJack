@@ -68,8 +68,8 @@ export default function ContactPage() {
               <h2 className="text-lg font-bold text-gray-900 mb-6">Contact Information</h2>
               <div className="space-y-5">
                 {[
-                  { icon: Phone, label: 'Phone', value: '+91 98765 43210', link: 'tel:+919876543210', sub: 'Mon-Sat, 10AM-8PM' },
-                  { icon: Mail, label: 'Email', value: 'hello@printjack.in', link: 'mailto:hello@printjack.in', sub: 'We reply within 24 hours' },
+                  { icon: Phone, label: 'Phone', value: '+91 77381 72709', link: 'tel:+917738172709', sub: 'Mon-Sat, 10AM-8PM' },
+                  { icon: Mail, label: 'Email', value: 'sparshkothari9@gmail.com', link: 'mailto:sparshkothari9@gmail.com', sub: 'We reply within 24 hours' },
                   { icon: MapPin, label: 'Office', value: 'PrintJack Pvt. Ltd.\n123, Industrial Area Phase 2,\nBengaluru, Karnataka - 560100', sub: '' },
                   { icon: Clock, label: 'Business Hours', value: 'Monday - Saturday: 10:00 AM - 8:00 PM\nSunday: Closed', sub: '' },
                 ].map((item, i) => (
@@ -99,7 +99,7 @@ export default function ContactPage() {
               initial="hidden"
               animate="visible"
               transition={{ delay: 0.1 }}
-              href="https://wa.me/919876543210"
+              href="https://wa.me/917738172709"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl p-5 transition-colors shadow-sm"
