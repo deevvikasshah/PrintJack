@@ -14,6 +14,7 @@ const {
   cancelOrder,
   checkoutFromCart,
   verifyPaymentFromCheckout,
+  trackOrder,
 } = require("../controllers/ordersController");
 
 router.post(
@@ -46,6 +47,8 @@ router.post(
 );
 
 router.get("/my", protect, getMyOrders);
+
+router.get("/track", trackOrder);
 
 router.get("/stats", protect, authorize("admin"), getOrderStats);
 

@@ -1,4 +1,4 @@
-const { Blog } = require('../models');
+const { Blog, Comment } = require('../models');
 const { AppError } = require('../middleware/errorHandler');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 
@@ -60,7 +60,11 @@ exports.getPost = async (req, res, next) => {
     post.views += 1;
     await post.save({ validateBeforeSave: false });
 
-    res.status(200).json({ success: true, post });
+    const comments = await Comment.find({ post: post._id })
+      .populate('user', 'name avatar')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, post: { ...post.toObject(), comments } });
   } catch (err) {
     next(err);
   }

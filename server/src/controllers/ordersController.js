@@ -474,6 +474,52 @@ exports.getOrder = async (req, res, next) => {
   }
 };
 
+exports.trackOrder = async (req, res, next) => {
+  try {
+    const { orderId, email } = req.query;
+    if (!orderId || !String(orderId).trim()) {
+      throw new AppError('Order ID is required', 400);
+    }
+
+    const order = await Order.findOne({ orderNumber: String(orderId).trim().toUpperCase() })
+      .populate('items.product', 'name slug images')
+      .populate('items.design', 'name previewImage');
+
+    if (!order) {
+      throw new AppError('Order not found', 404);
+    }
+
+    if (email && String(email).trim()) {
+      const user = await User.findById(order.user).select('email');
+      const orderEmail = user ? user.email : '';
+      if (orderEmail && String(orderEmail).toLowerCase() !== String(email).trim().toLowerCase()) {
+        throw new AppError('Order not found', 404);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      order: {
+        orderNumber: order.orderNumber,
+        status: order.orderStatus,
+        statusHistory: order.statusHistory,
+        trackingNumber: order.trackingNumber,
+        shippingPartner: order.shippingPartner,
+        estimatedDelivery: order.estimatedDelivery,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        items: order.items.map((i) => ({
+          name: i.name,
+          quantity: i.quantity,
+          totalPrice: i.totalPrice,
+        })),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getAllOrders = async (req, res, next) => {
   try {
     const {

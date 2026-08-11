@@ -11,6 +11,8 @@ const Address = require('./Address');
 const Notification = require('./Notification');
 const Setting = require('./Setting');
 const Template = require('./Template');
+const Newsletter = require('./Newsletter');
+const Comment = require('./Comment');
 
 module.exports = {
   User,
@@ -26,4 +28,6 @@ module.exports = {
   Notification,
   Setting,
   Template,
+  Newsletter,
+  Comment,
 };

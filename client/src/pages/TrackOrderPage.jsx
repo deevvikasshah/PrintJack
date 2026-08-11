@@ -79,7 +79,7 @@ export default function TrackOrderPage() {
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-[#1D3557]">Order {orderData.order.orderId}</h2>
+                <h2 className="text-lg font-bold text-[#1D3557]">Order {orderData.order.orderNumber}</h2>
                 <p className="text-sm text-gray-500">Placed on {formatDate(orderData.order.createdAt)}</p>
               </div>
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(orderData.order.status)}`}>
