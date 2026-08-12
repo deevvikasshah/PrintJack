@@ -55,7 +55,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-ink text-paper-100">
+    <footer className="bg-brown-900 text-white">
       {/* Newsletter Section */}
       <div className="border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

@@ -30,6 +30,7 @@ export default {
           700: '#9d7044',
           800: '#825a3b',
           900: '#6b4b35',
+          DEFAULT: '#6b4b35',
         },
         accent: {
           50: '#fefce8',
@@ -60,6 +61,7 @@ export default {
           700: '#9d7044',
           800: '#825a3b',
           900: '#6b4b35',
+          DEFAULT: '#6b4b35',
         },
         pj: {
           green: '#EAB308',

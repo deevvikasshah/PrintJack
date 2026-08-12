@@ -295,7 +295,7 @@ export default function HomePage() {
                   className="absolute inset-0 bg-cover bg-center"
                   style={{ backgroundImage: `url(${slide.image})` }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/20" />
+                <div className="absolute inset-0 bg-gradient-to-b from-brown-900/70 via-brown-900/40 to-brown-900/10" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <motion.div
@@ -307,29 +307,29 @@ export default function HomePage() {
                         initial={false}
                         animate={isActive ? { opacity: 1 } : { opacity: 0 }}
                         transition={{ duration: 0.5, delay: 0.1 }}
-                        className="inline-flex items-center gap-2 text-sm text-white/80 mb-8"
+                        className="inline-flex items-center gap-2 text-sm text-brand-300 mb-8"
                       >
-                        <span className="w-1.5 h-1.5 rounded-full bg-pj-green" /> {slide.badge}
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand-500" /> {slide.badge}
                       </motion.span>
                       <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl text-white leading-[1.05] font-semibold tracking-tight">
                         {slide.title[0]}
                         <br />
-                        <span className="italic text-white/80">{slide.title[1]}</span>
+                        <span className="italic text-brand-300">{slide.title[1]}</span>
                       </h1>
-                      <p className="mt-6 text-lg text-white/80 max-w-2xl mx-auto leading-relaxed">
+                      <p className="mt-6 text-lg text-brand-200 max-w-2xl mx-auto leading-relaxed">
                         {slide.subtitle}
                       </p>
                       <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
                         <Link
                           to={slide.primary.to}
-                          className="inline-flex items-center gap-2 bg-white text-ink font-semibold px-8 py-4 rounded-full hover:bg-pj-green hover:text-white transition-colors"
+                          className="inline-flex items-center gap-2 bg-brand-500 text-white font-semibold px-8 py-4 rounded-full hover:bg-brand-600 transition-colors"
                         >
                           {slide.primary.label} <ArrowRight size={18} />
                         </Link>
                         {slide.secondary && (
                           <Link
                             to={slide.secondary.to}
-                            className="inline-flex items-center gap-2 border border-white/50 text-white font-semibold px-8 py-4 rounded-full hover:border-white hover:bg-white/10 transition-colors"
+                            className="inline-flex items-center gap-2 border-2 border-brand-400 text-brand-300 font-semibold px-8 py-4 rounded-full hover:bg-brand-500 hover:text-white hover:border-brand-500 transition-colors"
                           >
                             {slide.secondary.label}
                           </Link>
@@ -347,14 +347,14 @@ export default function HomePage() {
         <button
           onClick={goToPrev}
           aria-label="Previous slide"
-          className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/30 hover:bg-black/60 border border-white/20 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
+          className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-brown-900/50 hover:bg-brown-900/80 border border-white/20 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
         >
           <ChevronLeft size={22} />
         </button>
         <button
           onClick={goToNext}
           aria-label="Next slide"
-          className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/30 hover:bg-black/60 border border-white/20 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
+          className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-brown-900/50 hover:bg-brown-900/80 border border-white/20 text-white flex items-center justify-center backdrop-blur-sm transition-colors"
         >
           <ChevronRight size={22} />
         </button>
@@ -369,8 +369,8 @@ export default function HomePage() {
               aria-current={i === currentSlide}
               className={`h-2.5 rounded-full transition-all duration-300 ${
                 i === currentSlide
-                  ? 'w-8 bg-white'
-                  : 'w-2.5 bg-white/50 hover:bg-white/80'
+                  ? 'w-8 bg-brand-500'
+                  : 'w-2.5 bg-white/50 hover:bg-brand-400'
               }`}
             />
           ))}
@@ -822,7 +822,7 @@ export default function HomePage() {
       </section>
 
       {/* ===== NEWSLETTER ===== */}
-      <section className="py-20 lg:py-28 bg-pj-green">
+      <section className="py-20 lg:py-28 bg-brown-900">
         <AnimatedSection className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div variants={fadeUp}>
             <h2 className="font-display text-3xl sm:text-5xl text-white">Stay in the loop</h2>
@@ -841,9 +841,9 @@ export default function HomePage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="flex-1 px-5 py-3.5 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="flex-1 px-5 py-3.5 rounded-full text-sm bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500"
               />
-              <button type="submit" className="bg-ink hover:bg-paper-200 text-paper-50 font-bold px-8 py-3.5 rounded-full transition-colors flex items-center justify-center gap-2">
+              <button type="submit" className="bg-brand-500 hover:bg-brand-600 text-white font-bold px-8 py-3.5 rounded-full transition-colors flex items-center justify-center gap-2">
                 <Send size={16} /> Subscribe
               </button>
             </form>
