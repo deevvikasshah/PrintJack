@@ -24,7 +24,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 toastOptions={{
                   duration: 4000,
                   style: {
-                    background: '#1D3557',
+                    background: '#9d7044',
                     color: '#fff',
                     borderRadius: '12px',
                     padding: '16px',
@@ -32,10 +32,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                     fontFamily: 'Inter, sans-serif',
                   },
                   success: {
-                    iconTheme: { primary: '#E63946', secondary: '#fff' },
+                    iconTheme: { primary: '#eab308', secondary: '#fff' },
                   },
                   error: {
-                    iconTheme: { primary: '#E63946', secondary: '#fff' },
+                    iconTheme: { primary: '#eab308', secondary: '#fff' },
                   },
                 }}
               />

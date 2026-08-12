@@ -46,7 +46,7 @@ export default function AboutPage() {
   return (
     <div className="overflow-hidden">
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-navy-700 to-navy-900 py-24">
+      <section className="relative bg-gradient-to-br from-brown-700 to-brown-900 py-24">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div animate={{ rotate: 360 }} transition={{ duration: 40, repeat: Infinity, ease: 'linear' }} className="absolute -top-40 -right-40 w-[500px] h-[500px] border border-white/5 rounded-full" />
           <motion.div animate={{ rotate: -360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} className="absolute -bottom-20 -left-20 w-[400px] h-[400px] border border-white/5 rounded-full" />
@@ -88,8 +88,8 @@ export default function AboutPage() {
                 <div className="text-3xl font-extrabold text-brand-500">2020</div>
                 <p className="text-sm text-gray-600 mt-1">Founded</p>
               </div>
-              <div className="bg-navy-700/10 rounded-2xl p-6 text-center">
-                <div className="text-3xl font-extrabold text-navy-700">25+</div>
+              <div className="bg-brown-700/10 rounded-2xl p-6 text-center">
+                <div className="text-3xl font-extrabold text-brown-700">25+</div>
                 <p className="text-sm text-gray-600 mt-1">Team Members</p>
               </div>
               <div className="bg-emerald-500/10 rounded-2xl p-6 text-center">
@@ -114,9 +114,9 @@ export default function AboutPage() {
           </motion.div>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: Target, title: 'Our Mission', desc: 'To make professional printing accessible, affordable, and effortless for every business in India through technology and innovation.', color: 'from-brand-500 to-red-600' },
-              { icon: Eye, title: 'Our Vision', desc: 'To become India\'s most trusted and loved printing platform, empowering 1 million businesses by 2030.', color: 'from-navy-700 to-blue-900' },
-              { icon: Heart, title: 'Our Promise', desc: 'We promise quality you can trust, prices you\'ll love, and service that makes you come back. Every order, every time.', color: 'from-emerald-500 to-emerald-600' },
+              { icon: Target, title: 'Our Mission', desc: 'To make professional printing accessible, affordable, and effortless for every business in India through technology and innovation.', color: 'from-brand-500 to-brand-600' },
+              { icon: Eye, title: 'Our Vision', desc: 'To become India\'s most trusted and loved printing platform, empowering 1 million businesses by 2030.', color: 'from-brown-700 to-brown-900' },
+              { icon: Heart, title: 'Our Promise', desc: 'We promise quality you can trust, prices you\'ll love, and service that makes you come back. Every order, every time.', color: 'from-brand-500 to-brand-600' },
             ].map((item, i) => (
               <motion.div key={i} variants={fadeUp} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-5`}>
@@ -140,7 +140,7 @@ export default function AboutPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((v, i) => (
               <motion.div key={i} variants={fadeUp} className="text-center p-6 rounded-2xl bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-lg transition-all">
-                <div className="w-12 h-12 rounded-xl bg-navy-700 text-white flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 rounded-xl bg-brown-700 text-white flex items-center justify-center mx-auto mb-4">
                   <v.icon size={22} />
                 </div>
                 <h3 className="font-bold text-gray-900">{v.title}</h3>
@@ -152,7 +152,7 @@ export default function AboutPage() {
       </section>
 
       {/* Stats */}
-      <section className="py-20 bg-gradient-to-r from-brand-500 to-red-600">
+      <section className="py-20 bg-gradient-to-r from-brand-500 to-brand-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((s, i) => (
@@ -183,7 +183,7 @@ export default function AboutPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-3xl mx-auto">
             {team.map((member, i) => (
               <motion.div key={i} variants={fadeUp} className="text-center group">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-navy-700 to-brand-500 flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-lg group-hover:scale-110 transition-transform">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brown-700 to-brand-500 flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-lg group-hover:scale-110 transition-transform">
                   {member.avatar}
                 </div>
                 <h3 className="font-bold text-gray-900">{member.name}</h3>
@@ -195,14 +195,14 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-navy-700">
+      <section className="py-20 bg-brown-700">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <AnimatedSection>
             <motion.div variants={fadeUp}>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Ready to Start Printing?</h2>
               <p className="mt-4 text-white/70 text-lg">Join 10,000+ businesses that trust PrintJack for their printing needs.</p>
               <div className="mt-8 flex flex-wrap gap-4 justify-center">
-                <Link to="/products" className="inline-flex items-center gap-2 bg-white text-navy-700 font-bold px-8 py-4 rounded-xl hover:bg-yellow-300 transition-all shadow-xl">
+                <Link to="/products" className="inline-flex items-center gap-2 bg-white text-brown-700 font-bold px-8 py-4 rounded-xl hover:bg-brand-200 transition-all shadow-xl">
                   Browse Products <ArrowRight size={20} />
                 </Link>
                 <Link to="/contact" className="inline-flex items-center gap-2 border-2 border-white/30 text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/10 transition-all">

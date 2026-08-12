@@ -43,11 +43,11 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link to="/" className="inline-block mb-6">
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#E63946] to-[#c62d38] bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-brand-500 to-brand-600 bg-clip-text text-transparent">
                 PrintJack
               </span>
             </Link>
-            <h2 className="text-2xl font-bold text-[#1D3557]">Forgot your password?</h2>
+            <h2 className="text-2xl font-bold text-brown-900">Forgot your password?</h2>
             <p className="text-gray-500 mt-2 text-sm">
               Enter your email and we'll send you a link to reset your password.
             </p>
@@ -55,10 +55,10 @@ export default function ForgotPasswordPage() {
 
           {isSent ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail size={28} className="text-green-600" />
+              <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Mail size={28} className="text-brand-600" />
               </div>
-              <h3 className="text-lg font-semibold text-[#1D3557] mb-2">Check your email</h3>
+              <h3 className="text-lg font-semibold text-brown-900 mb-2">Check your email</h3>
               <p className="text-sm text-gray-500 mb-6">
                 We've sent a password reset link to <strong>{email}</strong>. Please check your inbox and follow the instructions.
               </p>
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
               </p>
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#E63946] text-white font-medium rounded-xl hover:bg-[#c62d38] transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-brand-500 text-white font-medium rounded-xl hover:bg-brand-600 transition-colors"
               >
                 <ArrowLeft size={18} />
                 Back to Login
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setError(''); }}
                       placeholder="you@example.com"
-                      className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
+                      className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
                         error ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
                       }`}
                       autoFocus
@@ -97,7 +97,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 bg-[#E63946] text-white font-medium rounded-xl hover:bg-[#c62d38] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-brand-500 text-white font-medium rounded-xl hover:bg-brand-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <Loader2 size={20} className="animate-spin" />
@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
               </form>
 
               <div className="mt-6 text-center">
-                <Link to="/login" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#E63946] transition-colors">
+                <Link to="/login" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-brand-500 transition-colors">
                   <ArrowLeft size={16} />
                   Back to Login
                 </Link>

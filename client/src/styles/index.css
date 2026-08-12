@@ -15,7 +15,7 @@
 
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    color: #1a1a2e;
+    color: #4a3728;
     background-color: #ffffff;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -36,7 +36,7 @@
   }
 
   .btn-secondary {
-    @apply bg-navy-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-navy-800 
+    @apply bg-brown-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-brown-800 
            transition-all duration-200 shadow-md hover:shadow-lg active:scale-95;
   }
 
@@ -94,7 +94,7 @@
   }
 
   .section-title {
-    @apply text-3xl md:text-4xl font-display font-bold text-navy-700;
+    @apply text-3xl md:text-4xl font-display font-bold text-brown-700;
   }
 
   .section-subtitle {
@@ -110,7 +110,7 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-brand-500 to-navy-700 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-brand-500 to-brown-700 bg-clip-text text-transparent;
   }
 
   .skeleton {
@@ -119,11 +119,11 @@
 
   .sidebar-link {
     @apply flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg 
-           transition-colors duration-200 text-gray-600 hover:bg-brand-50 hover:text-brand-600;
+           transition-colors duration-200 text-gray-600 hover:bg-brown-50 hover:text-brown-700;
   }
 
   .sidebar-link-active {
-    @apply sidebar-link bg-brand-50 text-brand-600 font-semibold;
+    @apply sidebar-link bg-brown-50 text-brown-700 font-semibold;
   }
 
   .table-container {
@@ -172,7 +172,7 @@
 /* Loading spinner */
 .spinner {
   border: 3px solid #f3f3f3;
-  border-top: 3px solid #E63946;
+  border-top: 3px solid #eab308;
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -186,7 +186,7 @@
 
 /* Toast overrides */
 .toast-success {
-  background: #16a34a !important;
+  background: #ca8a04 !important;
   color: white !important;
 }
 

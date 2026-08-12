@@ -49,11 +49,11 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link to="/" className="inline-block mb-6">
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#E63946] to-[#c62d38] bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-brand-500 to-brand-600 bg-clip-text text-transparent">
                 PrintJack
               </span>
             </Link>
-            <h2 className="text-2xl font-bold text-[#1D3557]">Set new password</h2>
+            <h2 className="text-2xl font-bold text-brown-900">Set new password</h2>
             <p className="text-gray-500 mt-2 text-sm">
               Enter your new password below.
             </p>
@@ -61,16 +61,16 @@ export default function ResetPasswordPage() {
 
           {isSuccess ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle size={28} className="text-green-600" />
+              <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle size={28} className="text-brand-600" />
               </div>
-              <h3 className="text-lg font-semibold text-[#1D3557] mb-2">Password Reset Successful!</h3>
+              <h3 className="text-lg font-semibold text-brown-900 mb-2">Password Reset Successful!</h3>
               <p className="text-sm text-gray-500 mb-6">
                 Your password has been updated. You can now sign in with your new password.
               </p>
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#E63946] text-white font-medium rounded-xl hover:bg-[#c62d38] transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-brand-500 text-white font-medium rounded-xl hover:bg-brand-600 transition-colors"
               >
                 Sign In
                 <ArrowRight size={18} />
@@ -88,7 +88,7 @@ export default function ResetPasswordPage() {
                       value={password}
                       onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: '' })); }}
                       placeholder="Enter new password"
-                      className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
+                      className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
                         errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
                       }`}
                     />
@@ -112,7 +112,7 @@ export default function ResetPasswordPage() {
                       value={confirmPassword}
                       onChange={(e) => { setConfirmPassword(e.target.value); setErrors((p) => ({ ...p, confirmPassword: '' })); }}
                       placeholder="Re-enter new password"
-                      className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
+                      className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
                         errors.confirmPassword ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
                       }`}
                     />
@@ -130,7 +130,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 bg-[#E63946] text-white font-medium rounded-xl hover:bg-[#c62d38] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-brand-500 text-white font-medium rounded-xl hover:bg-brand-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <Loader2 size={20} className="animate-spin" />
@@ -144,7 +144,7 @@ export default function ResetPasswordPage() {
               </form>
 
               <div className="mt-6 text-center">
-                <Link to="/login" className="text-sm text-[#E63946] hover:underline font-medium">
+                <Link to="/login" className="text-sm text-brand-500 hover:underline font-medium">
                   Back to Login
                 </Link>
               </div>

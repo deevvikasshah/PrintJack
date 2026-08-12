@@ -83,7 +83,7 @@ export default function SizeGuide({ type = 'tshirt', isOpen, onClose }) {
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <Ruler size={20} className="text-navy-700" />
+                <Ruler size={20} className="text-brown-700" />
                 <h2 className="text-lg font-bold text-gray-900">{guide.title}</h2>
               </div>
               <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
@@ -96,7 +96,7 @@ export default function SizeGuide({ type = 'tshirt', isOpen, onClose }) {
                 <button
                   onClick={() => setUnit('inches')}
                   className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                    unit === 'inches' ? 'bg-navy-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    unit === 'inches' ? 'bg-brown-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   Inches
@@ -104,7 +104,7 @@ export default function SizeGuide({ type = 'tshirt', isOpen, onClose }) {
                 <button
                   onClick={() => setUnit('cm')}
                   className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                    unit === 'cm' ? 'bg-navy-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    unit === 'cm' ? 'bg-brown-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   CM

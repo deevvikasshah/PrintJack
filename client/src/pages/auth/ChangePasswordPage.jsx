@@ -59,12 +59,12 @@ export default function ChangePasswordPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link to="/" className="inline-block mb-6">
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#E63946] to-[#c62d38] bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-brand-500 to-brand-600 bg-clip-text text-transparent">
                 PrintJack
               </span>
             </Link>
-            <AlertTriangle className="w-12 h-12 text-[#E63946] mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-[#1D3557]">Change Your Password</h2>
+            <AlertTriangle className="w-12 h-12 text-brand-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-brown-900">Change Your Password</h2>
             <p className="text-gray-500 mt-2 text-sm">
               You must change your password before continuing. Your current password was generated for you.
             </p>
@@ -72,10 +72,10 @@ export default function ChangePasswordPage() {
 
           {isSuccess ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle size={28} className="text-green-600" />
+              <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle size={28} className="text-brand-600" />
               </div>
-              <h3 className="text-lg font-semibold text-[#1D3557] mb-2">Password Changed Successfully!</h3>
+              <h3 className="text-lg font-semibold text-brown-900 mb-2">Password Changed Successfully!</h3>
               <p className="text-sm text-gray-500 mb-6">
                 Your password has been updated. Redirecting to dashboard...
               </p>
@@ -92,7 +92,7 @@ export default function ChangePasswordPage() {
                       value={currentPassword}
                       onChange={(e) => { setCurrentPassword(e.target.value); setErrors((p) => ({ ...p, currentPassword: '' })); }}
                       placeholder="Enter current password"
-                      className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
+                      className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
                         errors.currentPassword ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
                       }`}
                     />
@@ -116,7 +116,7 @@ export default function ChangePasswordPage() {
                       value={newPassword}
                       onChange={(e) => { setNewPassword(e.target.value); setErrors((p) => ({ ...p, newPassword: '' })); }}
                       placeholder="Enter new password"
-                      className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
+                      className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
                         errors.newPassword ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
                       }`}
                     />
@@ -140,7 +140,7 @@ export default function ChangePasswordPage() {
                       value={confirmPassword}
                       onChange={(e) => { setConfirmPassword(e.target.value); setErrors((p) => ({ ...p, confirmPassword: '' })); }}
                       placeholder="Re-enter new password"
-                      className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
+                      className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
                         errors.confirmPassword ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
                       }`}
                     />
@@ -158,7 +158,7 @@ export default function ChangePasswordPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 bg-[#E63946] text-white font-medium rounded-xl hover:bg-[#c62d38] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-brand-500 text-white font-medium rounded-xl hover:bg-brand-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <Loader2 size={20} className="animate-spin" />

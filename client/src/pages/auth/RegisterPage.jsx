@@ -95,10 +95,10 @@ export default function RegisterPage() {
       </Helmet>
       <div className="min-h-[calc(100vh-140px)] flex">
         {/* Left Side - Brand */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#E63946] via-[#d63040] to-[#c62d38] relative overflow-hidden">
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-20 right-20 w-72 h-72 bg-white rounded-full blur-3xl" />
-            <div className="absolute bottom-20 left-20 w-96 h-96 bg-yellow-500 rounded-full blur-3xl" />
+            <div className="absolute bottom-20 left-20 w-96 h-96 bg-amber-300 rounded-full blur-3xl" />
           </div>
           <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
             <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-8">
@@ -131,16 +131,16 @@ export default function RegisterPage() {
           <div className="w-full max-w-md">
             <div className="lg:hidden mb-6 text-center">
               <Link to="/" className="inline-block">
-                <span className="text-2xl font-bold bg-gradient-to-r from-[#E63946] to-[#c62d38] bg-clip-text text-transparent">
+                <span className="text-2xl font-bold bg-gradient-to-r from-brand-500 to-brand-600 bg-clip-text text-transparent">
                   PrintJack
                 </span>
               </Link>
             </div>
 
-            <h2 className="text-2xl font-bold text-[#1D3557] mb-2">Create your account</h2>
+            <h2 className="text-2xl font-bold text-brown-900 mb-2">Create your account</h2>
             <p className="text-gray-500 mb-6">
               Already have an account?{' '}
-              <Link to="/login" className="text-[#E63946] font-medium hover:underline">
+              <Link to="/login" className="text-brand-500 font-medium hover:underline">
                 Sign in
               </Link>
             </p>
@@ -157,7 +157,7 @@ export default function RegisterPage() {
                     value={form.name}
                     onChange={handleChange}
                     placeholder="John Doe"
-                    className={`w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
+                    className={`w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
                       errors.name ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
                     }`}
                   />
@@ -176,7 +176,7 @@ export default function RegisterPage() {
                     value={form.email}
                     onChange={handleChange}
                     placeholder="you@example.com"
-                    className={`w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
+                    className={`w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
                       errors.email ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
                     }`}
                   />
@@ -195,7 +195,7 @@ export default function RegisterPage() {
                     value={form.phone}
                     onChange={handleChange}
                     placeholder="98765 43210"
-                    className={`w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
+                    className={`w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
                       errors.phone ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
                     }`}
                   />
@@ -215,7 +215,7 @@ export default function RegisterPage() {
                       value={form.password}
                       onChange={handleChange}
                       placeholder="Min 6 characters"
-                      className={`w-full pl-10 pr-10 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
+                      className={`w-full pl-10 pr-10 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
                         errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
                       }`}
                     />
@@ -241,7 +241,7 @@ export default function RegisterPage() {
                       value={form.confirmPassword}
                       onChange={handleChange}
                       placeholder="Re-enter password"
-                      className={`w-full pl-10 pr-10 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
+                      className={`w-full pl-10 pr-10 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
                         errors.confirmPassword ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
                       }`}
                     />
@@ -260,7 +260,7 @@ export default function RegisterPage() {
               <div>
                 <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700 mb-1">
                   <span className="flex items-center gap-1.5">
-                    <Gift size={14} className="text-[#E63946]" />
+                    <Gift size={14} className="text-brand-500" />
                     Referral Code <span className="text-gray-400 font-normal">(optional)</span>
                   </span>
                 </label>
@@ -271,7 +271,7 @@ export default function RegisterPage() {
                   value={form.referralCode}
                   onChange={handleChange}
                   placeholder="Enter referral code"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] bg-gray-50 transition-all"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 bg-gray-50 transition-all"
                 />
               </div>
 
@@ -283,13 +283,13 @@ export default function RegisterPage() {
                     name="agreeTerms"
                     checked={form.agreeTerms}
                     onChange={handleChange}
-                    className="w-4 h-4 mt-0.5 rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]"
+                    className="w-4 h-4 mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                   />
                   <span className="text-sm text-gray-600">
                     I agree to the{' '}
-                    <Link to="/terms" className="text-[#E63946] hover:underline">Terms of Service</Link>
+                    <Link to="/terms" className="text-brand-500 hover:underline">Terms of Service</Link>
                     {' '}and{' '}
-                    <Link to="/privacy" className="text-[#E63946] hover:underline">Privacy Policy</Link>
+                    <Link to="/privacy" className="text-brand-500 hover:underline">Privacy Policy</Link>
                   </span>
                 </label>
                 {errors.agreeTerms && <p className="mt-1 text-xs text-red-500">{errors.agreeTerms}</p>}
@@ -298,7 +298,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 bg-[#E63946] text-white font-medium rounded-xl hover:bg-[#c62d38] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-brand-500 text-white font-medium rounded-xl hover:bg-brand-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <Loader2 size={20} className="animate-spin" />

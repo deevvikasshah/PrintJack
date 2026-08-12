@@ -81,13 +81,13 @@ export default function LoginPage() {
       </Helmet>
       <div className="min-h-[calc(100vh-140px)] flex">
         {/* Left Side - Brand */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#1D3557] via-[#264773] to-[#1D3557] relative overflow-hidden">
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-brown-900 via-brown-800 to-brown-900 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-20 left-20 w-72 h-72 bg-[#E63946] rounded-full blur-3xl" />
-            <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
+            <div className="absolute top-20 left-20 w-72 h-72 bg-brand-500 rounded-full blur-3xl" />
+            <div className="absolute bottom-20 right-20 w-96 h-96 bg-amber-500 rounded-full blur-3xl" />
           </div>
           <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
-            <div className="w-20 h-20 bg-gradient-to-br from-[#E63946] to-[#c62d38] rounded-2xl flex items-center justify-center mb-8 shadow-2xl">
+            <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center mb-8 shadow-2xl">
               <span className="text-white text-3xl font-bold">P</span>
             </div>
             <h1 className="text-4xl font-bold text-white mb-4 text-center">Welcome Back to PrintJack</h1>
@@ -116,16 +116,16 @@ export default function LoginPage() {
           <div className="w-full max-w-md">
             <div className="lg:hidden mb-8 text-center">
               <Link to="/" className="inline-block">
-                <span className="text-2xl font-bold bg-gradient-to-r from-[#E63946] to-[#c62d38] bg-clip-text text-transparent">
+                <span className="text-2xl font-bold bg-gradient-to-r from-brand-500 to-brand-600 bg-clip-text text-transparent">
                   PrintJack
                 </span>
               </Link>
             </div>
 
-            <h2 className="text-2xl font-bold text-[#1D3557] mb-2">Sign in to your account</h2>
+            <h2 className="text-2xl font-bold text-brown-900 mb-2">Sign in to your account</h2>
             <p className="text-gray-500 mb-8">
               New here?{' '}
-              <Link to="/register" className="text-[#E63946] font-medium hover:underline">
+              <Link to="/register" className="text-brand-500 font-medium hover:underline">
                 Create an account
               </Link>
             </p>
@@ -135,17 +135,17 @@ export default function LoginPage() {
                 <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
                 <div className="relative">
                   <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    id="login-email"
-                    name="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
-                      errors.email ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
-                    }`}
-                  />
+<input
+                      id="login-email"
+                      name="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
+                        errors.email ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
+                      }`}
+                    />
                 </div>
                 {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
               </div>
@@ -154,17 +154,17 @@ export default function LoginPage() {
                 <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
                 <div className="relative">
                   <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    id="login-password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E63946]/20 focus:border-[#E63946] transition-all ${
-                      errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
-                    }`}
-                  />
+<input
+                      id="login-password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className={`w-full pl-10 pr-12 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all ${
+                        errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
+                      }`}
+                    />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -178,10 +178,10 @@ export default function LoginPage() {
 
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input id="remember-me" type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#E63946] focus:ring-[#E63946]" />
+                  <input id="remember-me" type="checkbox" className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500" />
                   <span className="text-sm text-gray-600">Remember me</span>
                 </label>
-                <Link to="/forgot-password" className="text-sm text-[#E63946] hover:underline font-medium">
+                <Link to="/forgot-password" className="text-sm text-brand-500 hover:underline font-medium">
                   Forgot password?
                 </Link>
               </div>
@@ -189,7 +189,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 bg-[#E63946] text-white font-medium rounded-xl hover:bg-[#c62d38] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-brand-500 text-white font-medium rounded-xl hover:bg-brand-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <Loader2 size={20} className="animate-spin" />
@@ -227,9 +227,9 @@ export default function LoginPage() {
 
             <p className="text-center text-xs text-gray-400 mt-6">
               By signing in, you agree to our{' '}
-              <Link to="/terms" className="text-[#E63946] hover:underline">Terms</Link>
+              <Link to="/terms" className="text-brand-500 hover:underline">Terms</Link>
               {' '}and{' '}
-              <Link to="/privacy" className="text-[#E63946] hover:underline">Privacy Policy</Link>
+              <Link to="/privacy" className="text-brand-500 hover:underline">Privacy Policy</Link>
             </p>
           </div>
         </div>
