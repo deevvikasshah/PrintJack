@@ -196,7 +196,7 @@ function Dropdown({ value, options, onChange, labelKey = 'label', descKey = 'des
                     }`}
                   >
                     <span className="min-w-0">
-                      <span className={`block font-medium ${active ? 'text-pj-green' : 'text-ink'}`}>{o[labelKey]}</span>
+                      <span className={`block font-medium ${active ? 'text-pj-green' : 'text-ink'}`}>{o.label || o[labelKey]}</span>
                       {o[descKey] && <span className="block text-xs text-ink/50 mt-0.5">{o[descKey]}</span>}
                     </span>
                     {active && <Check size={16} className="text-pj-green flex-shrink-0 mt-0.5" />}
@@ -362,8 +362,9 @@ export default function BusinessCardsLanding() {
             <OptionRow step={1} title="Choose your size" hint="Prices adjust automatically">
               <Dropdown
                 value={sizeKey}
+                labelKey="key"
                 options={Object.entries(SIZES).map(([key, s]) => ({ key, label: s.label, desc: `${s.dims} — ${s.details}` }))}
-                onChange={(key) => setSizeKey(key)}
+                onChange={setSizeKey}
               />
             </OptionRow>
 
