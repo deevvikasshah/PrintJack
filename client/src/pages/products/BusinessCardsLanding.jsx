@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
@@ -138,39 +138,76 @@ function OptionRow({ step, title, hint, children }) {
   );
 }
 
-function OptionChip({ active, onClick, children, meta }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`text-left rounded-xl border p-4 transition-all flex-1 min-w-[150px] ${
-        active
-          ? 'border-pj-green bg-pj-sage ring-2 ring-pj-green/40'
-          : 'border-ink/10 bg-white hover:border-ink/30'
-      }`}
-    >
-      <span className={`block font-semibold ${active ? 'text-pj-green' : 'text-ink'}`}>{children}</span>
-      {meta && <span className="block text-xs text-ink/50 mt-1">{meta}</span>}
-    </button>
-  );
-}
+function Dropdown({ value, options, onChange, labelKey = 'label', descKey = 'desc', renderValue }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
 
-function PaperCard({ product, active, onSelect }) {
+  useEffect(() => {
+    const close = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, []);
+
+  const selected = options.find((o) => o[labelKey] === value);
+
   return (
-    <button
-      onClick={onSelect}
-      className={`text-left rounded-xl border p-4 transition-all flex-1 min-w-[160px] ${
-        active ? 'border-pj-green bg-pj-sage ring-2 ring-pj-green/40' : 'border-ink/10 bg-white hover:border-ink/30'
-      }`}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <span className={`block font-semibold ${active ? 'text-pj-green' : 'text-ink'}`}>{product.name}</span>
-        {active && <Check size={16} className="text-pj-green flex-shrink-0 mt-0.5" />}
-      </div>
-      <span className="block text-xs text-ink/50 mt-1">{product.material || 'Premium card stock'}</span>
-      <span className="block text-sm font-bold text-ink mt-2">
-        from {currency(product.price)}<span className="text-xs font-normal text-ink/50">/100 cards</span>
-      </span>
-    </button>
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`w-full flex items-center justify-between gap-3 border rounded-xl px-4 py-3.5 bg-white text-left transition-all duration-200 ${
+          open ? 'border-pj-green ring-2 ring-pj-green/30' : 'border-ink/15 hover:border-ink/35'
+        }`}
+      >
+        <span className="min-w-0">
+          <span className="block font-semibold text-ink truncate">
+            {renderValue ? renderValue(selected) : selected ? selected[labelKey] : value}
+          </span>
+          {selected && descKey && selected[descKey] && (
+            <span className="block text-xs text-ink/50 truncate">{selected[descKey]}</span>
+          )}
+        </span>
+        <ChevronDown size={18} className={`text-ink/40 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.ul
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="absolute z-30 mt-2 w-full bg-white rounded-xl border border-ink/10 shadow-card-hover max-h-72 overflow-y-auto"
+          >
+            {options.map((o) => {
+              const active = o[labelKey] === value;
+              return (
+                <li key={o[labelKey]}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange(o[labelKey]);
+                      setOpen(false);
+                    }}
+                    className={`w-full flex items-start justify-between gap-3 px-4 py-3 text-left transition-colors duration-150 ${
+                      active ? 'bg-pj-sage text-pj-green' : 'text-ink hover:bg-paper-50'
+                    }`}
+                  >
+                    <span className="min-w-0">
+                      <span className={`block font-medium ${active ? 'text-pj-green' : 'text-ink'}`}>{o[labelKey]}</span>
+                      {o[descKey] && <span className="block text-xs text-ink/50 mt-0.5">{o[descKey]}</span>}
+                    </span>
+                    {active && <Check size={16} className="text-pj-green flex-shrink-0 mt-0.5" />}
+                  </button>
+                </li>
+              );
+            })}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -323,64 +360,40 @@ export default function BusinessCardsLanding() {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             <OptionRow step={1} title="Choose your size" hint="Prices adjust automatically">
-              <div className="flex flex-wrap gap-3">
-                {Object.entries(SIZES).map(([key, s]) => (
-                  <OptionChip key={key} active={sizeKey === key} onClick={() => setSizeKey(key)} meta={s.dims}>
-                    {s.label}
-                  </OptionChip>
-                ))}
-              </div>
-              <p className="text-xs text-ink/50 mt-3">{size.details}</p>
+              <Dropdown
+                value={sizeKey}
+                options={Object.entries(SIZES).map(([key, s]) => ({ key, label: s.label, desc: `${s.dims} — ${s.details}` }))}
+                onChange={(key) => setSizeKey(key)}
+              />
             </OptionRow>
 
             <OptionRow step={2} title="Choose your paper stock">
               {loading ? (
-                <div className="flex flex-wrap gap-3">
-                  {[...Array(4)].map((_, i) => <div key={i} className="flex-1 min-w-[160px] h-28 bg-paper-200 rounded-xl animate-pulse" />)}
-                </div>
+                <div className="h-14 bg-paper-200 rounded-xl animate-pulse" />
               ) : products.length > 0 ? (
-                <div className="flex flex-wrap gap-3">
-                  {products.map((p, i) => (
-                    <PaperCard key={p._id || i} product={p} active={paperIndex === i} onSelect={() => setPaperIndex(i)} />
-                  ))}
-                </div>
+                <Dropdown
+                  value={product?._id}
+                  labelKey="_id"
+                  options={products.map((p) => ({ _id: p._id, label: p.name, desc: `${p.material || 'Premium card stock'} · from ${currency(p.price)}/100` }))}
+                  onChange={(id) => setPaperIndex(products.findIndex((p) => p._id === id))}
+                />
               ) : (
                 <p className="text-sm text-ink/50">Business card stocks are loading…</p>
               )}
             </OptionRow>
 
             <OptionRow step={3} title="Choose your coating">
-              <div className="flex flex-wrap gap-3">
-                {COATINGS.map((c) => (
-                  <OptionChip key={c.label} active={coating === c.label} onClick={() => setCoating(c.label)} meta={c.desc}>
-                    {c.label}
-                  </OptionChip>
-                ))}
-              </div>
+              <Dropdown value={coating} options={COATINGS} onChange={setCoating} />
             </OptionRow>
 
             <OptionRow step={4} title="Choose your finish">
-              <div className="flex flex-wrap gap-3">
-                {FINISHES.map((f) => (
-                  <OptionChip key={f.label} active={finish === f.label} onClick={() => setFinish(f.label)} meta={f.desc}>
-                    {f.label}
-                  </OptionChip>
-                ))}
-              </div>
+              <Dropdown value={finish} options={FINISHES} onChange={setFinish} />
             </OptionRow>
 
             <OptionRow step={5} title="Choose your corners & sides">
-              <div className="flex flex-wrap gap-3">
-                {CORNERS.map((c) => (
-                  <OptionChip key={c.label} active={corner.label === c.label} onClick={() => setCorner(c)}>
-                    {c.label}
-                  </OptionChip>
-                ))}
-                {SIDES.map((s) => (
-                  <OptionChip key={s.label} active={side.label === s.label} onClick={() => setSide(s)} meta={s.desc}>
-                    {s.label}
-                  </OptionChip>
-                ))}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Dropdown value={corner.label} options={CORNERS} onChange={(label) => setCorner(CORNERS.find((c) => c.label === label))} />
+                <Dropdown value={side.label} options={SIDES} onChange={(label) => setSide(SIDES.find((s) => s.label === label))} />
               </div>
             </OptionRow>
 
