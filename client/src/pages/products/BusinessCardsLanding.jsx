@@ -1,228 +1,304 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import {
-  Star, ChevronRight, ChevronDown, Check, ArrowRight, FileDown,
-  Ruler, Layers, LayoutGrid, Sparkles, BadgeCheck, Truck, Clock,
-  ShieldCheck, Upload, PenTool, Plus, Minus,
-} from 'lucide-react';
+import { Sparkles, Check, ChevronDown, Plus, Minus, ArrowRight, Truck } from 'lucide-react';
 import api from '../../utils/api';
-import DeliveryNote from '../../components/common/DeliveryNote';
 
-const SIZES = {
-  standard: {
-    label: 'Standard',
-    dims: '88.9 × 50.8 mm',
-    details: 'The classic business card size. Fits standard wallets and card holders.',
-    mult: 1,
-  },
-  moo: {
-    label: 'Euro',
-    dims: '85 × 55 mm',
-    details: 'A little wider and shorter than standard. Distinctive and memorable.',
-    mult: 1.15,
-  },
-  square: {
-    label: 'Square',
-    dims: '55 × 55 mm',
-    details: 'Bold, modern and unmistakable. A square that stands out in any pile.',
-    mult: 1.1,
-  },
-};
+const SIZES = [
+  { name: 'Standard', detail: '88.9 × 50.8 mm', mult: 1 },
+  { name: 'Euro', detail: '85 × 55 mm', mult: 1.15 },
+  { name: 'Square', detail: '55 × 55 mm', mult: 1.1 },
+];
 
 const COATINGS = [
-  { label: 'Coated on both sides', desc: 'Smooth, print-perfect surface for crisp colors' },
-  { label: 'Uncoated', desc: 'Natural paper feel, great for elegant embossed textures' },
+  { name: 'Coated on both sides', detail: 'Smooth, print-perfect surface for crisp colors' },
+  { name: 'Uncoated', detail: 'Natural paper feel, great for elegant embossed textures' },
 ];
 
 const FINISHES = [
-  { label: 'Matte', desc: 'Sophisticated, glare-free and easy to write on' },
-  { label: 'Gloss', desc: 'Vibrant, shiny and eye-catching' },
+  { name: 'Matte', detail: 'Sophisticated, glare-free and easy to write on' },
+  { name: 'Gloss', detail: 'Vibrant, shiny and eye-catching' },
 ];
 
 const CORNERS = [
-  { label: 'Square', desc: 'Classic sharp corners', addOn: 0 },
-  { label: 'Rounded', desc: 'Soft, premium rounded corners', addOn: 0.1 },
+  { name: 'Square', detail: 'Classic sharp corners', addOn: 0 },
+  { name: 'Rounded', detail: 'Soft 4 mm radius corners', addOn: 0.1 },
 ];
 
 const SIDES = [
-  { label: 'Single sided', addOn: 0 },
-  { label: 'Double sided', desc: 'Front and back printing', addOn: 0.2 },
+  { name: 'Single sided', detail: 'Print on the front only', addOn: 0 },
+  { name: 'Double sided', detail: 'Front and back printing', addOn: 0.2 },
 ];
 
-const GUIDELINES = {
-  standard: {
-    label: 'Standard Size',
-    trim: '88.9 × 50.8 mm',
-    bleed: '92.9 × 54.8 mm',
-    safe: '84.9 × 46.8 mm',
-    notes: [
-      'Design at 300 DPI in CMYK for best print quality',
-      'Extend background colours to the bleed edge',
-      'Keep important text and logos inside the safe area',
-      'Recommended fonts 7pt or larger for readability',
-    ],
-  },
-  moo: {
-    label: 'Euro Size',
-    trim: '85 × 55 mm',
-    bleed: '89 × 59 mm',
-    safe: '81 × 51 mm',
-    notes: [
-      'Design at 300 DPI in CMYK for best print quality',
-      'Extend background colours to the bleed edge',
-      'Keep important text and logos inside the safe area',
-      'Recommended fonts 7pt or larger for readability',
-    ],
-  },
-  square: {
-    label: 'Square Size',
-    trim: '55 × 55 mm',
-    bleed: '59 × 59 mm',
-    safe: '51 × 51 mm',
-    notes: [
-      'Design at 300 DPI in CMYK for best print quality',
-      'Extend background colours to the bleed edge',
-      'Keep important text and logos inside the safe area',
-      'Recommended fonts 7pt or larger for readability',
-    ],
-  },
-};
+const QUICK_QTYS = [100, 250, 500, 1000, 2500];
 
-const FAQS = [
-  {
-    q: 'What paper stock should I choose for my business cards?',
-    a: 'For the most popular choice, our Original 350 GSM art card gives a premium feel at a great price. Metallic paper adds a luxurious sheen, while non-tearable synthetic paper is perfect for durable, water-resistant cards that survive wallet life.',
-  },
-  {
-    q: 'Can I print a different design on the back of every card?',
-    a: 'Yes! Our PrintFinity feature lets you print a unique design on every single card in your pack at no extra cost. Perfect for unique QR codes, individual details, or creative campaigns.',
-  },
-  {
-    q: 'What quantity tiers are available?',
-    a: 'We offer flexible bulk pricing starting from a few cards up to thousands. The more you order, the lower the per-card price — you can see live pricing in the table below as you increase quantity.',
-  },
-  {
-    q: 'Do you provide design templates?',
-    a: 'Absolutely. Our free online design editor includes professionally made templates, 30+ fonts, clipart and design tools. You can also upload your own artwork or simply pick a template and customise it.',
-  },
-  {
-    q: 'How long does delivery take?',
-    a: 'Orders are usually printed and dispatched within 2–4 working days. Standard shipping takes 3–10 days across India depending on your location.',
-  },
-  {
-    q: 'Can I approve a proof before printing?',
-    a: 'Every design is reviewed by our team before printing. You can request changes and our team keeps you in the loop until everything is perfect.',
-  },
+const FALLBACK_STOCKS = [
+  { _id: 'original', name: 'Premium Matt Laminated Business Card', detail: '350 GSM Art Card', price: 299 },
+  { _id: 'spot-uv', name: 'Spot UV Business Card', detail: '350 GSM Art Card', price: 449 },
+  { _id: 'gold-foil', name: 'Gold Foil Business Card', detail: '350 GSM Art Card', price: 599 },
+  { _id: 'round', name: 'Round Corner Business Card', detail: '300 GSM Art Card', price: 349 },
+  { _id: 'metallic', name: 'Metallic Silver Business Card', detail: 'Metallic Paper 290 GSM', price: 699 },
 ];
 
 function currency(n) {
-  return `\u20b9${Math.round(n).toLocaleString('en-IN')}`;
+  return Math.round(n).toLocaleString('en-IN');
 }
 
-function OptionRow({ step, title, hint, children }) {
+function Accordion({ number, title, selected, open, onToggle, children }) {
   return (
-    <div className="border border-ink/10 rounded-2xl bg-white p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <div className="flex items-center gap-3">
-          <span className="w-7 h-7 rounded-full bg-pj-green text-white text-sm font-semibold flex items-center justify-center flex-shrink-0">
-            {step}
-          </span>
-          <h3 className="font-display text-lg text-ink">{title}</h3>
+    <section
+      className={`overflow-hidden rounded-2xl border bg-white shadow-[0_4px_20px_rgba(71,39,28,0.04)] transition-colors ${
+        open ? 'border-[#dcae3e]' : 'border-[#e6ded4]'
+      }`}
+    >
+      <button
+        onClick={onToggle}
+        className="flex min-h-[78px] w-full items-center gap-4 px-5 py-4 text-left sm:px-7"
+        aria-expanded={open}
+      >
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
+            open ? 'bg-[#b77b08] text-white' : 'bg-[#f1d18a] text-[#774d05]'
+          }`}
+        >
+          {number}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-serif text-lg font-semibold text-[#4b2822] sm:text-[21px]">{title}</span>
+          {!open && <span className="mt-1 block truncate text-sm text-[#907f76]">{selected}</span>}
+        </span>
+        <ChevronDown
+          size={20}
+          className={`shrink-0 text-[#9b6a09] transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      <div
+        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+          open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        }`}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="border-t border-[#f0e8de] px-5 pb-6 pt-5 sm:px-7">{children}</div>
         </div>
-        {hint && <span className="text-xs text-ink/40 hidden sm:block">{hint}</span>}
       </div>
-      {children}
+    </section>
+  );
+}
+
+function OptionList({ options, selected, onSelect, showPrice = false }) {
+  return (
+    <div className="space-y-2">
+      {options.map((opt) => {
+        const active = selected === opt.name;
+        return (
+          <button
+            key={opt.name}
+            onClick={() => onSelect(opt)}
+            className={`group flex min-h-[72px] w-full items-center gap-4 rounded-xl border px-4 py-3 text-left transition-all ${
+              active
+                ? 'border-[#d5a62e] bg-[#fffaf0] shadow-[0_3px_12px_rgba(184,132,18,0.08)]'
+                : 'border-[#e5ded6] bg-white hover:border-[#cbb89c] hover:bg-[#fcfaf7]'
+            }`}
+          >
+            <span
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition ${
+                active ? 'border-[#b77b08] bg-[#b77b08] text-white' : 'border-[#cfc2b5] text-transparent'
+              }`}
+            >
+              <Check size={13} strokeWidth={3} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className={`block text-[15px] font-semibold ${active ? 'text-[#9a690a]' : 'text-[#4e3530]'}`}>
+                {opt.name}
+              </span>
+              {opt.detail && <span className="mt-1 block text-sm leading-5 text-[#8b7b73]">{opt.detail}</span>}
+            </span>
+            {showPrice && 'price' in opt && (
+              <span className="shrink-0 text-right text-sm font-semibold text-[#5d2c24]">
+                from ₹{currency(opt.price)}
+                <span className="block text-[11px] font-normal text-[#a18f84]">/100 cards</span>
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-function Dropdown({ value, options, onChange, labelKey = 'label', descKey = 'desc', renderValue }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+function QuantityPicker({ quantity, setQuantity }) {
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex h-12 items-center rounded-xl border border-[#ded3c5] bg-[#fcfaf7]">
+          <button
+            onClick={() => setQuantity(Math.max(100, quantity - 50))}
+            className="flex h-full w-12 items-center justify-center text-[#7e6a60] transition hover:bg-[#f0e7da]"
+            aria-label="Decrease quantity"
+          >
+            <Minus size={16} />
+          </button>
+          <span className="min-w-[66px] text-center font-semibold text-[#4b2822]">{quantity.toLocaleString('en-IN')}</span>
+          <button
+            onClick={() => setQuantity(quantity + 50)}
+            className="flex h-full w-12 items-center justify-center text-[#7e6a60] transition hover:bg-[#f0e7da]"
+            aria-label="Increase quantity"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+        <span className="text-sm text-[#8a7870]">cards</span>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {QUICK_QTYS.map((q) => (
+          <button
+            key={q}
+            onClick={() => setQuantity(q)}
+            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+              quantity === q
+                ? 'border-[#6b342a] bg-[#6b342a] text-white'
+                : 'border-[#ded3c5] bg-white text-[#705e55] hover:border-[#b77b08]'
+            }`}
+          >
+            {q.toLocaleString('en-IN')}
+          </button>
+        ))}
+      </div>
+      <p className="mt-4 text-sm text-[#8a7870]">
+        Bulk pricing applies automatically. Need more?{' '}
+        <span className="font-medium text-[#9b6a09]">Contact us for large-order quotes.</span>
+      </p>
+    </div>
+  );
+}
 
-  useEffect(() => {
-    const close = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, []);
+function OrderSummary({ config, quantity, total, perCard, configureUrl }) {
+  const rows = [
+    ['Size', `${config.size.name} — ${config.size.detail}`],
+    ['Paper', config.stock.name],
+    ['Coating', config.coating.name],
+    ['Finish', config.finish.name],
+    ['Corners', config.corners.name],
+    ['Sides', config.sides.name],
+    ['Quantity', `${quantity.toLocaleString('en-IN')} cards`],
+  ];
+  return (
+    <aside className="sticky top-[143px] rounded-2xl border border-[#dfd4c7] bg-white p-5 shadow-[0_8px_35px_rgba(71,39,28,0.07)] sm:p-6">
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#9b6a09]">Your order</p>
+          <h2 className="mt-1 font-serif text-2xl font-semibold text-[#4b2822]">Business cards</h2>
+        </div>
+        <span className="rounded-full bg-[#f7efe4] px-3 py-1 text-xs font-semibold text-[#7c6255]">Draft</span>
+      </div>
 
-  const selected = options.find((o) => o[labelKey] === value);
+      <div className="relative mb-6 flex h-40 items-center justify-center overflow-hidden rounded-xl bg-[#f1e7da]">
+        <div className="card-preview relative flex h-[92px] w-[155px] rotate-[-5deg] flex-col justify-between rounded-md bg-[#6b342a] p-4 text-white shadow-[10px_12px_0_rgba(156,106,35,0.16)]">
+          <span className="font-serif text-[10px] font-bold tracking-wide">PrintJack</span>
+          <span className="text-[7px] uppercase tracking-[0.2em] text-[#e5b946]">Make your mark</span>
+        </div>
+        <div className="absolute -bottom-12 -right-10 h-28 w-28 rounded-full border-[16px] border-[#d5a62e]/30" />
+      </div>
+
+      <div className="space-y-3 border-b border-[#eee5da] pb-5">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex items-start justify-between gap-4 text-sm">
+            <span className="text-[#96857c]">{label}</span>
+            <span className="max-w-[190px] text-right font-medium text-[#573b34]">{value}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-end justify-between py-5">
+        <span className="text-sm text-[#8a7870]">Estimated total</span>
+        <span className="font-serif text-3xl font-semibold text-[#5d2c24]">₹{currency(total)}</span>
+      </div>
+
+      <Link
+        to={configureUrl}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#b77b08] py-3.5 text-sm font-bold text-white shadow-[0_7px_15px_rgba(183,123,8,0.2)] transition hover:bg-[#976306]"
+      >
+        Continue to design <ArrowRight size={17} />
+      </Link>
+      <p className="mt-3 text-center text-xs text-[#9a8980]">Prices adjust automatically</p>
+    </aside>
+  );
+}
+
+function BulkPricing({ quantity, setQuantity, stock }) {
+  const tiers = stock && stock.bulkPricing && stock.bulkPricing.length
+    ? stock.bulkPricing
+    : [
+        { minQty: 1, maxQty: 4, price: stock ? stock.price : 299 },
+        { minQty: 5, maxQty: 14, price: stock ? Math.max(1, stock.price - 5) : 294 },
+        { minQty: 15, maxQty: 49, price: stock ? Math.max(1, stock.price - 10) : 289 },
+        { minQty: 50, maxQty: 199, price: stock ? Math.max(1, stock.price - 20) : 279 },
+      ];
+  const base = tiers[0]?.price || stock?.price || 299;
 
   return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={`w-full flex items-center justify-between gap-3 border rounded-xl px-4 py-3.5 bg-white text-left transition-all duration-200 ${
-          open ? 'border-pj-green ring-2 ring-pj-green/30' : 'border-ink/15 hover:border-ink/35'
-        }`}
-      >
-        <span className="min-w-0">
-          <span className="block font-semibold text-ink truncate">
-            {renderValue ? renderValue(selected) : selected ? selected.label || selected[labelKey] : value}
-          </span>
-          {selected && descKey && selected[descKey] && (
-            <span className="block text-xs text-ink/50 truncate">{selected[descKey]}</span>
-          )}
+    <section className="mt-16">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#9b6a09]">
+            The more you print, the more you keep
+          </p>
+          <h2 className="font-serif text-3xl font-semibold tracking-[-0.03em] text-[#4b2822]">
+            Bulk pricing that rewards you
+          </h2>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#dfc98c] bg-[#fff9e8] px-3 py-2 text-xs font-semibold text-[#80600f]">
+          <Truck size={14} /> Delivered in under 7 days
         </span>
-        <ChevronDown size={18} className={`text-ink/40 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-      </button>
+      </div>
 
-      <AnimatePresence>
-        {open && (
-          <motion.ul
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="absolute z-30 mt-2 w-full bg-white rounded-xl border border-ink/10 shadow-card-hover max-h-72 overflow-y-auto"
-          >
-            {options.map((o) => {
-              const active = o[labelKey] === value;
-              return (
-                <li key={o[labelKey]}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onChange(o[labelKey]);
-                      setOpen(false);
-                    }}
-                    className={`w-full flex items-start justify-between gap-3 px-4 py-3 text-left transition-colors duration-150 ${
-                      active ? 'bg-pj-sage text-pj-green' : 'text-ink hover:bg-paper-50'
-                    }`}
-                  >
-                    <span className="min-w-0">
-                      <span className={`block font-medium ${active ? 'text-pj-green' : 'text-ink'}`}>{o.label || o[labelKey]}</span>
-                      {o[descKey] && <span className="block text-xs text-ink/50 mt-0.5">{o[descKey]}</span>}
-                    </span>
-                    {active && <Check size={16} className="text-pj-green flex-shrink-0 mt-0.5" />}
-                  </button>
-                </li>
-              );
-            })}
-          </motion.ul>
-        )}
-      </AnimatePresence>
-    </div>
+      <div className="overflow-hidden rounded-2xl border border-[#e4dbd0] bg-white">
+        <div className="grid grid-cols-[1.3fr_1fr_1fr_1fr] border-b border-[#ebe3da] bg-[#fcfaf7] px-4 py-4 text-[10px] font-bold uppercase tracking-[0.12em] text-[#98877c] sm:px-6">
+          <span>Quantity</span>
+          <span>Price per card</span>
+          <span>Pack price</span>
+          <span>You save</span>
+        </div>
+        {tiers.map((t, i) => {
+          const packPrice = Math.round(t.price * t.maxQty);
+          const saving = i > 0 ? Math.round((base - t.price) * t.maxQty) : 0;
+          const active = quantity >= t.minQty && quantity <= t.maxQty;
+          return (
+            <button
+              key={`${t.minQty}-${t.maxQty}`}
+              onClick={() => setQuantity(t.maxQty)}
+              className={`grid w-full grid-cols-[1.3fr_1fr_1fr_1fr] px-4 py-4 text-left text-sm transition sm:px-6 ${
+                active ? 'bg-[#fff9ea]' : 'hover:bg-[#fcfaf7]'
+              }`}
+            >
+              <span className="font-medium text-[#60443b]">
+                {t.minQty}–{t.maxQty >= 99999 ? '10,000+' : t.maxQty.toLocaleString('en-IN')}
+              </span>
+              <span className="text-[#725d53]">₹{currency(t.price)}</span>
+              <span className="font-semibold text-[#5d2c24]">₹{currency(packPrice)}</span>
+              <span className="font-medium text-[#b07808]">{saving > 0 ? `Save ₹${currency(saving)}` : '—'}</span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-3 text-center text-xs text-[#a08e84]">Click a row to select that quantity tier.</p>
+    </section>
   );
 }
 
 export default function BusinessCardsLanding() {
-  const [products, setProducts] = useState([]);
+  const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sizeKey, setSizeKey] = useState('standard');
-  const [paperIndex, setPaperIndex] = useState(0);
-  const [coating, setCoating] = useState(COATINGS[0].label);
-  const [finish, setFinish] = useState(FINISHES[0].label);
-  const [corner, setCorner] = useState(CORNERS[0]);
-  const [side, setSide] = useState(SIDES[0]);
+  const [open, setOpen] = useState(1);
   const [quantity, setQuantity] = useState(100);
-  const [guidelineTab, setGuidelineTab] = useState('standard');
-  const [faqOpen, setFaqOpen] = useState(0);
+  const [config, setConfig] = useState({
+    size: SIZES[0],
+    stock: FALLBACK_STOCKS[0],
+    coating: COATINGS[0],
+    finish: FINISHES[0],
+    corners: CORNERS[0],
+    sides: SIDES[1],
+  });
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -231,19 +307,21 @@ export default function BusinessCardsLanding() {
         const { data } = await api.get('/products?category=business-cards&limit=100');
         if (data.success) {
           const raw = data.products || data.data || [];
-          const normalized = raw.map((p) => ({
-            ...p,
+          const mapped = raw.map((p) => ({
+            _id: p._id,
+            name: p.name,
+            detail: p.material || 'Premium card stock',
             price: p.basePrice || p.price || 0,
             bulkPricing: p.bulkPricing || [],
-            material: p.material || 'Premium card stock',
-            images: p.images ? p.images.map((i) => (typeof i === 'string' ? i : i.url || i)) : [],
-            rating: p.averageRating || p.rating || 0,
-            reviewCount: p.totalReviews || p.reviewCount || 0,
+            mult: 1,
           }));
-          setProducts(normalized);
+          if (mapped.length) {
+            setStocks(mapped);
+            setConfig((c) => ({ ...c, stock: mapped[0] }));
+          }
         }
       } catch {
-        setProducts([]);
+        setStocks(FALLBACK_STOCKS);
       } finally {
         setLoading(false);
       }
@@ -251,408 +329,176 @@ export default function BusinessCardsLanding() {
     fetchProducts();
   }, []);
 
-  const product = products[paperIndex] || null;
-  const size = SIZES[sizeKey];
+  const set = (key, value) => setConfig((c) => ({ ...c, [key]: value }));
 
-  const getTierPrice = (p, qty) => {
-    if (!p || !p.bulkPricing || p.bulkPricing.length === 0) return p ? p.price : 0;
-    const tier = p.bulkPricing.find((t) => qty >= t.minQty && qty <= t.maxQty) || p.bulkPricing[p.bulkPricing.length - 1];
-    return tier.price;
-  };
-
-  const perCard = product
-    ? getTierPrice(product, quantity) * size.mult + corner.addOn + side.addOn
-    : 0;
+  const stock = config.stock;
+  const sizeMult = config.size.mult || 1;
+  const perCard = Math.round(
+    (stock.price * sizeMult + config.corners.addOn + config.sides.addOn) * (config.coating.name === 'Uncoated' ? 0.94 : 1)
+  );
   const total = Math.round(perCard * quantity);
 
-  const quickQtys = [100, 250, 500, 1000, 2500];
-  const effectivePaper = product || { name: 'Original Business Cards', material: '350 GSM Art Card', slug: 'business-cards' };
-  const sidesParam = side.label === 'Double sided' ? 'sides=double' : 'sides=single';
-  const configureUrl = product && product._id
-    ? `/configure/${product._id}?${sidesParam}&size=${encodeURIComponent(sizeKey)}&qty=${quantity}#stage=design`
+  const sidesParam = config.sides.name === 'Double sided' ? 'sides=double' : 'sides=single';
+  const configureUrl = stock && stock._id
+    ? `/configure/${stock._id}?${sidesParam}&size=${encodeURIComponent(config.size.name.toLowerCase())}&qty=${quantity}#stage=design`
     : `/products?category=business-cards`;
 
-  const avgRating = products.length
-    ? (products.reduce((s, p) => s + (p.rating || 0), 0) / products.length).toFixed(1)
-    : '4.8';
-  const reviewCount = products.reduce((s, p) => s + (p.reviewCount || 0), 0) || 340;
-
   return (
-    <div className="min-h-screen bg-paper-100">
+    <div className="min-h-screen bg-[#f8f5ef] text-[#3b2925]">
       <Helmet>
         <title>Business Cards | PrintJack</title>
-        <meta name="description" content="Premium custom business cards with matt lamination, spot UV, gold foil and more. Bulk pricing, free online design editor and fast India-wide delivery." />
+        <meta
+          name="description"
+          content="Premium custom business cards with matt lamination, spot UV, gold foil and more. Bulk pricing, free online design editor and fast India-wide delivery."
+        />
       </Helmet>
 
-      {/* Breadcrumb */}
-      <div className="bg-paper-50 border-b border-ink/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <nav className="flex items-center gap-1.5 text-sm text-ink/50">
-            <Link to="/" className="hover:text-pj-green transition-colors">Home</Link>
-            <ChevronRight size={14} />
-            <Link to="/products" className="hover:text-pj-green transition-colors">Products</Link>
-            <ChevronRight size={14} />
-            <span className="text-ink font-medium">Business Cards</span>
-          </nav>
-        </div>
-      </div>
+      <main>
+        <section className="mx-auto max-w-[1440px] px-5 pb-16 pt-9 lg:px-10 lg:pt-14">
+          <div className="mb-11 max-w-3xl">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#e6c77c] bg-[#fff9e9] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#986b0c]">
+              <Sparkles size={14} /> Make it unmistakably yours
+            </div>
+            <h1 className="font-serif text-4xl font-semibold leading-[1.12] tracking-[-0.04em] text-[#4b2822] sm:text-5xl lg:text-[58px]">
+              Standard business cards,
+              <br />
+              <span className="text-[#b27b13]">beautifully finished.</span>
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-[#75635b]">
+              Choose your stock, finish and quantity. We’ll make every detail feel just right, from the first handshake
+              to the last card.
+            </p>
+          </div>
 
-      {/* Hero */}
-      <section className="bg-paper-50 border-b border-ink/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
+          <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_370px]">
             <div>
-              <span className="text-sm text-pj-green font-medium uppercase tracking-widest">Premium Printing</span>
-              <h1 className="mt-3 font-display text-4xl sm:text-6xl text-ink leading-tight">
-                Business Cards
-              </h1>
-              <p className="mt-4 text-lg text-ink/60 max-w-xl">
-                High-quality business cards on thick 350 GSM card stock with premium finishes.
-                Create your own design online or upload your artwork — 100 cards from{' '}
-                <span className="font-semibold text-ink">{currency(products[0]?.price || 299)}</span>.
-              </p>
-              <div className="mt-5 flex items-center gap-2 text-sm">
-                <div className="flex items-center gap-0.5">
-                  {[...Array(5)].map((_, i) => <Star key={i} size={16} className="fill-amber-400 text-amber-400" />)}
-                </div>
-                <span className="font-semibold text-ink">{avgRating}</span>
-                <span className="text-ink/50">({reviewCount.toLocaleString('en-IN')} reviews)</span>
-              </div>
-              <ul className="mt-6 grid sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm text-ink/70">
-                <li className="flex items-center gap-2"><BadgeCheck size={16} className="text-pj-green" /> 350 GSM thick card stock</li>
-                <li className="flex items-center gap-2"><Sparkles size={16} className="text-pj-green" /> PrintFinity — different design on every card</li>
-                <li className="flex items-center gap-2"><Layers size={16} className="text-pj-green" /> Matt lamination, spot UV & gold foil</li>
-                <li className="flex items-center gap-2"><PenTool size={16} className="text-pj-green" /> Free online design editor & templates</li>
-                <li className="flex items-center gap-2"><Truck size={16} className="text-pj-green" /> Fast delivery across India</li>
-                <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-pj-green" /> Approval before printing</li>
-              </ul>
-            </div>
-            <div className="relative">
-              <div className="rounded-3xl bg-gradient-to-br from-pj-sage to-paper-200 border border-ink/10 p-8 flex flex-col items-center justify-center gap-5">
-                <div className="relative w-64 h-40">
-                  <div className="absolute left-2 top-2 w-44 h-28 rounded-xl bg-white border border-ink/10 shadow-card rotate-[-6deg] flex items-center justify-center">
-                    <div className="w-24 h-16 rounded-lg bg-pj-green/15 flex items-center justify-center">
-                      <span className="font-display text-pj-green font-semibold">PJ</span>
-                    </div>
-                  </div>
-                  <div className="absolute right-2 top-4 w-44 h-28 rounded-xl bg-white border border-ink/10 shadow-card rotate-[4deg] flex flex-col items-center justify-center gap-1">
-                    <span className="w-16 h-2.5 rounded-full bg-ink/70" />
-                    <span className="w-20 h-2 rounded-full bg-ink/30" />
-                    <span className="w-14 h-2 rounded-full bg-pj-green/60" />
-                  </div>
-                  <div className="absolute right-8 bottom-2 w-44 h-28 rounded-xl bg-pj-green shadow-card rotate-[-3deg] flex items-center justify-center">
-                    <span className="text-white font-display text-lg font-semibold">PrintJack</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-ink/60 bg-white rounded-full px-4 py-2 border border-ink/10 shadow-card">
-                  <span className="flex items-center gap-1"><Ruler size={14} className="text-pj-green" /> {size.dims}</span>
-                  <span className="flex items-center gap-1"><LayoutGrid size={14} className="text-pj-green" /> {product?.material || '350 GSM'}</span>
-                  <span className="flex items-center gap-1"><Sparkles size={14} className="text-pj-green" /> {finish}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Configurator */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-4">
-            <OptionRow step={1} title="Choose your size" hint="Prices adjust automatically">
-              <Dropdown
-                value={sizeKey}
-                labelKey="key"
-                options={Object.entries(SIZES).map(([key, s]) => ({ key, label: s.label, desc: `${s.dims} — ${s.details}` }))}
-                onChange={setSizeKey}
-              />
-            </OptionRow>
-
-            <OptionRow step={2} title="Choose your paper stock">
-              {loading ? (
-                <div className="h-14 bg-paper-200 rounded-xl animate-pulse" />
-              ) : products.length > 0 ? (
-                <Dropdown
-                  value={product?._id}
-                  labelKey="_id"
-                  options={products.map((p) => ({ _id: p._id, label: p.name, desc: `${p.material || 'Premium card stock'} · from ${currency(p.price)}/100` }))}
-                  onChange={(id) => setPaperIndex(products.findIndex((p) => p._id === id))}
-                />
-              ) : (
-                <p className="text-sm text-ink/50">Business card stocks are loading…</p>
-              )}
-            </OptionRow>
-
-            <OptionRow step={3} title="Choose your coating">
-              <Dropdown value={coating} options={COATINGS} onChange={setCoating} />
-            </OptionRow>
-
-            <OptionRow step={4} title="Choose your finish">
-              <Dropdown value={finish} options={FINISHES} onChange={setFinish} />
-            </OptionRow>
-
-            <OptionRow step={5} title="Choose your corners & sides">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Dropdown value={corner.label} options={CORNERS} onChange={(label) => setCorner(CORNERS.find((c) => c.label === label))} />
-                <Dropdown value={side.label} options={SIDES} onChange={(label) => setSide(SIDES.find((s) => s.label === label))} />
-              </div>
-            </OptionRow>
-
-            <OptionRow step={6} title="Choose your quantity">
-              <div className="flex flex-wrap gap-3 items-center">
-                <div className="flex items-center border border-ink/15 rounded-xl overflow-hidden bg-white">
-                  <button
-                    onClick={() => setQuantity((q) => Math.max(25, q - 25))}
-                    className="px-3 py-3 hover:bg-paper-50 text-ink/60"
-                    aria-label="Decrease quantity"
-                  >
-                    <Minus size={16} />
-                  </button>
-                  <span className="w-24 text-center font-semibold text-ink">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity((q) => q + 25)}
-                    className="px-3 py-3 hover:bg-paper-50 text-ink/60"
-                    aria-label="Increase quantity"
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
-                <span className="text-sm text-ink/50">cards</span>
-                <div className="flex flex-wrap gap-2">
-                  {quickQtys.map((q) => (
-                    <button
-                      key={q}
-                      onClick={() => setQuantity(q)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                        quantity === q ? 'bg-ink text-paper-50 border-ink' : 'bg-white border-ink/15 text-ink/60 hover:border-ink/40'
-                      }`}
-                    >
-                      {q.toLocaleString('en-IN')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <p className="text-xs text-ink/50 mt-3">
-                Bulk pricing applies automatically. Need more? Contact us for large-order quotes.
-              </p>
-            </OptionRow>
-          </div>
-
-          {/* Summary */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24 bg-white rounded-2xl border border-ink/10 shadow-card p-6">
-              <h3 className="font-display text-xl text-ink mb-1">Your business cards</h3>
-              <p className="text-sm text-ink/50 mb-4">Live preview of your selection</p>
-
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between"><span className="text-ink/50">Size</span><span className="font-medium text-ink">{size.label} · {size.dims}</span></div>
-                <div className="flex justify-between"><span className="text-ink/50">Paper</span><span className="font-medium text-ink">{effectivePaper.name}</span></div>
-                <div className="flex justify-between"><span className="text-ink/50">Material</span><span className="font-medium text-ink">{effectivePaper.material}</span></div>
-                <div className="flex justify-between"><span className="text-ink/50">Coating</span><span className="font-medium text-ink">{coating}</span></div>
-                <div className="flex justify-between"><span className="text-ink/50">Finish</span><span className="font-medium text-ink">{finish}</span></div>
-                <div className="flex justify-between"><span className="text-ink/50">Corners</span><span className="font-medium text-ink">{corner.label}</span></div>
-                <div className="flex justify-between"><span className="text-ink/50">Printing</span><span className="font-medium text-ink">{side.label}</span></div>
-                <div className="flex justify-between"><span className="text-ink/50">Quantity</span><span className="font-medium text-ink">{quantity.toLocaleString('en-IN')} cards</span></div>
+              <div className="mb-4 flex items-center justify-between text-sm">
+                <span className="font-semibold text-[#5d2c24]">Build your cards</span>
+                <span className="text-[#8b7a70]">Prices adjust automatically</span>
               </div>
 
-              <div className="my-5 border-t border-dashed border-ink/10" />
+              <div className="space-y-3">
+                <Accordion
+                  number={1}
+                  title="Choose your size"
+                  selected={`${config.size.name} — ${config.size.detail}`}
+                  open={open === 1}
+                  onToggle={() => setOpen(open === 1 ? null : 1)}
+                >
+                  <OptionList options={SIZES} selected={config.size.name} onSelect={(s) => set('size', s)} />
+                  <p className="mt-3 text-sm leading-6 text-[#8a7870]">
+                    The classic business card size. Fits standard wallets and card holders.
+                  </p>
+                </Accordion>
 
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="text-xs text-ink/50">Total (incl. GST)</p>
-                  <p className="font-display text-3xl text-ink font-semibold">{currency(total)}</p>
-                  <p className="text-xs text-ink/40 mt-1">{currency(perCard)} per card</p>
-                </div>
-              </div>
-
-              <DeliveryNote category={product?.category || 'Business Cards'} className="mt-4 mb-1" />
-              <Link
-                to={configureUrl}
-                className="mt-5 w-full inline-flex items-center justify-center gap-2 bg-pj-green hover:bg-[#166b4d] text-white font-semibold py-3.5 rounded-xl transition-colors"
-              >
-                Start making <ArrowRight size={18} />
-              </Link>
-              <Link
-                to={configureUrl}
-                className="mt-3 w-full inline-flex items-center justify-center gap-2 border-2 border-ink/10 text-ink font-semibold py-3 rounded-xl hover:border-pj-green hover:text-pj-green transition-colors"
-              >
-                <Upload size={16} /> Upload your own design
-              </Link>
-              <div className="mt-4 flex items-center justify-center gap-3 text-xs text-ink/50">
-                <span className="flex items-center gap-1"><Truck size={14} className="text-pj-green" /> Free shipping over ₹999</span>
-                <span className="flex items-center gap-1"><Clock size={14} className="text-pj-green" /> Delivered in under 7 days</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Pricing table */}
-        {product && product.bulkPricing && product.bulkPricing.length > 0 && (
-          <div className="mt-12">
-            <h2 className="font-display text-2xl sm:text-3xl text-ink text-center mb-8">Bulk pricing that rewards you</h2>
-            <div className="overflow-x-auto bg-white rounded-2xl border border-ink/10 shadow-card">
-              <table className="w-full min-w-[480px] text-left">
-                <thead>
-                  <tr className="border-b border-ink/10 text-xs uppercase tracking-wider text-ink/50">
-                    <th className="px-6 py-4 font-medium">Quantity</th>
-                    <th className="px-6 py-4 font-medium">Price per card</th>
-                    <th className="px-6 py-4 font-medium">Pack price</th>
-                    <th className="px-6 py-4 font-medium">You save</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {product.bulkPricing.map((t, i) => {
-                    const rowTotal = Math.round((t.price * size.mult + corner.addOn + side.addOn) * t.maxQty);
-                    const base = t.price;
-                    const saving = i > 0 ? Math.round((product.bulkPricing[0].price - t.price) * t.maxQty * size.mult) : 0;
-                    const isActive = quantity >= t.minQty && quantity <= t.maxQty;
-                    return (
-                      <tr
-                        key={`${t.minQty}-${t.maxQty}`}
-                        onClick={() => setQuantity(t.maxQty)}
-                        className={`border-b border-ink/5 last:border-0 cursor-pointer transition-colors ${
-                          isActive ? 'bg-pj-sage' : 'hover:bg-paper-50'
-                        }`}
-                      >
-                        <td className="px-6 py-4 font-semibold text-ink">
-                          {t.minQty}–{t.maxQty >= 99999 ? '10,000+' : t.maxQty.toLocaleString('en-IN')} cards
-                        </td>
-                        <td className="px-6 py-4 text-ink">{currency(base)}</td>
-                        <td className="px-6 py-4 font-semibold text-ink">{currency(rowTotal)}</td>
-                        <td className="px-6 py-4 text-pj-green font-medium">{saving > 0 ? `Save ${currency(saving)}` : '—'}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <p className="text-center text-xs text-ink/50 mt-3">Click a row to select that quantity tier.</p>
-          </div>
-        )}
-      </section>
-
-      {/* Design guidelines */}
-      <section className="bg-paper-50 border-y border-ink/10 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-display text-2xl sm:text-3xl text-ink text-center mb-2">Design guidelines</h2>
-          <p className="text-ink/50 text-center mb-8 max-w-2xl mx-auto">
-            Use these measurements to make sure your artwork prints perfectly. Not sure? Our editor has built-in bleed and safe-area guides.
-          </p>
-          <div className="flex flex-wrap justify-center gap-2 mb-8">
-            {Object.entries(GUIDELINES).map(([key, g]) => (
-              <button
-                key={key}
-                onClick={() => setGuidelineTab(key)}
-                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${
-                  guidelineTab === key ? 'bg-ink text-paper-50' : 'bg-white border border-ink/15 text-ink/60 hover:border-ink/40'
-                }`}
-              >
-                {g.label}
-              </button>
-            ))}
-          </div>
-          <div className="grid md:grid-cols-2 gap-8 items-center max-w-4xl mx-auto">
-            <div className="flex justify-center">
-              <div className="relative w-56 h-32 bg-ink/10 rounded-lg" style={{ width: '13.5rem' }}>
-                <div className="absolute inset-1 bg-paper-100 border-2 border-ink/30 rounded-md flex items-center justify-center">
-                  <span className="text-xs font-medium text-ink/70">Trim {GUIDELINES[guidelineTab].trim}</span>
-                </div>
-                <div className="absolute inset-2.5 bg-white rounded-md shadow-card" />
-              </div>
-            </div>
-            <div>
-              <ul className="space-y-3 text-sm text-ink/70">
-                {GUIDELINES[guidelineTab].notes.map((n, i) => (
-                  <li key={i} className="flex items-start gap-2.5">
-                    <Check size={16} className="text-pj-green flex-shrink-0 mt-0.5" />
-                    {n}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <span className="inline-flex items-center gap-2 bg-white border border-ink/15 rounded-full px-4 py-2 text-xs font-medium text-ink/70">
-                  <Ruler size={14} className="text-pj-green" /> Bleed: {GUIDELINES[guidelineTab].bleed}
-                </span>
-                <span className="inline-flex items-center gap-2 bg-white border border-ink/15 rounded-full px-4 py-2 text-xs font-medium text-ink/70">
-                  <LayoutGrid size={14} className="text-pj-green" /> Safe area: {GUIDELINES[guidelineTab].safe}
-                </span>
-              </div>
-              <Link to="/editor" className="mt-5 inline-flex items-center gap-2 text-pj-green font-semibold text-sm hover:underline">
-                <FileDown size={16} /> Use our free template in the editor
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Other paper stocks */}
-      {products.length > 1 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <h2 className="font-display text-2xl sm:text-3xl text-ink text-center mb-2">Check out our other card stocks</h2>
-          <p className="text-ink/50 text-center mb-10 max-w-2xl mx-auto">
-            Every stock has its own personality. Compare our range and find the perfect match for your brand.
-          </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((p, i) => (
-              <div key={p._id || i} className={`bg-white rounded-2xl border p-6 shadow-card transition-shadow hover:shadow-card-hover ${i === paperIndex ? 'border-pj-green ring-2 ring-pj-green/30' : 'border-ink/10'}`}>
-                <div className="aspect-[16/10] rounded-xl bg-gradient-to-br from-pj-sage to-paper-200 flex items-center justify-center mb-5 overflow-hidden">
-                  {p.images && p.images[0] ? (
-                    <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover" />
+                <Accordion
+                  number={2}
+                  title="Choose your paper stock"
+                  selected={config.stock.name}
+                  open={open === 2}
+                  onToggle={() => setOpen(open === 2 ? null : 2)}
+                >
+                  {loading ? (
+                    <div className="h-16 animate-pulse rounded-xl bg-[#f0e7da]" />
                   ) : (
-                    <div className="w-32 h-20 rounded-lg bg-white shadow-card flex items-center justify-center">
-                      <span className="text-pj-green font-display font-semibold">{p.name.split(' ').slice(0, 2).join(' ')}</span>
-                    </div>
+                    <OptionList
+                      options={(stocks.length ? stocks : FALLBACK_STOCKS).map((s) => ({
+                        name: s.name,
+                        detail: s.detail,
+                        price: s.price,
+                      }))}
+                      selected={config.stock.name}
+                      onSelect={(s) => {
+                        const match = (stocks.length ? stocks : FALLBACK_STOCKS).find((x) => x.name === s.name);
+                        set('stock', match || s);
+                      }}
+                      showPrice
+                    />
                   )}
-                </div>
-                <h3 className="font-display text-lg text-ink">{p.name}</h3>
-                <p className="text-sm text-ink/50 mt-1">{p.material}</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="font-semibold text-ink">from {currency(p.price)}<span className="text-xs font-normal text-ink/50">/100</span></span>
+                </Accordion>
+
+                <Accordion
+                  number={3}
+                  title="Choose your coating"
+                  selected={config.coating.name}
+                  open={open === 3}
+                  onToggle={() => setOpen(open === 3 ? null : 3)}
+                >
+                  <OptionList options={COATINGS} selected={config.coating.name} onSelect={(s) => set('coating', s)} />
+                </Accordion>
+
+                <Accordion
+                  number={4}
+                  title="Choose your finish"
+                  selected={config.finish.name}
+                  open={open === 4}
+                  onToggle={() => setOpen(open === 4 ? null : 4)}
+                >
+                  <OptionList options={FINISHES} selected={config.finish.name} onSelect={(s) => set('finish', s)} />
+                </Accordion>
+
+                <Accordion
+                  number={5}
+                  title="Choose your corners & sides"
+                  selected={`${config.corners.name}, ${config.sides.name}`}
+                  open={open === 5}
+                  onToggle={() => setOpen(open === 5 ? null : 5)}
+                >
+                  <div className="space-y-6">
+                    <div>
+                      <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-[#9b6a09]">Corners</p>
+                      <OptionList options={CORNERS} selected={config.corners.name} onSelect={(s) => set('corners', s)} />
+                    </div>
+                    <div>
+                      <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-[#9b6a09]">Printing sides</p>
+                      <OptionList options={SIDES} selected={config.sides.name} onSelect={(s) => set('sides', s)} />
+                    </div>
+                  </div>
+                </Accordion>
+
+                <Accordion
+                  number={6}
+                  title="Choose your quantity"
+                  selected={`${quantity.toLocaleString('en-IN')} cards`}
+                  open={open === 6}
+                  onToggle={() => setOpen(open === 6 ? null : 6)}
+                >
+                  <QuantityPicker quantity={quantity} setQuantity={setQuantity} />
+                </Accordion>
+              </div>
+
+              <BulkPricing quantity={quantity} setQuantity={setQuantity} stock={stock} />
+
+              <section className="mt-14 rounded-2xl border border-[#e6ded4] bg-[#fffdf9] p-6 text-center sm:p-9">
+                <div className="mx-auto max-w-2xl">
+                  <span className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#f3dfab] text-[#9b6a09]">
+                    <Sparkles size={18} />
+                  </span>
+                  <h2 className="font-serif text-3xl font-semibold text-[#4b2822]">Design guidelines</h2>
+                  <p className="mt-3 text-sm leading-6 text-[#8a7870]">
+                    Give your artwork room to breathe. Add 3 mm bleed on every side and keep important text inside the
+                    safe area. Not sure? Our editor has built-in bleed and safe-area guides.
+                  </p>
                   <Link
-                    to={p._id ? `/configure/${p._id}` : `/products/${p.slug || p._id}`}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-pj-green hover:underline"
+                    to="/editor"
+                    className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#9b6a09] transition hover:text-[#6b342a]"
                   >
-                    Customise <ArrowRight size={14} />
+                    Open the design editor <ArrowRight size={16} />
                   </Link>
                 </div>
-              </div>
-            ))}
+              </section>
+            </div>
+
+            <OrderSummary
+              config={config}
+              quantity={quantity}
+              total={total}
+              perCard={perCard}
+              configureUrl={configureUrl}
+            />
           </div>
         </section>
-      )}
-
-      {/* FAQ */}
-      <section className="bg-paper-50 border-t border-ink/10 py-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-display text-2xl sm:text-3xl text-ink text-center mb-10">Frequently asked questions</h2>
-          <div className="space-y-3">
-            {FAQS.map((f, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-ink/10 overflow-hidden">
-                <button
-                  onClick={() => setFaqOpen(faqOpen === i ? -1 : i)}
-                  className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
-                >
-                  <span className="font-semibold text-ink">{f.q}</span>
-                  <ChevronDown size={18} className={`text-ink/40 flex-shrink-0 transition-transform ${faqOpen === i ? 'rotate-180' : ''}`} />
-                </button>
-                <AnimatePresence initial={false}>
-                  {faqOpen === i && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="overflow-hidden"
-                    >
-                      <p className="px-5 pb-5 text-sm text-ink/60 leading-relaxed">{f.a}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      </main>
     </div>
   );
 }
