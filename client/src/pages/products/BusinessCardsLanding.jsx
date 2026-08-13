@@ -163,7 +163,7 @@ function Dropdown({ value, options, onChange, labelKey = 'label', descKey = 'des
       >
         <span className="min-w-0">
           <span className="block font-semibold text-ink truncate">
-            {renderValue ? renderValue(selected) : selected ? selected[labelKey] : value}
+            {renderValue ? renderValue(selected) : selected ? selected.label || selected[labelKey] : value}
           </span>
           {selected && descKey && selected[descKey] && (
             <span className="block text-xs text-ink/50 truncate">{selected[descKey]}</span>
