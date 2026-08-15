@@ -199,6 +199,10 @@ export default function OrderDetailPage() {
                 const name = item.name || item.product?.name || 'Product';
                 const productId = item.product?._id || item.productId;
                 const hasDesign = !!(item.designId || item.design);
+                const specs = item.printSpecifications || item.design?.printSpecifications || null;
+                const dimsLabel = specs && specs.width && specs.height
+                  ? `${specs.width} × ${specs.height} px`
+                  : null;
                 return (
                   <div key={i} className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
                     <div className="relative flex-shrink-0">
@@ -229,10 +233,15 @@ export default function OrderDetailPage() {
                         <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full">
                           Qty: {item.quantity}
                         </span>
+                        {dimsLabel && (
+                          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                            {dimsLabel}
+                          </span>
+                        )}
                       </div>
                       {hasDesign && (
                         <Link
-                          to={`/editor/${productId}`}
+                          to={`/editor/${productId}${item.design?._id || item.designId ? `?design=${item.design?._id || item.designId}` : ''}`}
                           className="inline-flex items-center gap-1 text-xs text-[#E63946] hover:underline mt-2"
                         >
                           View Design <ExternalLink size={10} />

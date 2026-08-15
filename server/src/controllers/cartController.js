@@ -96,7 +96,7 @@ exports.getCart = async (req, res, next) => {
       select: 'name slug images basePrice colors sizes isActive',
     }).populate({
       path: 'items.design',
-      select: 'previewImage canvasData',
+      select: 'previewImage canvasData printSpecifications',
     }).populate('coupon', 'code discountType discountValue maximumDiscountAmount');
 
     if (!cart) {
@@ -124,7 +124,7 @@ exports.getCart = async (req, res, next) => {
 
 exports.addToCart = async (req, res, next) => {
   try {
-    const { productId, quantity = 1, size, color, designId, customizations } = req.body;
+    const { productId, quantity = 1, size, color, designId, customizations, printSpecifications } = req.body;
 
     if (!productId) {
       throw new AppError('Product ID is required', 400);
@@ -183,6 +183,7 @@ exports.addToCart = async (req, res, next) => {
       cart.items[existingIndex].quantity += quantity;
       cart.items[existingIndex].unitPrice = unitPrice;
       if (customizations) cart.items[existingIndex].customizations = customizations;
+      if (printSpecifications) cart.items[existingIndex].printSpecifications = printSpecifications;
     } else {
       cart.items.push({
         product: productId,
@@ -191,6 +192,7 @@ exports.addToCart = async (req, res, next) => {
         size,
         color,
         unitPrice,
+        printSpecifications: printSpecifications || null,
         customizations: customizations || null,
       });
     }
@@ -203,7 +205,7 @@ exports.addToCart = async (req, res, next) => {
       select: 'name slug images basePrice colors sizes',
     }).populate({
       path: 'items.design',
-      select: 'previewImage canvasData',
+      select: 'previewImage canvasData printSpecifications',
     }).populate('coupon', 'code discountType discountValue maximumDiscountAmount');
 
     res.status(200).json({ success: true, cart });

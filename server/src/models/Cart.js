@@ -27,6 +27,10 @@ const cartItemSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
+  printSpecifications: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
+  },
   customizations: {
     type: mongoose.Schema.Types.Mixed,
     default: null,

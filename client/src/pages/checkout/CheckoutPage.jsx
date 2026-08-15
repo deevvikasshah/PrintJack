@@ -210,39 +210,35 @@ function AddressForm({ onSave, initialData, onCancel }) {
 }
 
 function StepIndicator({ currentStep }) {
+  const current = STEPS.find((s) => s.num === currentStep) || STEPS[0];
+  const progress = ((currentStep - 1) / (STEPS.length - 1)) * 100;
+
   return (
-    <div className="flex items-center justify-center gap-0 mb-8">
-      {STEPS.map((step, index) => (
-        <React.Fragment key={step.num}>
-          <div className="flex flex-col items-center">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                currentStep === step.num
-                  ? 'bg-[#E63946] text-white shadow-lg shadow-red-500/30'
-                  : currentStep > step.num
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-200 text-gray-500'
-              }`}
-            >
-              {currentStep > step.num ? <Check size={18} /> : step.num}
+    <div className="mb-8">
+      <div className="flex items-center justify-between">
+        {STEPS.map((step) => {
+          const isDone = currentStep > step.num;
+          const isActive = currentStep === step.num;
+          return (
+            <div key={step.num} className="flex flex-col items-center">
+              <span
+                className={`flex items-center gap-1.5 text-sm font-semibold transition-colors ${
+                  isActive ? 'text-[#1D3557]' : isDone ? 'text-green-600' : 'text-gray-400'
+                }`}
+              >
+                {isDone && <Check size={14} />}
+                {step.label}
+              </span>
             </div>
-            <span
-              className={`text-xs mt-2 font-medium hidden sm:block ${
-                currentStep >= step.num ? 'text-[#1D3557]' : 'text-gray-400'
-              }`}
-            >
-              {step.label}
-            </span>
-          </div>
-          {index < STEPS.length - 1 && (
-            <div
-              className={`w-12 sm:w-20 h-0.5 mx-1 sm:mx-2 mb-5 sm:mb-0 transition-colors ${
-                currentStep > step.num ? 'bg-green-500' : 'bg-gray-200'
-              }`}
-            />
-          )}
-        </React.Fragment>
-      ))}
+          );
+        })}
+      </div>
+      <div className="mt-3 h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
+        <div className="h-full rounded-full bg-[#E63946] transition-all duration-500" style={{ width: `${progress}%` }} />
+      </div>
+      <p className="mt-2 text-xs text-gray-400 text-center">
+        Step {currentStep} of {STEPS.length} — {current.label}
+      </p>
     </div>
   );
 }
@@ -598,6 +594,10 @@ function PaymentStep({ onBack, onPaymentSuccess, selectedAddress }) {
             const image = item.image || product.images?.[0] || '/placeholder-product.png';
             const name = item.name || product.name;
             const hasDesign = !!(item.designId || item.design);
+            const specs = item.printSpecifications || item.design?.printSpecifications || null;
+            const dimsLabel = specs && specs.width && specs.height
+              ? `${specs.width} × ${specs.height} px`
+              : null;
             return (
               <div key={item._id} className="flex items-center gap-3">
                 <div className="relative flex-shrink-0">
@@ -617,6 +617,7 @@ function PaymentStep({ onBack, onPaymentSuccess, selectedAddress }) {
                     {item.size && ` • ${item.size}`}
                     {item.color && ` • ${item.color}`}
                   </p>
+                  {dimsLabel && <p className="text-[11px] text-gray-400">{dimsLabel}</p>}
                 </div>
                 <p className="text-sm font-semibold text-[#1D3557] flex-shrink-0">
                   {formatPrice(item.price * item.quantity)}

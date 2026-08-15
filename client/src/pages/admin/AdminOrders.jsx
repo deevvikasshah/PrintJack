@@ -403,6 +403,10 @@ export default function AdminOrders() {
                                   <div className="space-y-2">
                                     {order.items?.map((item, idx) => {
                                       const designPreview = item.design?.previewImage || item.customizationPreview;
+                                      const specs = item.printSpecifications || item.design?.printSpecifications || null;
+                                      const dimsLabel = specs && specs.width && specs.height
+                                        ? `${specs.width} × ${specs.height} px`
+                                        : null;
                                       return (
                                         <div key={idx} className="bg-white rounded-xl p-3 flex items-center gap-4">
                                           <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
@@ -423,6 +427,9 @@ export default function AdminOrders() {
                                               <p className="text-xs text-pj-green mt-1 flex items-center gap-1">
                                                 <Sparkles size={10} /> Custom Design
                                               </p>
+                                            )}
+                                            {dimsLabel && (
+                                              <p className="text-xs text-gray-400 mt-1">{dimsLabel}</p>
                                             )}
                                           </div>
                                           <p className="text-sm font-semibold text-[#1D3557]">{formatPrice(item.totalPrice || item.unitPrice * item.quantity)}</p>

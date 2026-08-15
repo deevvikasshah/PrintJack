@@ -10,6 +10,7 @@ const orderItemSchema = new mongoose.Schema({
   color: { type: String },
   unitPrice: { type: Number, required: true },
   totalPrice: { type: Number, required: true },
+  printSpecifications: { type: mongoose.Schema.Types.Mixed, default: null },
   customizationPreview: { type: String, default: '' },
   printFile: { type: String, default: '' },
 }, { _id: true });

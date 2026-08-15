@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Truck, Eye, Loader2, AlertCircle } from 'lucide-react';
+import { Package, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Truck, Eye, Loader2, AlertCircle, Check, XCircle } from 'lucide-react';
 import api from '../../utils/api';
 import { formatPrice, formatDate, getStatusColor, getStatusLabel } from '../../utils/formatters';
 import EmptyState from '../../components/common/EmptyState';
@@ -37,43 +37,43 @@ const TIMELINE_STAGES = [
 function StatusTimeline({ currentStatus }) {
   const currentIndex = TIMELINE_STAGES.indexOf(currentStatus);
 
+  if (currentStatus === 'cancelled') {
+    return (
+      <div className="p-4 bg-red-50 rounded-xl border border-red-100 text-center">
+        <XCircle size={28} className="text-red-500 mx-auto mb-1.5" />
+        <p className="text-sm font-semibold text-red-700">This order has been cancelled</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="mt-4 overflow-x-auto">
-      <div className="flex items-center min-w-[600px] px-4">
-        {TIMELINE_STAGES.map((stage, index) => {
-          const isCompleted = index <= currentIndex;
-          const isCurrent = index === currentIndex;
-          return (
-            <React.Fragment key={stage}>
-              <div className="flex flex-col items-center relative">
-                <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-all ${
-                    isCompleted
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 text-gray-500'
-                  } ${isCurrent ? 'ring-4 ring-green-200' : ''}`}
-                >
-                  {isCompleted ? '✓' : index + 1}
-                </div>
-                <span
-                  className={`text-[10px] mt-1.5 text-center whitespace-nowrap ${
-                    isCompleted ? 'text-green-600 font-medium' : 'text-gray-400'
-                  }`}
-                >
-                  {getStatusLabel(stage)}
-                </span>
+    <div>
+      {TIMELINE_STAGES.map((stage, index) => {
+        const isCompleted = index <= currentIndex;
+        const isCurrent = index === currentIndex;
+        return (
+          <div key={stage} className="flex gap-3">
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 ${
+                  isCompleted ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                } ${isCurrent ? 'ring-4 ring-green-200' : ''}`}
+              >
+                {isCompleted ? <Check size={13} /> : ''}
               </div>
               {index < TIMELINE_STAGES.length - 1 && (
-                <div
-                  className={`flex-1 h-0.5 mx-1 mb-5 ${
-                    index < currentIndex ? 'bg-green-500' : 'bg-gray-200'
-                  }`}
-                />
+                <div className={`w-0.5 h-6 ${index < currentIndex ? 'bg-green-500' : 'bg-gray-200'}`} />
               )}
-            </React.Fragment>
-          );
-        })}
-      </div>
+            </div>
+            <div className="pb-5">
+              <p className={`text-sm font-medium ${isCompleted ? 'text-green-700' : 'text-gray-400'}`}>
+                {getStatusLabel(stage)}
+              </p>
+              {isCurrent && <p className="text-[11px] text-gray-500">Current status</p>}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -155,6 +155,10 @@ function OrderCard({ order, onReorder }) {
               const image = item.image || item.product?.images?.[0] || '/placeholder-product.png';
               const name = item.name || item.product?.name || 'Product';
               const hasDesign = !!(item.designId || item.design);
+              const specs = item.printSpecifications || item.design?.printSpecifications || null;
+              const dimsLabel = specs && specs.width && specs.height
+                ? `${specs.width} × ${specs.height} px`
+                : null;
               return (
                 <div key={i} className="flex items-center gap-3 p-3 bg-white rounded-xl">
                   <div className="relative flex-shrink-0">
@@ -173,9 +177,12 @@ function OrderCard({ order, onReorder }) {
                       {item.color && `Color: ${item.color}`}
                       {` • Qty: ${item.quantity}`}
                     </p>
+                    {dimsLabel && (
+                      <p className="text-[11px] text-gray-400 mt-0.5">{dimsLabel}</p>
+                    )}
                     {hasDesign && (
                       <Link
-                        to={`/editor/${item.product?._id || item.productId}`}
+                        to={`/editor/${item.product?._id || item.productId}${item.design?._id || item.designId ? `?design=${item.design?._id || item.designId}` : ''}`}
                         className="text-xs text-[#E63946] hover:underline inline-flex items-center gap-1 mt-0.5"
                       >
                         View Design <ExternalLink size={10} />

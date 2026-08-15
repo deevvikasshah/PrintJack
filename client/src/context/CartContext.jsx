@@ -64,7 +64,7 @@ export function CartProvider({ children }) {
     }
   }, [isAuthenticated, fetchCart]);
 
-  const addToCart = async (productId, quantity = 1, size, color, designId, customizations) => {
+  const addToCart = async (productId, quantity = 1, size, color, designId, customizations, printSpecifications) => {
     try {
       setLoading(true);
       const { data } = await api.post('/cart/add', {
@@ -74,6 +74,7 @@ export function CartProvider({ children }) {
         color,
         designId,
         customizations,
+        printSpecifications,
       });
       const cart = normalizeCart(data.cart || data);
       setItems(cart.items);

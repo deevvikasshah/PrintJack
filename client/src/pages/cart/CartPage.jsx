@@ -167,6 +167,10 @@ export default function CartPage() {
                 const productName = item.name || product.name || 'Product';
                 const productId = product._id || item.productId;
                 const hasDesign = !!(item.designId || design._id);
+                const specs = item.printSpecifications || design.printSpecifications || null;
+                const dimsLabel = specs && specs.width && specs.height
+                  ? `${specs.width} × ${specs.height} px`
+                  : null;
                 const isUpdating = updatingItemId === item._id;
                 const isRemoving = removingItemId === item._id;
 
@@ -229,6 +233,11 @@ export default function CartPage() {
                             {hasDesign && (
                               <span className="text-xs text-pj-green bg-red-50 px-2 py-0.5 rounded-full font-medium">
                                 Custom Design
+                              </span>
+                            )}
+                            {dimsLabel && (
+                              <span className="text-xs text-gray-500 bg-paper-200 px-2 py-0.5 rounded-full">
+                                {dimsLabel}
                               </span>
                             )}
                           </div>

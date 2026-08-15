@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Phone, Mail, Zap, Truck, RefreshCw, CheckCircle2, Headphones, Clock } from 'lucide-react';
+import { MessageCircle, X, Send, Phone, Mail, Zap, Truck, RefreshCw, CheckCircle2, Headphones } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -252,19 +252,6 @@ export default function LiveChatWidget() {
             </div>
             <p className="text-center text-[10px] text-gray-400 mt-2">Mon-Sat, 10AM-8PM · We reply within 24 hours</p>
           </div>
-        </div>
-      )}
-
-      {/* Delivery clock pill */}
-      {!isOpen && (
-        <div className="mb-3 flex justify-end">
-          <button
-            onClick={() => setIsOpen(true)}
-            className="inline-flex items-center gap-1.5 bg-white border border-gray-100 rounded-full pl-2.5 pr-3.5 py-2 text-xs font-semibold text-gray-700 shadow-md hover:shadow-lg hover:scale-105 transition-all"
-          >
-            <Clock size={15} className="text-[#E63946]" />
-            Delivered in under 7 days
-          </button>
         </div>
       )}
 

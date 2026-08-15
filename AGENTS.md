@@ -104,6 +104,17 @@ npm run build
 npm run preview
 ```
 
+### Production Deployment
+> **ALWAYS deploy the frontend to this exact link only: `https://client-navy-ten-73.vercel.app`**
+
+```bash
+cd client
+git add -A && git commit -m "deploy" && git push origin master
+vercel --prod --yes   # aliases the new production build to client-navy-ten-73.vercel.app
+```
+- Do NOT deploy to any other Vercel URL, preview URL, or custom domain.
+- After deploying, verify `https://client-navy-ten-73.vercel.app` returns 200.
+
 ### Run Both
 ```bash
 # Terminal 1 - Backend

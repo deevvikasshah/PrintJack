@@ -229,6 +229,12 @@ export default function ProductConfiguratorPage() {
           canvasJSON: json,
           previewImage: previewUrl,
           isDraft: true,
+          printSpecifications: {
+            width: canvasWidth,
+            height: canvasHeight,
+            bleed: 3,
+            colorMode: 'RGB',
+          },
         });
       } else {
         const { data } = await api.post('/designs', {
@@ -237,6 +243,12 @@ export default function ProductConfiguratorPage() {
           canvasJSON: json,
           previewImage: previewUrl,
           isDraft: true,
+          printSpecifications: {
+            width: canvasWidth,
+            height: canvasHeight,
+            bleed: 3,
+            colorMode: 'RGB',
+          },
         });
         designId = data.design?._id || data._id;
         designIdRef.current = designId;
@@ -799,6 +811,12 @@ export default function ProductConfiguratorPage() {
               canvasJSON: json,
               previewImage: previewUrl,
               isDraft: false,
+              printSpecifications: {
+                width: canvasWidth,
+                height: canvasHeight,
+                bleed: 3,
+                colorMode: 'RGB',
+              },
             });
             designId = data.design?._id || data._id;
             if (i === 0) designIdRef.current = designId;
@@ -817,7 +835,8 @@ export default function ProductConfiguratorPage() {
             sides: 'double',
             faces,
             preview: faces[0]?.preview || null,
-          }
+          },
+          { width: canvasWidth, height: canvasHeight, bleed: 3, colorMode: 'RGB' }
         );
       } else {
         const canvas = canvasRef.current?.getCanvas?.();
@@ -833,12 +852,26 @@ export default function ProductConfiguratorPage() {
               canvasJSON: json,
               previewImage: previewUrl,
               isDraft: false,
+              printSpecifications: {
+                width: canvasWidth,
+                height: canvasHeight,
+                bleed: 3,
+                colorMode: 'RGB',
+              },
             });
             designId = data.design?._id || data._id;
             designIdRef.current = designId;
           }
         }
-        await cartAddToCart(productId, quantity, selectedSize || undefined, selectedColor || undefined, designId);
+        await cartAddToCart(
+          productId,
+          quantity,
+          selectedSize || undefined,
+          selectedColor || undefined,
+          designId,
+          undefined,
+          { width: canvasWidth, height: canvasHeight, bleed: 3, colorMode: 'RGB' }
+        );
       }
       try {
         localStorage.removeItem(DRAFT_KEY(productId));
@@ -855,7 +888,7 @@ export default function ProductConfiguratorPage() {
     } finally {
       setAddingToCart(false);
     }
-  }, [product, productId, quantity, selectedSize, selectedColor, cartAddToCart, flyToCart, productImage, isDoubleSided, activeFace, saveActiveFaceState]);
+  }, [product, productId, quantity, selectedSize, selectedColor, cartAddToCart, flyToCart, productImage, isDoubleSided, activeFace, saveActiveFaceState, canvasWidth, canvasHeight]);
 
   if (loading) {
     return (
@@ -959,6 +992,9 @@ export default function ProductConfiguratorPage() {
                   </button>
                 );
               })}
+            </div>
+            <div className="text-xs text-ink/50 flex-shrink-0 hidden md:block">
+              Step {stepIndex + 1} of {STEPS.length}
             </div>
           </div>
         </div>

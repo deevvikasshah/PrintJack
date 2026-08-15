@@ -12,7 +12,9 @@ exports.checkoutFromCart = async (req, res, next) => {
   try {
     const { shippingAddressId, paymentMethod, shippingMethod, couponCode } = req.body;
 
-    const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    const cart = await Cart.findOne({ user: req.user._id })
+      .populate('items.product')
+      .populate('items.design', 'printSpecifications');
     if (!cart || cart.items.length === 0) {
       throw new AppError('Cart is empty', 400);
     }
@@ -79,6 +81,7 @@ exports.checkoutFromCart = async (req, res, next) => {
         color: item.color,
         unitPrice,
         totalPrice,
+        printSpecifications: item.printSpecifications || item.design?.printSpecifications || null,
         customizationPreview: item.customizations?.preview || '',
       });
     }
@@ -352,6 +355,7 @@ exports.createOrder = async (req, res, next) => {
         color: item.color,
         unitPrice,
         totalPrice,
+        printSpecifications: item.printSpecifications || null,
         customizationPreview: item.customizations?.preview || '',
       });
     }
@@ -435,6 +439,7 @@ exports.getMyOrders = async (req, res, next) => {
       sort: '-createdAt',
       populate: [
         { path: 'items.product', select: 'name slug images' },
+        { path: 'items.design', select: 'name previewImage printSpecifications' },
       ],
     });
 
@@ -457,7 +462,7 @@ exports.getOrder = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate('items.product', 'name slug images')
-      .populate('items.design', 'name previewImage')
+      .populate('items.design', 'name previewImage printSpecifications')
       .populate('user', 'name email phone');
 
     if (!order) {
@@ -483,7 +488,7 @@ exports.trackOrder = async (req, res, next) => {
 
     const order = await Order.findOne({ orderNumber: String(orderId).trim().toUpperCase() })
       .populate('items.product', 'name slug images')
-      .populate('items.design', 'name previewImage');
+      .populate('items.design', 'name previewImage printSpecifications');
 
     if (!order) {
       throw new AppError('Order not found', 404);
@@ -559,7 +564,7 @@ exports.getAllOrders = async (req, res, next) => {
       populate: [
         { path: 'user', select: 'name email phone' },
         { path: 'items.product', select: 'name slug' },
-        { path: 'items.design', select: 'name previewImage' },
+        { path: 'items.design', select: 'name previewImage printSpecifications' },
       ],
     });
 

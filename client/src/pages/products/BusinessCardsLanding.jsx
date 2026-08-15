@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Sparkles, Check, ChevronDown, Plus, Minus, ArrowRight, Truck } from 'lucide-react';
+import { Sparkles, ChevronDown, Plus, Minus, ArrowRight, Truck } from 'lucide-react';
 import api from '../../utils/api';
 
 const SIZES = [
@@ -44,103 +44,53 @@ function currency(n) {
   return Math.round(n).toLocaleString('en-IN');
 }
 
-function Accordion({ number, title, selected, open, onToggle, children }) {
+function SelectField({ label, value, onChange, children }) {
   return (
-    <section
-      className={`overflow-hidden rounded-2xl border bg-white shadow-[0_4px_20px_rgba(71,39,28,0.04)] transition-colors ${
-        open ? 'border-[#dcae3e]' : 'border-[#e6ded4]'
-      }`}
-    >
-      <button
-        onClick={onToggle}
-        className="flex min-h-[78px] w-full items-center gap-4 px-5 py-4 text-left sm:px-7"
-        aria-expanded={open}
-      >
-        <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
-            open ? 'bg-[#b77b08] text-white' : 'bg-[#f1d18a] text-[#774d05]'
-          }`}
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-bold uppercase tracking-[0.14em] text-[#9b6a09]">{label}</span>
+      <span className="relative block">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full appearance-none rounded-xl border border-[#ded3c5] bg-[#fcfaf7] px-4 py-3 pr-10 text-sm font-medium text-[#4b2822] transition focus:border-[#d5a62e] focus:outline-none focus:ring-2 focus:ring-[#f1d18a]/60"
         >
-          {number}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block font-serif text-lg font-semibold text-[#4b2822] sm:text-[21px]">{title}</span>
-          {!open && <span className="mt-1 block truncate text-sm text-[#907f76]">{selected}</span>}
-        </span>
+          {children}
+        </select>
         <ChevronDown
-          size={20}
-          className={`shrink-0 text-[#9b6a09] transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+          size={16}
+          className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9b6a09]"
         />
-      </button>
-      <div
-        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-          open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-        }`}
-      >
-        <div className="min-h-0 overflow-hidden">
-          <div className="border-t border-[#f0e8de] px-5 pb-6 pt-5 sm:px-7">{children}</div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function OptionList({ options, selected, onSelect, showPrice = false }) {
-  return (
-    <div className="space-y-2">
-      {options.map((opt) => {
-        const active = selected === opt.name;
-        return (
-          <button
-            key={opt.name}
-            onClick={() => onSelect(opt)}
-            className={`group flex min-h-[72px] w-full items-center gap-4 rounded-xl border px-4 py-3 text-left transition-all ${
-              active
-                ? 'border-[#d5a62e] bg-[#fffaf0] shadow-[0_3px_12px_rgba(184,132,18,0.08)]'
-                : 'border-[#e5ded6] bg-white hover:border-[#cbb89c] hover:bg-[#fcfaf7]'
-            }`}
-          >
-            <span
-              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition ${
-                active ? 'border-[#b77b08] bg-[#b77b08] text-white' : 'border-[#cfc2b5] text-transparent'
-              }`}
-            >
-              <Check size={13} strokeWidth={3} />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className={`block text-[15px] font-semibold ${active ? 'text-[#9a690a]' : 'text-[#4e3530]'}`}>
-                {opt.name}
-              </span>
-              {opt.detail && <span className="mt-1 block text-sm leading-5 text-[#8b7b73]">{opt.detail}</span>}
-            </span>
-            {showPrice && 'price' in opt && (
-              <span className="shrink-0 text-right text-sm font-semibold text-[#5d2c24]">
-                from ₹{currency(opt.price)}
-                <span className="block text-[11px] font-normal text-[#a18f84]">/100 cards</span>
-              </span>
-            )}
-          </button>
-        );
-      })}
-    </div>
+      </span>
+    </label>
   );
 }
 
 function QuantityPicker({ quantity, setQuantity }) {
+  const handleChange = (e) => {
+    const raw = e.target.value.replace(/\D/g, '');
+    setQuantity(raw === '' ? '' : Math.max(1, Number(raw)));
+  };
+
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex h-12 items-center rounded-xl border border-[#ded3c5] bg-[#fcfaf7]">
+        <div className="flex h-12 items-center overflow-hidden rounded-xl border border-[#ded3c5] bg-[#fcfaf7]">
           <button
-            onClick={() => setQuantity(Math.max(100, quantity - 50))}
+            onClick={() => setQuantity(Math.max(1, (Number(quantity) || 1) - 50))}
             className="flex h-full w-12 items-center justify-center text-[#7e6a60] transition hover:bg-[#f0e7da]"
             aria-label="Decrease quantity"
           >
             <Minus size={16} />
           </button>
-          <span className="min-w-[66px] text-center font-semibold text-[#4b2822]">{quantity.toLocaleString('en-IN')}</span>
+          <input
+            type="number"
+            min={1}
+            value={quantity}
+            onChange={handleChange}
+            className="w-[74px] border-x border-[#eee5da] bg-transparent py-3 text-center font-semibold text-[#4b2822] outline-none"
+          />
           <button
-            onClick={() => setQuantity(quantity + 50)}
+            onClick={() => setQuantity(Number(quantity) + 50)}
             className="flex h-full w-12 items-center justify-center text-[#7e6a60] transition hover:bg-[#f0e7da]"
             aria-label="Increase quantity"
           >
@@ -226,6 +176,7 @@ function OrderSummary({ config, quantity, total, perCard, configureUrl }) {
 }
 
 function BulkPricing({ quantity, setQuantity, stock }) {
+  const [open, setOpen] = useState(true);
   const tiers = stock && stock.bulkPricing && stock.bulkPricing.length
     ? stock.bulkPricing
     : [
@@ -238,7 +189,11 @@ function BulkPricing({ quantity, setQuantity, stock }) {
 
   return (
     <section className="mt-16">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between gap-3 text-left"
+      >
         <div>
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[#9b6a09]">
             The more you print, the more you keep
@@ -247,41 +202,51 @@ function BulkPricing({ quantity, setQuantity, stock }) {
             Bulk pricing that rewards you
           </h2>
         </div>
-        <span className="inline-flex items-center gap-2 rounded-full border border-[#dfc98c] bg-[#fff9e8] px-3 py-2 text-xs font-semibold text-[#80600f]">
-          <Truck size={14} /> Delivered in under 7 days
-        </span>
-      </div>
-
-      <div className="overflow-hidden rounded-2xl border border-[#e4dbd0] bg-white">
-        <div className="grid grid-cols-[1.3fr_1fr_1fr_1fr] border-b border-[#ebe3da] bg-[#fcfaf7] px-4 py-4 text-[10px] font-bold uppercase tracking-[0.12em] text-[#98877c] sm:px-6">
-          <span>Quantity</span>
-          <span>Price per card</span>
-          <span>Pack price</span>
-          <span>You save</span>
+        <div className="flex flex-col items-end gap-2">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#dfc98c] bg-[#fff9e8] px-3 py-2 text-xs font-semibold text-[#80600f]">
+            <Truck size={14} /> Delivered in under 7 days
+          </span>
+          <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#9b6a09]">
+            {open ? 'Hide pricing' : 'View pricing'}
+            <ChevronDown size={16} className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
+          </span>
         </div>
-        {tiers.map((t, i) => {
-          const packPrice = Math.round(t.price * t.maxQty);
-          const saving = i > 0 ? Math.round((base - t.price) * t.maxQty) : 0;
-          const active = quantity >= t.minQty && quantity <= t.maxQty;
-          return (
-            <button
-              key={`${t.minQty}-${t.maxQty}`}
-              onClick={() => setQuantity(t.maxQty)}
-              className={`grid w-full grid-cols-[1.3fr_1fr_1fr_1fr] px-4 py-4 text-left text-sm transition sm:px-6 ${
-                active ? 'bg-[#fff9ea]' : 'hover:bg-[#fcfaf7]'
-              }`}
-            >
-              <span className="font-medium text-[#60443b]">
-                {t.minQty}–{t.maxQty >= 99999 ? '10,000+' : t.maxQty.toLocaleString('en-IN')}
-              </span>
-              <span className="text-[#725d53]">₹{currency(t.price)}</span>
-              <span className="font-semibold text-[#5d2c24]">₹{currency(packPrice)}</span>
-              <span className="font-medium text-[#b07808]">{saving > 0 ? `Save ₹${currency(saving)}` : '—'}</span>
-            </button>
-          );
-        })}
-      </div>
-      <p className="mt-3 text-center text-xs text-[#a08e84]">Click a row to select that quantity tier.</p>
+      </button>
+
+      {open && (
+        <div className="mt-5 overflow-hidden rounded-2xl border border-[#e4dbd0] bg-white">
+          <div className="grid grid-cols-[1.3fr_1fr_1fr_1fr] border-b border-[#ebe3da] bg-[#fcfaf7] px-4 py-4 text-[10px] font-bold uppercase tracking-[0.12em] text-[#98877c] sm:px-6">
+            <span>Quantity</span>
+            <span>Price per card</span>
+            <span>Pack price</span>
+            <span>You save</span>
+          </div>
+          {tiers.map((t, i) => {
+            const packPrice = Math.round(t.price * t.maxQty);
+            const saving = i > 0 ? Math.round((base - t.price) * t.maxQty) : 0;
+            const active = quantity >= t.minQty && quantity <= t.maxQty;
+            return (
+              <button
+                key={`${t.minQty}-${t.maxQty}`}
+                onClick={() => setQuantity(t.maxQty)}
+                className={`grid w-full grid-cols-[1.3fr_1fr_1fr_1fr] px-4 py-4 text-left text-sm transition sm:px-6 ${
+                  active ? 'bg-[#fff9ea]' : 'hover:bg-[#fcfaf7]'
+                }`}
+              >
+                <span className="font-medium text-[#60443b]">
+                  {t.minQty}–{t.maxQty >= 99999 ? '10,000+' : t.maxQty.toLocaleString('en-IN')}
+                </span>
+                <span className="text-[#725d53]">₹{currency(t.price)}</span>
+                <span className="font-semibold text-[#5d2c24]">₹{currency(packPrice)}</span>
+                <span className="font-medium text-[#b07808]">{saving > 0 ? `Save ₹${currency(saving)}` : '—'}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {open && (
+        <p className="mt-3 text-center text-xs text-[#a08e84]">Click a row to select that quantity tier.</p>
+      )}
     </section>
   );
 }
@@ -289,7 +254,6 @@ function BulkPricing({ quantity, setQuantity, stock }) {
 export default function BusinessCardsLanding() {
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(1);
   const [quantity, setQuantity] = useState(100);
   const [config, setConfig] = useState({
     size: SIZES[0],
@@ -377,94 +341,88 @@ export default function BusinessCardsLanding() {
                 <span className="text-[#8b7a70]">Prices adjust automatically</span>
               </div>
 
-              <div className="space-y-3">
-                <Accordion
-                  number={1}
-                  title="Choose your size"
-                  selected={`${config.size.name} — ${config.size.detail}`}
-                  open={open === 1}
-                  onToggle={() => setOpen(open === 1 ? null : 1)}
-                >
-                  <OptionList options={SIZES} selected={config.size.name} onSelect={(s) => set('size', s)} />
-                  <p className="mt-3 text-sm leading-6 text-[#8a7870]">
-                    The classic business card size. Fits standard wallets and card holders.
-                  </p>
-                </Accordion>
+              <div className="rounded-2xl border border-[#e6ded4] bg-white p-5 shadow-[0_4px_20px_rgba(71,39,28,0.04)] sm:p-7">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <SelectField
+                    label="Size"
+                    value={config.size.name}
+                    onChange={(v) => set('size', SIZES.find((s) => s.name === v) || config.size)}
+                  >
+                    {SIZES.map((s) => (
+                      <option key={s.name} value={s.name}>
+                        {s.name} — {s.detail}
+                      </option>
+                    ))}
+                  </SelectField>
 
-                <Accordion
-                  number={2}
-                  title="Choose your paper stock"
-                  selected={config.stock.name}
-                  open={open === 2}
-                  onToggle={() => setOpen(open === 2 ? null : 2)}
-                >
-                  {loading ? (
-                    <div className="h-16 animate-pulse rounded-xl bg-[#f0e7da]" />
-                  ) : (
-                    <OptionList
-                      options={(stocks.length ? stocks : FALLBACK_STOCKS).map((s) => ({
-                        name: s.name,
-                        detail: s.detail,
-                        price: s.price,
-                      }))}
-                      selected={config.stock.name}
-                      onSelect={(s) => {
-                        const match = (stocks.length ? stocks : FALLBACK_STOCKS).find((x) => x.name === s.name);
-                        set('stock', match || s);
-                      }}
-                      showPrice
-                    />
-                  )}
-                </Accordion>
+                  <SelectField
+                    label="Paper stock"
+                    value={config.stock.name}
+                    onChange={(v) => {
+                      const match = (stocks.length ? stocks : FALLBACK_STOCKS).find((s) => s.name === v);
+                      set('stock', match || config.stock);
+                    }}
+                  >
+                    {(stocks.length ? stocks : FALLBACK_STOCKS).map((s) => (
+                      <option key={s.name} value={s.name}>
+                        {s.name} — {s.detail}
+                      </option>
+                    ))}
+                  </SelectField>
 
-                <Accordion
-                  number={3}
-                  title="Choose your coating"
-                  selected={config.coating.name}
-                  open={open === 3}
-                  onToggle={() => setOpen(open === 3 ? null : 3)}
-                >
-                  <OptionList options={COATINGS} selected={config.coating.name} onSelect={(s) => set('coating', s)} />
-                </Accordion>
+                  <SelectField
+                    label="Coating"
+                    value={config.coating.name}
+                    onChange={(v) => set('coating', COATINGS.find((c) => c.name === v) || config.coating)}
+                  >
+                    {COATINGS.map((c) => (
+                      <option key={c.name} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </SelectField>
 
-                <Accordion
-                  number={4}
-                  title="Choose your finish"
-                  selected={config.finish.name}
-                  open={open === 4}
-                  onToggle={() => setOpen(open === 4 ? null : 4)}
-                >
-                  <OptionList options={FINISHES} selected={config.finish.name} onSelect={(s) => set('finish', s)} />
-                </Accordion>
+                  <SelectField
+                    label="Finish"
+                    value={config.finish.name}
+                    onChange={(v) => set('finish', FINISHES.find((f) => f.name === v) || config.finish)}
+                  >
+                    {FINISHES.map((f) => (
+                      <option key={f.name} value={f.name}>
+                        {f.name}
+                      </option>
+                    ))}
+                  </SelectField>
 
-                <Accordion
-                  number={5}
-                  title="Choose your corners & sides"
-                  selected={`${config.corners.name}, ${config.sides.name}`}
-                  open={open === 5}
-                  onToggle={() => setOpen(open === 5 ? null : 5)}
-                >
-                  <div className="space-y-6">
-                    <div>
-                      <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-[#9b6a09]">Corners</p>
-                      <OptionList options={CORNERS} selected={config.corners.name} onSelect={(s) => set('corners', s)} />
-                    </div>
-                    <div>
-                      <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-[#9b6a09]">Printing sides</p>
-                      <OptionList options={SIDES} selected={config.sides.name} onSelect={(s) => set('sides', s)} />
-                    </div>
-                  </div>
-                </Accordion>
+                  <SelectField
+                    label="Corners"
+                    value={config.corners.name}
+                    onChange={(v) => set('corners', CORNERS.find((c) => c.name === v) || config.corners)}
+                  >
+                    {CORNERS.map((c) => (
+                      <option key={c.name} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </SelectField>
 
-                <Accordion
-                  number={6}
-                  title="Choose your quantity"
-                  selected={`${quantity.toLocaleString('en-IN')} cards`}
-                  open={open === 6}
-                  onToggle={() => setOpen(open === 6 ? null : 6)}
-                >
+                  <SelectField
+                    label="Printing sides"
+                    value={config.sides.name}
+                    onChange={(v) => set('sides', SIDES.find((s) => s.name === v) || config.sides)}
+                  >
+                    {SIDES.map((s) => (
+                      <option key={s.name} value={s.name}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </SelectField>
+                </div>
+
+                <div className="mt-7 border-t border-[#f0e8de] pt-6">
+                  <p className="mb-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[#9b6a09]">Quantity</p>
                   <QuantityPicker quantity={quantity} setQuantity={setQuantity} />
-                </Accordion>
+                </div>
               </div>
 
               <BulkPricing quantity={quantity} setQuantity={setQuantity} stock={stock} />

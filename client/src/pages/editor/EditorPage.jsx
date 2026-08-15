@@ -723,6 +723,12 @@ export default function EditorPage() {
           canvasJSON: json,
           previewImage: previewUrl,
           isDraft: asDraft,
+          printSpecifications: {
+            width: canvasWidth,
+            height: canvasHeight,
+            bleed: 3,
+            colorMode: 'RGB',
+          },
         };
         let result;
         if (designIdRef.current) {
@@ -740,7 +746,7 @@ export default function EditorPage() {
         setSaving(false);
       }
     },
-    [productId]
+    [productId, canvasWidth, canvasHeight]
   );
 
   const handlePreview = useCallback(() => {
@@ -773,17 +779,31 @@ export default function EditorPage() {
             canvasJSON: json,
             previewImage: previewUrl,
             isDraft: false,
+            printSpecifications: {
+              width: canvasWidth,
+              height: canvasHeight,
+              bleed: 3,
+              colorMode: 'RGB',
+            },
           });
           designId = data.design?._id || data._id;
           designIdRef.current = designId;
         }
-        await cartAddToCart(pid, quantity, size, color, designId);
+        await cartAddToCart(
+          pid,
+          quantity,
+          size,
+          color,
+          designId,
+          undefined,
+          { width: canvasWidth, height: canvasHeight, bleed: 3, colorMode: 'RGB' }
+        );
         setShowPreview(false);
       } catch (err) {
         toast.error('Failed to add to cart');
       }
     },
-    [cartAddToCart]
+    [cartAddToCart, canvasWidth, canvasHeight]
   );
 
   useEffect(() => {
