@@ -8,6 +8,7 @@ import AdminRoute from './components/common/AdminRoute';
 import Loading from './components/common/Loading';
 import WhatsAppButton from './components/marketing/LiveChatWidget';
 import BackToTop from './components/common/BackToTop';
+import TrackOrderFab from './components/common/TrackOrderFab';
 import SmokeCursor from './components/common/SmokeCursor';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -150,6 +151,7 @@ export default function App() {
       </Routes>
       <WhatsAppButton />
       <BackToTop />
+      <TrackOrderFab />
     </Suspense>
   );
 }

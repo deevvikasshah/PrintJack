@@ -512,6 +512,8 @@ exports.trackOrder = async (req, res, next) => {
           name: i.name,
           quantity: i.quantity,
           totalPrice: i.totalPrice,
+          image: i.image || i.product?.images?.[0] || '',
+          designPreview: i.design?.previewImage || '',
         })),
       },
     });

@@ -184,6 +184,43 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Track-order floating clock FAB */
+.clock-hand {
+  transform-origin: 50px 50px;
+  transform-box: view-box;
+}
+
+.clock-second-hand {
+  animation: clockTick 60s steps(60) infinite;
+}
+
+.clock-minute-hand {
+  animation: clockMinuteTick 3600s linear infinite;
+}
+
+@keyframes clockTick {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes clockMinuteTick {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.clock-fab-glow {
+  animation: clockGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes clockGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.45), 0 8px 20px rgba(0, 0, 0, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(230, 57, 70, 0), 0 8px 20px rgba(0, 0, 0, 0.22);
+  }
+}
+
 /* Toast overrides */
 .toast-success {
   background: #ca8a04 !important;
