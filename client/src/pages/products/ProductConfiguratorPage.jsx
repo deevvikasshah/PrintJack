@@ -173,7 +173,7 @@ export default function ProductConfiguratorPage() {
     // cards on the builder page (templates / upload / canvas).
     const tab = searchParams.get('tab');
     if (tab) {
-      if (tab === 'canvas') setActiveDesignTab('');
+      if (tab === 'canvas') setActiveDesignTab('canvas');
       else if (DESIGN_TABS.some((t) => t.id === tab)) setActiveDesignTab(tab);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1480,6 +1480,11 @@ export default function ProductConfiguratorPage() {
                   </h4>
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 max-h-[440px]">
+                {activeDesignTab === 'canvas' && (
+                  <p className="text-xs leading-5 text-ink/50">
+                    Design directly on the canvas. Use the tools to add photos, text, shapes and clipart to your card.
+                  </p>
+                )}
                 {activeDesignTab === 'photos' && <PhotosPanel onPhotoAdd={addPhoto} />}
                 {activeDesignTab === 'templates' && (
                   <div className="space-y-4">

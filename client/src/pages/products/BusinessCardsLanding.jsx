@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Sparkles, ChevronDown, ArrowRight, Truck, LayoutTemplate, PenTool, Upload } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -485,6 +485,7 @@ export default function BusinessCardsLanding() {
     corners: CORNERS[0],
     sides: SIDES[1],
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -529,6 +530,17 @@ export default function BusinessCardsLanding() {
   const configureUrl = stock && stock._id
     ? `/configure/${stock._id}?${sidesParam}&size=${encodeURIComponent(config.size.name.toLowerCase())}&qty=${quantity}&tab=${designTab}#stage=design`
     : `/products?category=business-cards`;
+
+  // Clicking a design-approach card sets the choice AND jumps straight into the
+  // design stage with the matching panel open (templates / upload / canvas).
+  const goDesign = (approach) => {
+    setDesignApproach(approach);
+    if (!stock || !stock._id) return;
+    const tab = approach === 'templates' ? 'templates' : approach === 'upload' ? 'upload' : 'canvas';
+    navigate(
+      `/configure/${stock._id}?${sidesParam}&size=${encodeURIComponent(config.size.name.toLowerCase())}&qty=${quantity}&tab=${tab}#stage=design`
+    );
+  };
 
   return (
     <div className="min-h-screen bg-[#f8f5ef] text-[#3b2925]">
@@ -668,7 +680,7 @@ export default function BusinessCardsLanding() {
               {/* How would you like to design your cards? */}
               <section className="mt-10 rounded-2xl border border-[#e6ded4] bg-[#fffdf9] p-5 sm:p-7">
                 <SectionLabel>How would you like to design your cards?</SectionLabel>
-                <DesignApproach value={designApproach} onChange={setDesignApproach} />
+                <DesignApproach value={designApproach} onChange={goDesign} />
               </section>
 
               <BulkPricing quantity={quantity} setQuantity={setQuantity} stock={stock} />
