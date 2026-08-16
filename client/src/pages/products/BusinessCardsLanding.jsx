@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Sparkles, ChevronDown, Plus, Minus, ArrowRight, Truck } from 'lucide-react';
+import { Sparkles, ChevronDown, ArrowRight, Truck, LayoutTemplate, PenTool, Upload } from 'lucide-react';
+import { clsx } from 'clsx';
 import api from '../../utils/api';
 
 const SIZES = [
-  { name: 'Standard', detail: '88.9 × 50.8 mm', mult: 1 },
-  { name: 'Euro', detail: '85 × 55 mm', mult: 1.15 },
-  { name: 'Square', detail: '55 × 55 mm', mult: 1.1 },
+  { name: 'Standard', detail: '88.9 × 50.8 mm', mult: 1, thumb: 'std' },
+  { name: 'PrintJack OG', detail: '85 × 55 mm', mult: 1.15, thumb: 'og' },
+  { name: 'Square', detail: '55 × 55 mm', mult: 1.1, thumb: 'sq' },
 ];
 
 const COATINGS = [
@@ -16,13 +17,13 @@ const COATINGS = [
 ];
 
 const FINISHES = [
-  { name: 'Matte', detail: 'Sophisticated, glare-free and easy to write on' },
-  { name: 'Gloss', detail: 'Vibrant, shiny and eye-catching' },
+  { name: 'Matte', detail: 'With a smooth feel. Shine-free so no glare.' },
+  { name: 'Gloss', detail: 'Eye-catchingly shiny. Makes color photos pop.' },
 ];
 
 const CORNERS = [
-  { name: 'Square', detail: 'Classic sharp corners', addOn: 0 },
-  { name: 'Rounded', detail: 'Soft 4 mm radius corners', addOn: 0.1 },
+  { name: 'Square', detail: 'Sharp and Stylish', addOn: 0 },
+  { name: 'Rounded', detail: 'Smooth & Rounded', addOn: 0.1 },
 ];
 
 const SIDES = [
@@ -32,6 +33,30 @@ const SIDES = [
 
 const QUICK_QTYS = [100, 250, 500, 1000, 2500];
 
+const DESIGN_OPTIONS = [
+  {
+    id: 'templates',
+    icon: LayoutTemplate,
+    iconBg: 'bg-[#EBD9EE] text-[#8E4A6B]',
+    title: 'Use our templates',
+    bullets: ['Looking for inspiration', 'Want simple customization'],
+  },
+  {
+    id: 'editor',
+    icon: PenTool,
+    iconBg: 'bg-[#FCEFC8] text-[#9B6A09]',
+    title: 'Design here online',
+    bullets: ['Already have your logo', 'Customize every detail'],
+  },
+  {
+    id: 'upload',
+    icon: Upload,
+    iconBg: 'bg-[#D6E6F5] text-[#2E5B8A]',
+    title: 'Upload a full design',
+    bullets: ['Have a complete design', 'Have your own designer'],
+  },
+];
+
 const FALLBACK_STOCKS = [
   { _id: 'original', name: 'Premium Matt Laminated Business Card', detail: '350 GSM Art Card', price: 299 },
   { _id: 'spot-uv', name: 'Spot UV Business Card', detail: '350 GSM Art Card', price: 449 },
@@ -40,8 +65,36 @@ const FALLBACK_STOCKS = [
   { _id: 'metallic', name: 'Metallic Silver Business Card', detail: 'Metallic Paper 290 GSM', price: 699 },
 ];
 
+const GREEN = '#EAB308';
+
 function currency(n) {
   return Math.round(n).toLocaleString('en-IN');
+}
+
+/* ---------- Shared MCQ card ---------- */
+function SelectableCard({ selected, onClick, className, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={clsx(
+        'group w-full rounded-2xl border-2 p-4 text-left transition-all duration-150',
+        selected
+          ? 'border-[#EAB308] bg-[#FDFBF3] shadow-[0_8px_20px_rgba(234,179,8,0.18)]'
+          : 'border-[#E3DBD1] bg-white hover:border-[#D5A62E]/60 hover:shadow-sm',
+        className
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-[#9b6a09]">{children}</p>
+  );
 }
 
 function SelectField({ label, value, onChange, children }) {
@@ -65,59 +118,181 @@ function SelectField({ label, value, onChange, children }) {
   );
 }
 
-function QuantityPicker({ quantity, setQuantity }) {
-  const handleChange = (e) => {
-    const raw = e.target.value.replace(/\D/g, '');
-    setQuantity(raw === '' ? '' : Math.max(1, Number(raw)));
+/* ---------- Size cards ---------- */
+function CardThumb({ thumb }) {
+  const classes = {
+    std: 'w-14 h-8',
+    og: 'w-14 h-9',
+    sq: 'w-12 h-12',
   };
-
   return (
-    <div>
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex h-12 items-center overflow-hidden rounded-xl border border-[#ded3c5] bg-[#fcfaf7]">
-          <button
-            onClick={() => setQuantity(Math.max(1, (Number(quantity) || 1) - 50))}
-            className="flex h-full w-12 items-center justify-center text-[#7e6a60] transition hover:bg-[#f0e7da]"
-            aria-label="Decrease quantity"
-          >
-            <Minus size={16} />
-          </button>
-          <input
-            type="number"
-            min={1}
-            value={quantity}
-            onChange={handleChange}
-            className="w-[74px] border-x border-[#eee5da] bg-transparent py-3 text-center font-semibold text-[#4b2822] outline-none"
-          />
-          <button
-            onClick={() => setQuantity(Number(quantity) + 50)}
-            className="flex h-full w-12 items-center justify-center text-[#7e6a60] transition hover:bg-[#f0e7da]"
-            aria-label="Increase quantity"
-          >
-            <Plus size={16} />
-          </button>
-        </div>
-        <span className="text-sm text-[#8a7870]">cards</span>
+    <div className="flex h-16 w-full items-center justify-center rounded-lg bg-[#F5EFE3]">
+      <div
+        className={clsx(
+          'rounded-[4px] bg-gradient-to-br from-[#8A5544] to-[#5d2c24] shadow-[3px_4px_0_rgba(156,106,35,0.18)]',
+          classes[thumb]
+        )}
+      />
+    </div>
+  );
+}
+
+function SizeCard({ size, selected, onClick }) {
+  return (
+    <SelectableCard selected={selected} onClick={onClick}>
+      <CardThumb thumb={size.thumb} />
+      <p className="mt-3 text-sm font-bold text-[#4b2822]">{size.name}</p>
+      <p className="mt-0.5 text-xs text-[#96857c]">{size.detail}</p>
+    </SelectableCard>
+  );
+}
+
+/* ---------- Finish cards ---------- */
+function FinishCard({ finish, selected, onClick }) {
+  const glossy = finish.name === 'Gloss';
+  return (
+    <SelectableCard selected={selected} onClick={onClick}>
+      <div className="relative mb-3 flex h-16 w-full items-center justify-center overflow-hidden rounded-lg">
+        {glossy ? (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#4F7CAC] via-[#3A5E8C] to-[#243D5E]" />
+            <div className="absolute -top-4 left-2 h-16 w-24 rotate-[-18deg] rounded-full bg-white/40 blur-md" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#E8E2D6] via-[#DBD2C0] to-[#C7BBA4]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white/5 to-white/40" />
+          </>
+        )}
+        <span className={clsx('relative z-10 text-[10px] font-bold uppercase tracking-[0.16em]', glossy ? 'text-white' : 'text-[#6b5a4e]')}>
+          {finish.name}
+        </span>
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {QUICK_QTYS.map((q) => (
-          <button
-            key={q}
-            onClick={() => setQuantity(q)}
-            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-              quantity === q
-                ? 'border-[#6b342a] bg-[#6b342a] text-white'
-                : 'border-[#ded3c5] bg-white text-[#705e55] hover:border-[#b77b08]'
-            }`}
-          >
-            {q.toLocaleString('en-IN')}
-          </button>
-        ))}
+      <p className="text-sm font-bold text-[#4b2822]">{finish.name}</p>
+      <p className="mt-0.5 text-xs leading-5 text-[#96857c]">{finish.detail}</p>
+    </SelectableCard>
+  );
+}
+
+/* ---------- Corners cards ---------- */
+function CornerIcon({ rounded }) {
+  return (
+    <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect
+        x="4"
+        y="4"
+        width="16"
+        height="16"
+        rx={rounded ? 6 : 1}
+        stroke="#9b6a09"
+        fill={rounded ? 'none' : 'currentColor'}
+        fillOpacity="0.15"
+      />
+    </svg>
+  );
+}
+
+function CornerCard({ corner, selected, onClick }) {
+  return (
+    <SelectableCard selected={selected} onClick={onClick}>
+      <div className="mb-3 flex h-16 w-full items-center justify-center rounded-lg bg-[#F5EFE3] text-[#9b6a09]">
+        <CornerIcon rounded={corner.name === 'Rounded'} />
       </div>
-      <p className="mt-4 text-sm text-[#8a7870]">
+      <p className="text-sm font-bold text-[#4b2822]">{corner.name}</p>
+      <p className="mt-0.5 text-xs text-[#96857c]">{corner.detail}</p>
+    </SelectableCard>
+  );
+}
+
+/* ---------- Printing sides cards ---------- */
+function SidesIcon({ double }) {
+  return (
+    <div className="relative h-9 w-14">
+      {double && (
+        <div className="absolute left-0 top-0 h-8 w-[52px] rotate-[-8deg] rounded-[5px] bg-[#C9A64E] shadow-sm" />
+      )}
+      <div className="absolute right-0 bottom-0 h-8 w-[52px] rotate-[6deg] rounded-[5px] bg-gradient-to-br from-[#8A5544] to-[#5d2c24] shadow-sm" />
+    </div>
+  );
+}
+
+function SideCard({ side, selected, onClick }) {
+  return (
+    <SelectableCard selected={selected} onClick={onClick}>
+      <div className="mb-3 flex h-16 w-full items-center justify-center rounded-lg bg-[#F5EFE3]">
+        <SidesIcon double={side.name !== 'Single sided'} />
+      </div>
+      <p className="text-sm font-bold text-[#4b2822]">{side.name}</p>
+      <p className="mt-0.5 text-xs leading-5 text-[#96857c]">{side.detail}</p>
+    </SelectableCard>
+  );
+}
+
+/* ---------- Quantity list ---------- */
+function QuantityList({ quantity, setQuantity, perCard }) {
+  return (
+    <div className="space-y-2">
+      {QUICK_QTYS.map((q) => (
+        <button
+          key={q}
+          type="button"
+          onClick={() => setQuantity(q)}
+          className={clsx(
+            'flex w-full items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition-all duration-150',
+            quantity === q
+              ? 'border-[#EAB308] bg-[#FDFBF3]'
+              : 'border-[#E3DBD1] bg-white hover:border-[#D5A62E]/60'
+          )}
+        >
+          <span className="text-sm font-bold text-[#4b2822]">{q.toLocaleString('en-IN')} cards</span>
+          <span className="text-sm font-semibold text-[#5d2c24]">₹{currency(perCard * q)}</span>
+        </button>
+      ))}
+      <p className="pt-2 text-xs text-[#8a7870]">
         Bulk pricing applies automatically. Need more?{' '}
         <span className="font-medium text-[#9b6a09]">Contact us for large-order quotes.</span>
       </p>
+    </div>
+  );
+}
+
+/* ---------- Design approach cards ---------- */
+function DesignApproach({ value, onChange }) {
+  return (
+    <div className="space-y-3">
+      {DESIGN_OPTIONS.map((opt) => {
+        const Icon = opt.icon;
+        const selected = value === opt.id;
+        return (
+          <SelectableCard
+            key={opt.id}
+            selected={selected}
+            onClick={() => onChange(opt.id)}
+            className={clsx('flex items-center gap-4 p-4', !selected && 'border-[#E8E2D9]')}
+          >
+            <span
+              className={clsx(
+                'flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl',
+                opt.iconBg
+              )}
+            >
+              <Icon size={26} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold text-[#4b2822]">{opt.title}</span>
+              <span className="mt-1.5 flex flex-col gap-1">
+                {opt.bullets.map((b) => (
+                  <span key={b} className="flex items-center gap-2 text-xs text-[#8a7870]">
+                    <span className="h-1 w-1 rounded-full bg-[#d5a62e]" />
+                    {b}
+                  </span>
+                ))}
+              </span>
+            </span>
+          </SelectableCard>
+        );
+      })}
     </div>
   );
 }
@@ -255,6 +430,7 @@ export default function BusinessCardsLanding() {
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(100);
+  const [designApproach, setDesignApproach] = useState('editor');
   const [config, setConfig] = useState({
     size: SIZES[0],
     stock: FALLBACK_STOCKS[0],
@@ -303,8 +479,9 @@ export default function BusinessCardsLanding() {
   const total = Math.round(perCard * quantity);
 
   const sidesParam = config.sides.name === 'Double sided' ? 'sides=double' : 'sides=single';
+  const designTab = designApproach === 'templates' ? 'templates' : designApproach === 'upload' ? 'upload' : 'canvas';
   const configureUrl = stock && stock._id
-    ? `/configure/${stock._id}?${sidesParam}&size=${encodeURIComponent(config.size.name.toLowerCase())}&qty=${quantity}#stage=design`
+    ? `/configure/${stock._id}?${sidesParam}&size=${encodeURIComponent(config.size.name.toLowerCase())}&qty=${quantity}&tab=${designTab}#stage=design`
     : `/products?category=business-cards`;
 
   return (
@@ -342,19 +519,23 @@ export default function BusinessCardsLanding() {
               </div>
 
               <div className="rounded-2xl border border-[#e6ded4] bg-white p-5 shadow-[0_4px_20px_rgba(71,39,28,0.04)] sm:p-7">
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <SelectField
-                    label="Size"
-                    value={config.size.name}
-                    onChange={(v) => set('size', SIZES.find((s) => s.name === v) || config.size)}
-                  >
+                {/* Size */}
+                <div className="mb-7">
+                  <SectionLabel>Choose your size</SectionLabel>
+                  <div className="grid grid-cols-2 gap-3">
                     {SIZES.map((s) => (
-                      <option key={s.name} value={s.name}>
-                        {s.name} — {s.detail}
-                      </option>
+                      <SizeCard
+                        key={s.name}
+                        size={s}
+                        selected={config.size.name === s.name}
+                        onClick={() => set('size', s)}
+                      />
                     ))}
-                  </SelectField>
+                  </div>
+                </div>
 
+                {/* Paper stock */}
+                <div className="mb-7 border-t border-[#f0e8de] pt-6">
                   <SelectField
                     label="Paper stock"
                     value={config.stock.name}
@@ -369,7 +550,10 @@ export default function BusinessCardsLanding() {
                       </option>
                     ))}
                   </SelectField>
+                </div>
 
+                {/* Coating */}
+                <div className="mb-7 border-t border-[#f0e8de] pt-6">
                   <SelectField
                     label="Coating"
                     value={config.coating.name}
@@ -381,49 +565,65 @@ export default function BusinessCardsLanding() {
                       </option>
                     ))}
                   </SelectField>
-
-                  <SelectField
-                    label="Finish"
-                    value={config.finish.name}
-                    onChange={(v) => set('finish', FINISHES.find((f) => f.name === v) || config.finish)}
-                  >
-                    {FINISHES.map((f) => (
-                      <option key={f.name} value={f.name}>
-                        {f.name}
-                      </option>
-                    ))}
-                  </SelectField>
-
-                  <SelectField
-                    label="Corners"
-                    value={config.corners.name}
-                    onChange={(v) => set('corners', CORNERS.find((c) => c.name === v) || config.corners)}
-                  >
-                    {CORNERS.map((c) => (
-                      <option key={c.name} value={c.name}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </SelectField>
-
-                  <SelectField
-                    label="Printing sides"
-                    value={config.sides.name}
-                    onChange={(v) => set('sides', SIDES.find((s) => s.name === v) || config.sides)}
-                  >
-                    {SIDES.map((s) => (
-                      <option key={s.name} value={s.name}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </SelectField>
                 </div>
 
-                <div className="mt-7 border-t border-[#f0e8de] pt-6">
-                  <p className="mb-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[#9b6a09]">Quantity</p>
-                  <QuantityPicker quantity={quantity} setQuantity={setQuantity} />
+                {/* Finish */}
+                <div className="mb-7 border-t border-[#f0e8de] pt-6">
+                  <SectionLabel>Choose your finish</SectionLabel>
+                  <div className="grid grid-cols-2 gap-3">
+                    {FINISHES.map((f) => (
+                      <FinishCard
+                        key={f.name}
+                        finish={f}
+                        selected={config.finish.name === f.name}
+                        onClick={() => set('finish', f)}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Corners */}
+                <div className="mb-7 border-t border-[#f0e8de] pt-6">
+                  <SectionLabel>Choose your corners</SectionLabel>
+                  <div className="grid grid-cols-2 gap-3">
+                    {CORNERS.map((c) => (
+                      <CornerCard
+                        key={c.name}
+                        corner={c}
+                        selected={config.corners.name === c.name}
+                        onClick={() => set('corners', c)}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Printing sides */}
+                <div className="mb-7 border-t border-[#f0e8de] pt-6">
+                  <SectionLabel>Choose your printing sides</SectionLabel>
+                  <div className="grid grid-cols-2 gap-3">
+                    {SIDES.map((s) => (
+                      <SideCard
+                        key={s.name}
+                        side={s}
+                        selected={config.sides.name === s.name}
+                        onClick={() => set('sides', s)}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quantity */}
+                <div className="border-t border-[#f0e8de] pt-6">
+                  <SectionLabel>Quantity</SectionLabel>
+                  <QuantityList quantity={quantity} setQuantity={setQuantity} perCard={perCard} />
                 </div>
               </div>
+
+              {/* How would you like to design your cards? */}
+              <section className="mt-10 rounded-2xl border border-[#e6ded4] bg-[#fffdf9] p-5 sm:p-7">
+                <SectionLabel>How would you like to design your cards?</SectionLabel>
+                <DesignApproach value={designApproach} onChange={setDesignApproach} />
+              </section>
 
               <BulkPricing quantity={quantity} setQuantity={setQuantity} stock={stock} />
 

@@ -169,6 +169,17 @@ export default function ProductConfiguratorPage() {
   }, []);
 
   useEffect(() => {
+    // Open the design panel that matches how the user chose to design their
+    // cards on the builder page (templates / upload / canvas).
+    const tab = searchParams.get('tab');
+    if (tab) {
+      if (tab === 'canvas') setActiveDesignTab('');
+      else if (DESIGN_TABS.some((t) => t.id === tab)) setActiveDesignTab(tab);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
