@@ -81,8 +81,72 @@ const uploadDesign = async (file, productName) => {
   });
 };
 
+/**
+ * Build a Cloudinary URL that renders a low-res, on-the-fly preview of a stored
+ * asset. Nothing extra is stored — the transform is applied at delivery time.
+ * Works for rasters (f_auto), SVG (rasterized), PDF/AI (first page rendered),
+ * and TIFF. Returns null for raw resources Cloudinary cannot render (e.g. EPS).
+ */
+const buildPreviewUrl = (publicId, { width = 800, isPdf = false } = {}) => {
+  const cloud = process.env.CLOUDINARY_CLOUD_NAME;
+  if (!publicId || !cloud) return null;
+
+  const params = ["f_auto", "q_auto", `w_${width}`, "c_limit"];
+  if (isPdf) params.unshift("pg_1");
+  return `https://res.cloudinary.com/${cloud}/image/upload/${params.join(",")}/${publicId}`;
+};
+
+/**
+ * Upload the original print-ready file (PDF, AI, EPS, TIFF, SVG, or raster)
+ * untouched for production, keeping the high-res/vector source. Cloudinary
+ * treats PDF/AI/TIFF as image resources and can render previews from them.
+ */
+const uploadPrintFile = (buffer, { folder, fileName } = {}) => {
+  return new Promise((resolve, reject) => {
+    const ext = (fileName || "")
+      .split(".")
+      .pop()
+      .toLowerCase();
+    const folderName = folder || "printjack/designs/printfiles";
+
+    const uploadOptions = {
+      folder: folderName,
+      resource_type: "auto",
+    };
+    // Index page 1 so previews can be rendered from PDFs.
+    if (ext === "pdf") uploadOptions.page = 1;
+
+    const uploadStream = cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
+      if (error) {
+        console.error("Cloudinary print-file upload error:", error.message);
+        return reject(error);
+      }
+
+      const isRaw = result.resource_type === "raw";
+      resolve({
+        url: result.secure_url,
+        publicId: result.public_id,
+        format: result.format,
+        resourceType: result.resource_type,
+        bytes: result.bytes,
+        width: result.width,
+        height: result.height,
+        previewUrl: isRaw ? null : buildPreviewUrl(result.public_id, { isPdf: ext === "pdf" }),
+      });
+    });
+
+    if (Buffer.isBuffer(buffer)) {
+      uploadStream.end(buffer);
+    } else {
+      reject(new Error("Invalid file input. Provide a Buffer."));
+    }
+  });
+};
+
 module.exports = {
   uploadToCloudinary,
   deleteFromCloudinary,
   uploadDesign,
+  uploadPrintFile,
+  buildPreviewUrl,
 };

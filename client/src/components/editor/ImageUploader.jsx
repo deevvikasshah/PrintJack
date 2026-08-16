@@ -2,18 +2,25 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, Loader2, AlertCircle } from 'lucide-react';
 import { clsx } from 'clsx';
+import { compressImageFile, fileToDataUrl, validateDesignUpload, getFileKind } from '../../utils/fileUtils';
 
 const FORMAT_MIME = {
   PNG: { mime: 'image/png', ext: ['.png'] },
   JPG: { mime: 'image/jpeg', ext: ['.jpg', '.jpeg'] },
   JPEG: { mime: 'image/jpeg', ext: ['.jpg', '.jpeg'] },
-  SVG: { mime: 'image/svg+xml', ext: ['.svg'] },
+  GIF: { mime: 'image/gif', ext: ['.gif'] },
   WEBP: { mime: 'image/webp', ext: ['.webp'] },
   WebP: { mime: 'image/webp', ext: ['.webp'] },
+  TIFF: { mime: 'image/tiff', ext: ['.tif', '.tiff'] },
+  SVG: { mime: 'image/svg+xml', ext: ['.svg'] },
+  PDF: { mime: 'application/pdf', ext: ['.pdf'] },
+  AI: { mime: 'application/postscript', ext: ['.ai'] },
+  EPS: { mime: 'application/postscript', ext: ['.eps'] },
+  PSD: { mime: 'image/vnd.adobe.photoshop', ext: ['.psd'] },
 };
 
-const DEFAULT_FORMATS = ['JPG', 'PNG', 'SVG', 'WebP'];
-const DEFAULT_MAX_MB = 10;
+const DEFAULT_FORMATS = ['JPG', 'PNG', 'SVG', 'PDF', 'AI', 'EPS', 'TIFF', 'WEBP'];
+const DEFAULT_MAX_MB = 25;
 
 export default function ImageUploader({ onImageAdd, acceptedFormats = [], maxFileSize = DEFAULT_MAX_MB }) {
   const [uploading, setUploading] = useState(false);
@@ -33,7 +40,7 @@ export default function ImageUploader({ onImageAdd, acceptedFormats = [], maxFil
     }
   });
 
-  const rasterizeToPng = (dataUrl, mime) =>
+  const rasterizeToPng = (dataUrl) =>
     new Promise((resolve) => {
       const img = new window.Image();
       img.onload = () => {
@@ -53,6 +60,8 @@ export default function ImageUploader({ onImageAdd, acceptedFormats = [], maxFil
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
           ctx.drawImage(img, 0, 0, width, height);
           resolve(canvas.toDataURL('image/png', 0.92));
         } catch (err) {
@@ -69,51 +78,57 @@ export default function ImageUploader({ onImageAdd, acceptedFormats = [], maxFil
       setSelectedFile(file);
       setPreview(URL.createObjectURL(file));
 
-      if (file.size > maxBytes) {
-        setError(`File too large. Maximum size is ${maxFileSize}MB.`);
+      const check = validateDesignUpload(file);
+      if (!check.ok) {
+        setError(check.error);
+        setSelectedFile(null);
+        setPreview(null);
         return;
       }
 
-      const isSvg = file.type === 'image/svg+xml';
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        let dataUrl = e.target.result;
-        if (isSvg) {
-          dataUrl = await rasterizeToPng(dataUrl, file.type);
-        } else if (file.size < 2 * 1024 * 1024) {
-          onImageAdd(dataUrl, file.name);
+      setUploading(true);
+      setProgress(10);
+
+      try {
+        const kind = getFileKind(file);
+
+        // Vector/print formats (PDF, AI, EPS, PSD, TIFF) can't be placed on the
+        // canvas in-browser. Pass the raw file through so the caller can upload
+        // the original to the server and show its server-rendered preview.
+        if (kind === 'vector') {
+          setProgress(100);
+          setUploading(false);
+          onImageAdd({ kind: 'print-file', file });
           setPreview(null);
           setSelectedFile(null);
           return;
-        } else {
-          setUploading(true);
-          setProgress(0);
-          const bigReader = new FileReader();
-          bigReader.onprogress = (ev) => {
-            if (ev.lengthComputable) {
-              setProgress(Math.round((ev.loaded / ev.total) * 80));
-            }
-          };
-          bigReader.onload = (ev2) => {
-            setProgress(90);
-            rasterizeToPng(ev2.target.result, file.type).then((pngUrl) => {
-              setProgress(100);
-              setUploading(false);
-              onImageAdd(pngUrl, file.name);
-              setPreview(null);
-              setSelectedFile(null);
-            });
-          };
-          bigReader.readAsDataURL(file);
-          return;
         }
+
+        // Raster: downscale + re-encode to WebP so the editor/cart only ever
+        // handles a small web-optimized copy.
+        const compressed = await compressImageFile(file, { maxDim: 1600, quality: 0.85 });
+        setProgress(80);
+        const dataUrl = await fileToDataUrl(compressed.blob);
+        setProgress(100);
+        setUploading(false);
         onImageAdd(dataUrl, file.name);
         setPreview(null);
         setSelectedFile(null);
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        // Best-effort fallback for formats the browser can't decode (e.g. TIFF).
+        try {
+          const dataUrl = await rasterizeToPng(await fileToDataUrl(file));
+          setUploading(false);
+          onImageAdd(dataUrl, file.name);
+          setPreview(null);
+          setSelectedFile(null);
+        } catch (fallbackErr) {
+          setUploading(false);
+          setError('Could not read this file. Try exporting it as PNG or PDF.');
+        }
+      }
     },
-    [maxBytes, maxFileSize, onImageAdd]
+    [onImageAdd]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

@@ -174,6 +174,22 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Scheduled cleanup (called by Vercel Cron Jobs). Guarded by a secret header.
+app.post("/api/cron/cleanup-uploads", async (req, res, next) => {
+  try {
+    const secret = req.headers["x-cron-secret"];
+    const expected = process.env.CRON_SECRET;
+    if (!expected || secret !== expected) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+    const { cleanupAbandonedUploads } = require("./jobs/cleanupUploads");
+    const result = await cleanupAbandonedUploads();
+    res.status(200).json({ success: true, ...result });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // API routes
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/users", limiter, userRoutes);

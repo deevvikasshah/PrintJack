@@ -1,6 +1,7 @@
 const http = require("http");
 const { Server } = require("socket.io");
 const { app } = require("./app");
+const { runCleanupOnInterval } = require("./jobs/cleanupUploads");
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
@@ -77,5 +78,8 @@ server.listen(PORT, () => {
     `PrintJack server running in ${process.env.NODE_ENV} mode on port ${PORT}`
   );
 });
+
+// In-process daily cleanup for always-on deployments (Render/local).
+runCleanupOnInterval();
 
 module.exports = { app, io };

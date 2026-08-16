@@ -14,7 +14,7 @@ exports.checkoutFromCart = async (req, res, next) => {
 
     const cart = await Cart.findOne({ user: req.user._id })
       .populate('items.product')
-      .populate('items.design', 'printSpecifications');
+      .populate('items.design', 'printSpecifications printFile printFilePublicId');
     if (!cart || cart.items.length === 0) {
       throw new AppError('Cart is empty', 400);
     }
@@ -83,6 +83,7 @@ exports.checkoutFromCart = async (req, res, next) => {
         totalPrice,
         printSpecifications: item.printSpecifications || item.design?.printSpecifications || null,
         customizationPreview: item.customizations?.preview || '',
+        printFile: item.design?.printFile || '',
       });
     }
 

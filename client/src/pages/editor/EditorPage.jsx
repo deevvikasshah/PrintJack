@@ -411,31 +411,64 @@ export default function EditorPage() {
     return points;
   };
 
+  const placeImageOnCanvas = useCallback(
+    (dataUrl, name) =>
+      new Promise((resolve) => {
+        const canvas = canvasRef.current?.getCanvas?.();
+        if (!canvas) {
+          resolve();
+          return;
+        }
+        saveCanvasState();
+        fabric.Image.fromURL(dataUrl, (img) => {
+          const maxDim = Math.min(canvasWidth, canvasHeight) * 0.5;
+          const scale = Math.min(maxDim / img.width, maxDim / img.height, 1);
+          img.set({
+            left: canvasWidth / 2,
+            top: canvasHeight / 2,
+            originX: 'center',
+            originY: 'center',
+            scaleX: scale,
+            scaleY: scale,
+            id: `img-${Date.now()}`,
+            name: name || 'Image',
+          });
+          canvas.add(img);
+          canvas.setActiveObject(img);
+          canvas.renderAll();
+          refreshObjects();
+          resolve();
+        });
+      }),
+    [canvasWidth, canvasHeight, saveCanvasState, refreshObjects]
+  );
+
   const addImageToCanvas = useCallback(
-    (dataUrl, name) => {
+    async (dataUrl, name) => {
       const canvas = canvasRef.current?.getCanvas?.();
       if (!canvas) return;
-      saveCanvasState();
-      fabric.Image.fromURL(dataUrl, (img) => {
-        const maxDim = Math.min(canvasWidth, canvasHeight) * 0.5;
-        const scale = Math.min(maxDim / img.width, maxDim / img.height, 1);
-        img.set({
-          left: canvasWidth / 2,
-          top: canvasHeight / 2,
-          originX: 'center',
-          originY: 'center',
-          scaleX: scale,
-          scaleY: scale,
-          id: `img-${Date.now()}`,
-          name: name || 'Image',
-        });
-        canvas.add(img);
-        canvas.setActiveObject(img);
-        canvas.renderAll();
-        refreshObjects();
-      });
+
+      // Vector/print formats (PDF, AI, EPS, TIFF, PSD) arrive as a raw file.
+      // Upload the original to the server and use its rendered preview.
+      if (dataUrl && typeof dataUrl === 'object' && dataUrl.kind === 'print-file') {
+        try {
+          const { uploadPrintFile } = await import('../../utils/fileUtils');
+          const { data } = await uploadPrintFile(dataUrl.file);
+          const preview = data.file?.preview?.url;
+          if (!preview) {
+            toast.error('Preview unavailable for this file type');
+            return;
+          }
+          await placeImageOnCanvas(preview, name || dataUrl.file.name);
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to upload print file');
+        }
+        return;
+      }
+
+      await placeImageOnCanvas(dataUrl, name);
     },
-    [canvasWidth, canvasHeight, saveCanvasState, refreshObjects]
+    [placeImageOnCanvas]
   );
 
   const addClipart = useCallback(

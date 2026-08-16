@@ -18,6 +18,7 @@ import { useCart } from '../../context/CartContext';
 import { useCartFly } from '../../context/CartFlyContext';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
+import { compressImageFile, fileToDataUrl, uploadPrintFile, validateDesignUpload } from '../../utils/fileUtils';
 
 function normalizeProduct(p) {
   return {
@@ -152,24 +153,42 @@ const [buyingNow, setBuyingNow] = useState(false);
       navigate('/login');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size must be less than 10MB');
+    const check = validateDesignUpload(file);
+    if (!check.ok) {
+      toast.error(check.error);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
     setUploadingDesign(true);
     try {
-      const reader = new FileReader();
-      const dataUrl = await new Promise((resolve, reject) => {
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      let previewDataUrl = null;
+      let printFile = null;
+
+      if (check.kind === 'raster') {
+        const compressed = await compressImageFile(file, { maxDim: 1600, quality: 0.85 });
+        previewDataUrl = await fileToDataUrl(new File([compressed.blob], file.name.replace(/\.[^/.]+$/, '') + '.webp', { type: 'image/webp' }));
+      } else if (check.kind === 'vector') {
+        const { data } = await uploadPrintFile(file);
+        printFile = {
+          url: data.file.url,
+          publicId: data.file.publicId,
+          format: data.file.format,
+          resourceType: data.file.resourceType,
+          bytes: data.file.bytes,
+          fileName: file.name,
+          previewUrl: data.file.preview?.url || null,
+        };
+        previewDataUrl = data.file.preview?.url || null;
+      }
 
       const { data: designRes } = await api.post('/designs', {
         productId: p._id,
         name: file.name.replace(/\.[^/.]+$/, ''),
-        canvasData: { uploadedFile: dataUrl, fileName: file.name, fileType: file.type },
-        previewImage: dataUrl,
+        canvasData: previewDataUrl
+          ? { uploadedFile: previewDataUrl, fileName: file.name, fileType: file.type }
+          : null,
+        previewImage: previewDataUrl,
+        printFile,
       });
 
       const designId = designRes.design?._id || designRes._id;
@@ -177,7 +196,7 @@ const [buyingNow, setBuyingNow] = useState(false);
       const selectedSizeValue = sizes.length > 0 ? (typeof sizes[selectedSize] === 'string' ? sizes[selectedSize] : sizes[selectedSize]?.name) : undefined;
       const selectedColorValue = colors.length > 0 ? colors[selectedColor]?.name : undefined;
       await addToCart(p._id, quantity, selectedSizeValue, selectedColorValue, designId);
-      toast.success('Design uploaded and added to cart!');
+      toast.success(check.kind === 'vector' ? 'Vector design uploaded for print!' : 'Design uploaded and added to cart!');
       if (addToCartRef.current) flyToCart(addToCartRef.current, images[selectedImage] || images[0]);
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {

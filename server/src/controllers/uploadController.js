@@ -1,4 +1,5 @@
-const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
+const { uploadToCloudinary, deleteFromCloudinary, uploadPrintFile } = require('../utils/cloudinary');
+const { assertValidFile } = require('../middleware/upload');
 const { AppError } = require('../middleware/errorHandler');
 
 exports.uploadSingle = async (req, res, next) => {
@@ -6,6 +7,9 @@ exports.uploadSingle = async (req, res, next) => {
     if (!req.file) {
       throw new AppError('No file uploaded', 400);
     }
+
+    const valid = assertValidFile(req.file);
+    if (!valid.ok) throw new AppError(valid.error, 400);
 
     const { folder = 'printjack/uploads', width, height, quality } = req.query;
 
@@ -38,13 +42,18 @@ exports.uploadMultiple = async (req, res, next) => {
       throw new AppError('No files uploaded', 400);
     }
 
+    for (const file of req.files) {
+      const valid = assertValidFile(file);
+      if (!valid.ok) throw new AppError(`${file.originalname}: ${valid.error}`, 400);
+    }
+
     const { folder = 'printjack/uploads' } = req.query;
 
     const uploadPromises = req.files.map((file) =>
       uploadToCloudinary(file, { folder })
     );
 
-    const results = await Promise.all(uploadPromises);
+    const results = await uploadPromises;
 
     const files = results.map((result) => ({
       url: result.secure_url,
@@ -81,36 +90,69 @@ exports.deleteUpload = async (req, res, next) => {
   }
 };
 
+/**
+ * Upload a print-ready original (PDF, AI, EPS, TIFF, SVG, or raster) for
+ * production. Validates size + real file signature, stores the original
+ * untouched on Cloudinary, and returns a separate low-res preview URL that the
+ * rest of the app serves on pages (never the full-res original).
+ */
+exports.uploadPrintFile = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      throw new AppError('No file uploaded', 400);
+    }
+
+    const valid = assertValidFile(req.file);
+    if (!valid.ok) throw new AppError(valid.error, 400);
+
+    const result = await uploadPrintFile(req.file.buffer, {
+      fileName: req.file.originalname,
+      folder: 'printjack/designs/printfiles',
+    });
+
+    res.status(201).json({
+      success: true,
+      file: {
+        url: result.url,
+        publicId: result.publicId,
+        format: result.format,
+        resourceType: result.resourceType,
+        bytes: result.bytes,
+        originalName: req.file.originalname,
+        preview: result.previewUrl ? { url: result.previewUrl, publicId: result.publicId } : null,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.uploadDesignFile = async (req, res, next) => {
   try {
     if (!req.file) {
       throw new AppError('No design file uploaded', 400);
     }
 
-    const allowedTypes = ['application/pdf', 'image/vnd.adobe.photoshop', 'application/postscript', 'application/illustrator', 'image/png', 'image/jpeg', 'image/svg+xml'];
-    const allowedExtensions = ['.pdf', '.ai', '.psd', '.png', '.jpg', '.jpeg', '.svg'];
-    const ext = require('path').extname(req.file.originalname).toLowerCase();
-
-    if (!allowedTypes.includes(req.file.mimetype) && !allowedExtensions.includes(ext)) {
-      throw new AppError('Unsupported file type. Allowed: PDF, AI, PSD, PNG, JPG, SVG', 400);
-    }
+    const valid = assertValidFile(req.file);
+    if (!valid.ok) throw new AppError(valid.error, 400);
 
     const { name, productId, width, height, colorMode } = req.body;
+    const ext = valid.ext;
 
-    const result = await uploadToCloudinary(req.file, {
+    const result = await uploadPrintFile(req.file.buffer, {
+      fileName: req.file.originalname,
       folder: 'printjack/designs/files',
-      resource_type: 'auto',
-      format: ext.replace('.', '') || undefined,
     });
 
     res.status(200).json({
       success: true,
       file: {
-        url: result.secure_url,
-        publicId: result.public_id,
+        url: result.url,
+        publicId: result.publicId,
         format: result.format,
         bytes: result.bytes,
         originalName: req.file.originalname,
+        preview: result.previewUrl ? { url: result.previewUrl, publicId: result.publicId } : null,
         metadata: {
           name: name || req.file.originalname,
           productId: productId || null,

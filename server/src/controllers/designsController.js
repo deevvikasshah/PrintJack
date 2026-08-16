@@ -6,7 +6,7 @@ const { sendDesignApproval } = require('../services/email');
 
 exports.saveDesign = async (req, res, next) => {
   try {
-    const { productId, name, canvasData, canvasJSON, previewImage, printSpecifications, isDraft } = req.body;
+    const { productId, name, canvasData, canvasJSON, previewImage, printSpecifications, isDraft, printFile } = req.body;
 
     if (!productId) {
       throw new AppError('Product ID is required', 400);
@@ -18,14 +18,25 @@ exports.saveDesign = async (req, res, next) => {
     }
 
     let savedPreview = '';
+    let savedPreviewPublicId = '';
+
+    // If a print file was uploaded first, its server-generated low-res preview
+    // is the lightest thing to store/serve as the design thumbnail.
+    if (!previewImage && printFile?.previewUrl) {
+      savedPreview = printFile.previewUrl;
+      savedPreviewPublicId = printFile.publicId || '';
+    }
+
     if (previewImage) {
       try {
         const result = await uploadToCloudinary(previewImage, {
           folder: 'printjack/designs/previews',
-          width: 1200,
+          width: 1000,
           quality: 'auto',
+          format: 'webp',
         });
         savedPreview = result.secure_url;
+        savedPreviewPublicId = result.public_id;
       } catch (e) {
         console.error('Cloudinary upload failed, using data URL:', e.message);
         savedPreview = previewImage;
@@ -42,6 +53,17 @@ exports.saveDesign = async (req, res, next) => {
       name: designName,
       canvasData: designCanvasData,
       previewImage: savedPreview,
+      previewPublicId: savedPreviewPublicId,
+      printFile: printFile?.url || '',
+      printFilePublicId: printFile?.publicId || '',
+      printFileMeta: printFile
+        ? {
+            format: printFile.format || '',
+            bytes: printFile.bytes || 0,
+            resourceType: printFile.resourceType || '',
+            fileName: printFile.fileName || '',
+          }
+        : null,
       printSpecifications: printSpecifications || {},
       status,
     });
@@ -127,27 +149,39 @@ exports.updateDesign = async (req, res, next) => {
       throw new AppError('Cannot modify an approved design', 400);
     }
 
-    const { name, canvasData, canvasJSON, previewImage, printSpecifications } = req.body;
+    const { name, canvasData, canvasJSON, previewImage, printSpecifications, printFile } = req.body;
 
     if (name) design.name = name;
     if (canvasJSON || canvasData) design.canvasData = canvasJSON || canvasData;
     if (printSpecifications) design.printSpecifications = printSpecifications;
 
+    if (printFile?.publicId && printFile.url) {
+      design.printFile = printFile.url;
+      design.printFilePublicId = printFile.publicId;
+      design.printFileMeta = {
+        format: printFile.format || '',
+        bytes: printFile.bytes || 0,
+        resourceType: printFile.resourceType || '',
+        fileName: printFile.fileName || '',
+      };
+    }
+
     if (previewImage) {
-      if (design.previewImage) {
+      if (design.previewPublicId) {
         try {
-          const publicId = design.previewImage.split('/').pop().split('.')[0];
-          await deleteFromCloudinary(publicId);
+          await deleteFromCloudinary(design.previewPublicId);
         } catch (e) {
           console.error('Failed to delete old preview:', e.message);
         }
       }
       const result = await uploadToCloudinary(previewImage, {
         folder: 'printjack/designs/previews',
-        width: 1200,
+        width: 1000,
         quality: 'auto',
+        format: 'webp',
       });
       design.previewImage = result.secure_url;
+      design.previewPublicId = result.public_id;
     }
 
     design.status = 'saved';
@@ -172,7 +206,7 @@ exports.deleteDesign = async (req, res, next) => {
 
     if (design.previewImage) {
       try {
-        const publicId = design.previewImage.split('/').pop().split('.')[0];
+        const publicId = design.previewPublicId || design.previewImage.split('/').pop().split('.')[0];
         await deleteFromCloudinary(publicId);
       } catch (e) {
         console.error('Failed to delete preview from Cloudinary:', e.message);
@@ -181,7 +215,7 @@ exports.deleteDesign = async (req, res, next) => {
 
     if (design.printFile) {
       try {
-        const publicId = design.printFile.split('/').pop().split('.')[0];
+        const publicId = design.printFilePublicId || design.printFile.split('/').pop().split('.')[0];
         await deleteFromCloudinary(publicId);
       } catch (e) {
         console.error('Failed to delete print file from Cloudinary:', e.message);
@@ -318,12 +352,18 @@ exports.approveDesign = async (req, res, next) => {
     if (adminNotes) design.adminNotes = adminNotes;
 
     if (status === 'approved') {
-      if (printFile) {
+      if (printFile && printFile !== design.printFile) {
         const result = await uploadToCloudinary(printFile, {
           folder: 'printjack/designs/printfiles',
           quality: 'highest',
         });
         design.printFile = result.secure_url;
+        design.printFilePublicId = result.public_id;
+        design.printFileMeta = {
+          format: result.format || '',
+          bytes: result.bytes || 0,
+          resourceType: result.resource_type || '',
+        };
       }
     }
 

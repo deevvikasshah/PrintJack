@@ -61,9 +61,21 @@ const designSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  previewPublicId: {
+    type: String,
+    default: '',
+  },
   printFile: {
     type: String,
     default: '',
+  },
+  printFilePublicId: {
+    type: String,
+    default: '',
+  },
+  printFileMeta: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
   },
   status: {
     type: String,

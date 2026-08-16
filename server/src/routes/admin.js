@@ -99,6 +99,17 @@ router.put("/designs/:id/reject", (req, res, next) => {
   return approveDesign(req, res, next);
 });
 router.get("/designs/:id/export", exportDesign);
+
+// Cleanup abandoned uploads (draft designs older than the retention window)
+router.post("/cleanup-uploads", async (req, res, next) => {
+  try {
+    const { cleanupAbandonedUploads } = require("../jobs/cleanupUploads");
+    const result = await cleanupAbandonedUploads();
+    res.status(200).json({ success: true, ...result });
+  } catch (err) {
+    next(err);
+  }
+});
 router.post("/designs/batch-approve", async (req, res, next) => {
   try {
     const { designIds } = req.body;
@@ -125,6 +136,7 @@ router.post("/designs/batch-approve", async (req, res, next) => {
             quality: "highest",
           });
           design.printFile = result.secure_url;
+          design.printFilePublicId = result.public_id;
         }
 
         await design.save({ validateBeforeSave: false });
