@@ -6,13 +6,14 @@ import toast from 'react-hot-toast';
 import {
   ChevronLeft, Check, Minus, Plus, ShoppingCart, Type,
   Square, Circle, Triangle, Star, Upload, Layout, Palette, Undo2, Redo2,
-  Grid3X3, Loader2, Ruler, Package, ArrowRight, Share2, Archive, X, Box,
+  Grid3X3, Loader2, Ruler, Package, ArrowRight, Share2, Archive, X, Box, Image,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import EditorCanvas from '../../components/editor/EditorCanvas';
 import DesignTemplates from '../../components/editor/DesignTemplates';
 import ClipartPanel from '../../components/editor/ClipartPanel';
 import ImageUploader from '../../components/editor/ImageUploader';
+import PhotosPanel from '../../components/editor/PhotosPanel';
 import BusinessCard3DPreview from '../../components/editor/BusinessCard3DPreview';
 import DeliveryNote from '../../components/common/DeliveryNote';
 import { useCart } from '../../context/CartContext';
@@ -39,6 +40,7 @@ const QUANTITY_TIERS = [
 ];
 
 const DESIGN_TABS = [
+  { id: 'photos', label: 'Photos', icon: Image },
   { id: 'templates', label: 'Templates', icon: Layout },
   { id: 'upload', label: 'Upload', icon: Upload },
   { id: 'text', label: 'Text', icon: Type },
@@ -47,6 +49,48 @@ const DESIGN_TABS = [
 ];
 
 const MAX_UNDO = 50;
+
+const buildCardMockupSvg = (w, h) => {
+  const rx = Math.max(6, Math.round(Math.min(w, h) * 0.035));
+  const ix = Math.max(4, Math.round(Math.min(w, h) * 0.022));
+  const inset = Math.max(10, Math.round(Math.min(w, h) * 0.06));
+  const midY = Math.round(h / 2);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+  <defs>
+    <linearGradient id="cg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fdfbf6"/>
+      <stop offset="1" stop-color="#f1e7d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="${w}" height="${h}" rx="${rx}" fill="url(#cg)"/>
+  <rect x="${ix}" y="${ix}" width="${w - ix * 2}" height="${h - ix * 2}" rx="${Math.max(3, rx - 2)}" fill="none" stroke="#d9b45b" stroke-opacity="0.65" stroke-width="2"/>
+  <line x1="${inset}" y1="${midY}" x2="${w - inset}" y2="${midY}" stroke="#e6d1a0" stroke-opacity="0.7" stroke-width="2"/>
+  <rect x="${Math.round(w * 0.08)}" y="${Math.round(h * 0.2)}" width="${Math.round(w * 0.5)}" height="${Math.round(h * 0.16)}" rx="3" fill="#c9a64e" fill-opacity="0.35"/>
+</svg>`;
+};
+
+const svgToPngDataUrl = (svg, width, height) =>
+  new Promise((resolve) => {
+    try {
+      const img = new window.Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/png'));
+        } catch (err) {
+          resolve('data:image/svg+xml;utf8,' + encodeURIComponent(svg));
+        }
+      };
+      img.onerror = () => resolve('data:image/svg+xml;utf8,' + encodeURIComponent(svg));
+      img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    } catch (err) {
+      resolve(null);
+    }
+  });
 
 export default function ProductConfiguratorPage() {
   const { productId } = useParams();
@@ -309,9 +353,17 @@ export default function ProductConfiguratorPage() {
     };
 
     setPrintArea(normalizedPA);
-    setCanvasWidth(normalizedPA.width + (normalizedPA.x || 0) * 2 || 500);
-    setCanvasHeight(normalizedPA.height + (normalizedPA.y || 0) * 2 || 500);
-    setProductImage(prod.mockupImage || prod.image || null);
+    const cw = normalizedPA.width + (normalizedPA.x || 0) * 2 || 500;
+    const ch = normalizedPA.height + (normalizedPA.y || 0) * 2 || 500;
+    setCanvasWidth(cw);
+    setCanvasHeight(ch);
+    const existingImage = prod.mockupImage || prod.image || null;
+    setProductImage(existingImage);
+    if (!existingImage && isBusinessCard(prod)) {
+      svgToPngDataUrl(buildCardMockupSvg(Math.round(cw), Math.round(ch)), Math.round(cw), Math.round(ch)).then((url) => {
+        if (url) setProductImage(url);
+      });
+    }
   };
 
   const handlePrintAreaChange = (idx) => {
@@ -549,8 +601,11 @@ export default function ProductConfiguratorPage() {
       if (!canvas) return;
       saveCanvasState();
       fabric.Image.fromURL(dataUrl, (img) => {
-        const maxDim = Math.min(canvasWidth, canvasHeight) * 0.5;
-        const scale = Math.min(maxDim / img.width, maxDim / img.height, 1);
+        const w = img.width || canvasWidth;
+        const h = img.height || canvasHeight;
+        const maxDim = Math.min(canvasWidth, canvasHeight) * 0.6;
+        let scale = Math.min(maxDim / w, maxDim / h, 1);
+        if (!Number.isFinite(scale) || scale <= 0) scale = 0.5;
         img.set({
           left: canvasWidth / 2,
           top: canvasHeight / 2,
@@ -565,6 +620,7 @@ export default function ProductConfiguratorPage() {
         canvas.setActiveObject(img);
         canvas.renderAll();
         refreshObjects();
+        toast.success('Image added to your design');
       });
     },
     [canvasWidth, canvasHeight, saveCanvasState, refreshObjects]
@@ -614,6 +670,39 @@ export default function ProductConfiguratorPage() {
       });
     },
     [saveCanvasState, applyDesignState, refreshObjects]
+  );
+
+  const addPhoto = useCallback(
+    (photo) => {
+      const canvas = canvasRef.current?.getCanvas?.();
+      if (!canvas) return;
+      saveCanvasState();
+      const svg = photo.svg;
+      fabric.loadSVGFromString(svg, (objects, options) => {
+        const group = fabric.util.groupSVGElements(objects, options);
+        const cw = canvasWidth;
+        const ch = canvasHeight;
+        const scale = Math.max(cw / group.width, ch / group.height) * 1.02;
+        group.set({
+          left: cw / 2,
+          top: ch / 2,
+          originX: 'center',
+          originY: 'center',
+          scaleX: scale,
+          scaleY: scale,
+          selectable: true,
+          id: `photo-${Date.now()}`,
+          name: photo.name,
+        });
+        canvas.add(group);
+        canvas.sendToBack(group);
+        canvas.setActiveObject(group);
+        canvas.renderAll();
+        refreshObjects();
+        toast.success(`${photo.name} background added`);
+      });
+    },
+    [canvasWidth, canvasHeight, saveCanvasState, refreshObjects]
   );
 
   const goToStep = useCallback(
@@ -795,9 +884,22 @@ export default function ProductConfiguratorPage() {
         let primaryDesignId;
         for (let i = 0; i < 2; i++) {
           const face = facesRef.current[i];
-          const json = face?.canvasJSON || (i === activeFace ? canvasRef.current?.toJSON?.() : null);
-          const previewUrl = face?.previewUrl || (i === activeFace ? canvasRef.current?.toDataUrl?.() : null);
-          const hasDesign = json?.objects?.length > 0;
+          const isActive = i === activeFace;
+          const canvas = isActive ? canvasRef.current?.getCanvas?.() : null;
+          const json = face?.canvasJSON || (isActive ? canvasRef.current?.toJSON?.() : null);
+          const previewUrl = face?.previewUrl || (isActive ? canvasRef.current?.toDataUrl?.() : null);
+          const hasDesign =
+            (canvas ? canvas.getObjects().some((o) => !isDecorationObject(o)) : false) ||
+            json?.objects?.length > 0 ||
+            (() => {
+              if (!face?.designState) return false;
+              try {
+                const arr = JSON.parse(face.designState);
+                return Array.isArray(arr) && arr.length > 0;
+              } catch {
+                return false;
+              }
+            })();
           if (!hasDesign) {
             toast.error(`Please design the ${faceLabels[i]} of your card first`);
             setAddingToCart(false);
@@ -1328,6 +1430,7 @@ export default function ProductConfiguratorPage() {
                   </h4>
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 max-h-[440px]">
+                {activeDesignTab === 'photos' && <PhotosPanel onPhotoAdd={addPhoto} />}
                 {activeDesignTab === 'templates' && (
                   <div className="space-y-4">
                     {product.templates?.length > 0 && (
@@ -1369,7 +1472,13 @@ export default function ProductConfiguratorPage() {
                     </div>
                   </div>
                 )}
-                {activeDesignTab === 'upload' && <ImageUploader onImageAdd={addImageToCanvas} />}
+                {activeDesignTab === 'upload' && (
+                  <ImageUploader
+                    onImageAdd={addImageToCanvas}
+                    acceptedFormats={printAreas[selectedPrintArea]?.acceptedFormats || []}
+                    maxFileSize={printAreas[selectedPrintArea]?.maxFileSize || 10}
+                  />
+                )}
                 {activeDesignTab === 'text' && (
                   <div className="space-y-3">
                     <button
@@ -1459,6 +1568,37 @@ export default function ProductConfiguratorPage() {
                   ))}
                 </div>
               )}
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <span className="text-xs font-semibold text-ink/60 uppercase tracking-wider">
+                  {isBusinessCard(product) ? 'Your card canvas' : 'Your design canvas'}
+                </span>
+                <div className="flex items-center gap-1 bg-paper-100 border border-paper-300 rounded-full px-1.5 py-1">
+                  <button
+                    onClick={() => setZoom(1)}
+                    className="px-2 py-1 text-[11px] font-semibold text-ink/70 hover:text-pj-green rounded-full"
+                    title="Fit to screen"
+                  >
+                    Fit
+                  </button>
+                  <button
+                    onClick={() => setZoom(Math.max(0.5, +(zoom - 0.25).toFixed(2)))}
+                    className="w-7 h-7 rounded-full hover:bg-paper-200 flex items-center justify-center text-ink"
+                    title="Zoom out"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-[11px] font-semibold text-ink w-10 text-center">
+                    {Math.round(zoom * 100)}%
+                  </span>
+                  <button
+                    onClick={() => setZoom(Math.min(3, +(zoom + 0.25).toFixed(2)))}
+                    className="w-7 h-7 rounded-full hover:bg-paper-200 flex items-center justify-center text-ink"
+                    title="Zoom in"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
               <EditorCanvas
                 ref={canvasRef}
                 productImageUrl={productImage}
@@ -1478,6 +1618,9 @@ export default function ProductConfiguratorPage() {
                 <span>{canvasWidth} × {canvasHeight} px</span>
                 <span>X: {cursorPos.x} Y: {cursorPos.y}</span>
               </div>
+              <p className="mt-2 px-1 text-[11px] text-ink/40">
+                Accepted files: {(printAreas[selectedPrintArea]?.acceptedFormats || ['PNG', 'JPG', 'SVG', 'WebP']).join(', ')} · up to {printAreas[selectedPrintArea]?.maxFileSize || 10}MB · your uploads appear on the {isBusinessCard(product) ? 'card' : 'canvas'} instantly
+              </p>
             </main>
 
             {/* Right options panel */}
@@ -1652,9 +1795,9 @@ export default function ProductConfiguratorPage() {
                         {label} design
                       </p>
                       <div className="relative aspect-[2/1.1] rounded-xl overflow-hidden border border-paper-200 bg-white">
-                        {(product.image || product.images?.[0]?.url) && (
+                        {(productImage || product.image || product.images?.[0]?.url) && (
                           <img
-                            src={product.image || product.images?.[0]?.url}
+                            src={productImage || product.image || product.images?.[0]?.url}
                             alt={product.name}
                             className="absolute inset-0 w-full h-full object-contain"
                           />
@@ -1678,9 +1821,9 @@ export default function ProductConfiguratorPage() {
                 </div>
               ) : (
                 <div className="relative aspect-[4/2] w-full max-w-sm rounded-xl overflow-hidden bg-white">
-                  {(product.image || product.images?.[0]?.url) && (
+                  {(productImage || product.image || product.images?.[0]?.url) && (
                     <img
-                      src={product.image || product.images?.[0]?.url}
+                      src={productImage || product.image || product.images?.[0]?.url}
                       alt={product.name}
                       className="absolute inset-0 w-full h-full object-contain"
                     />

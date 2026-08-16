@@ -56,11 +56,11 @@ const EditorCanvas = forwardRef(function EditorCanvas(
             });
           }
         });
-        const objects = canvas.getObjects().filter((o) => o !== printAreaRef.current && o._isGrid !== true);
+        const liveObjects = canvas.getObjects();
         const json = canvas.toJSON();
-        json.objects = json.objects.filter((o) => {
-          const obj = canvas.getObjects().find((c) => c.id === o.id);
-          return obj && obj !== printAreaRef.current && obj._isGrid !== true;
+        json.objects = json.objects.filter((o, i) => {
+          const obj = liveObjects[i];
+          return obj && obj !== printAreaRef.current && obj !== bgImageRef.current && obj._isGrid !== true;
         });
         return json;
       } catch (err) {

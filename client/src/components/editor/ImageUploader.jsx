@@ -1,59 +1,43 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Image, X, Loader2, AlertCircle } from 'lucide-react';
+import { Upload, X, Loader2, AlertCircle } from 'lucide-react';
 import { clsx } from 'clsx';
 
-const ACCEPTED_TYPES = {
-  'image/jpeg': ['.jpg', '.jpeg'],
-  'image/png': ['.png'],
-  'image/svg+xml': ['.svg'],
-  'image/webp': ['.webp'],
+const FORMAT_MIME = {
+  PNG: { mime: 'image/png', ext: ['.png'] },
+  JPG: { mime: 'image/jpeg', ext: ['.jpg', '.jpeg'] },
+  JPEG: { mime: 'image/jpeg', ext: ['.jpg', '.jpeg'] },
+  SVG: { mime: 'image/svg+xml', ext: ['.svg'] },
+  WEBP: { mime: 'image/webp', ext: ['.webp'] },
+  WebP: { mime: 'image/webp', ext: ['.webp'] },
 };
 
-const MAX_SIZE = 10 * 1024 * 1024;
+const DEFAULT_FORMATS = ['JPG', 'PNG', 'SVG', 'WebP'];
+const DEFAULT_MAX_MB = 10;
 
-export default function ImageUploader({ onImageAdd }) {
+export default function ImageUploader({ onImageAdd, acceptedFormats = [], maxFileSize = DEFAULT_MAX_MB }) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
   const [preview, setPreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const processFile = useCallback(
-    async (file) => {
-      setError(null);
-      setSelectedFile(file);
-      setPreview(URL.createObjectURL(file));
+  const formats = acceptedFormats.length > 0 ? acceptedFormats : DEFAULT_FORMATS;
+  const maxBytes = maxFileSize * 1024 * 1024;
 
-      if (file.size > MAX_SIZE) {
-        setError('File too large. Maximum size is 10MB.');
-        return;
-      }
+  const ACCEPTED_TYPES = {};
+  formats.forEach((f) => {
+    const entry = FORMAT_MIME[f.toUpperCase()];
+    if (entry) {
+      ACCEPTED_TYPES[entry.mime] = entry.ext;
+    }
+  });
 
-      if (file.type === 'image/svg+xml' || file.size < 2 * 1024 * 1024) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          onImageAdd(e.target.result, file.name);
-          setPreview(null);
-          setSelectedFile(null);
-        };
-        reader.readAsDataURL(file);
-        return;
-      }
-
-      setUploading(true);
-      setProgress(0);
-
-      const reader = new FileReader();
-      reader.onprogress = (e) => {
-        if (e.lengthComputable) {
-          setProgress(Math.round((e.loaded / e.total) * 80));
-        }
-      };
-      reader.onload = (e) => {
-        setProgress(90);
-        const img = new window.Image();
-        img.onload = () => {
+  const rasterizeToPng = (dataUrl, mime) =>
+    new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        try {
           let { width, height } = img;
           const maxDim = 2000;
           if (width > maxDim || height > maxDim) {
@@ -61,37 +45,89 @@ export default function ImageUploader({ onImageAdd }) {
             width = Math.round(width * ratio);
             height = Math.round(height * ratio);
           }
+          if (!width || !height) {
+            width = 800;
+            height = 800;
+          }
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL('image/png', 0.92);
-          setProgress(100);
-          setUploading(false);
+          resolve(canvas.toDataURL('image/png', 0.92));
+        } catch (err) {
+          resolve(dataUrl);
+        }
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+
+  const processFile = useCallback(
+    async (file) => {
+      setError(null);
+      setSelectedFile(file);
+      setPreview(URL.createObjectURL(file));
+
+      if (file.size > maxBytes) {
+        setError(`File too large. Maximum size is ${maxFileSize}MB.`);
+        return;
+      }
+
+      const isSvg = file.type === 'image/svg+xml';
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        let dataUrl = e.target.result;
+        if (isSvg) {
+          dataUrl = await rasterizeToPng(dataUrl, file.type);
+        } else if (file.size < 2 * 1024 * 1024) {
           onImageAdd(dataUrl, file.name);
           setPreview(null);
           setSelectedFile(null);
-        };
-        img.src = e.target.result;
+          return;
+        } else {
+          setUploading(true);
+          setProgress(0);
+          const bigReader = new FileReader();
+          bigReader.onprogress = (ev) => {
+            if (ev.lengthComputable) {
+              setProgress(Math.round((ev.loaded / ev.total) * 80));
+            }
+          };
+          bigReader.onload = (ev2) => {
+            setProgress(90);
+            rasterizeToPng(ev2.target.result, file.type).then((pngUrl) => {
+              setProgress(100);
+              setUploading(false);
+              onImageAdd(pngUrl, file.name);
+              setPreview(null);
+              setSelectedFile(null);
+            });
+          };
+          bigReader.readAsDataURL(file);
+          return;
+        }
+        onImageAdd(dataUrl, file.name);
+        setPreview(null);
+        setSelectedFile(null);
       };
       reader.readAsDataURL(file);
     },
-    [onImageAdd]
+    [maxBytes, maxFileSize, onImageAdd]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: ACCEPTED_TYPES,
-    maxSize: MAX_SIZE,
+    maxSize: maxBytes,
     onDrop: (files) => {
       if (files.length > 0) processFile(files[0]);
     },
     onDropRejected: (rejections) => {
       const err = rejections[0]?.errors?.[0];
       if (err?.code === 'file-too-large') {
-        setError('File too large. Maximum size is 10MB.');
+        setError(`File too large. Maximum size is ${maxFileSize}MB.`);
       } else if (err?.code === 'file-invalid-type') {
-        setError('Invalid file type. Accepts JPG, PNG, SVG, WebP.');
+        setError(`Invalid file type. Accepts ${formats.join(', ')}.`);
       } else {
         setError(err?.message || 'Upload failed');
       }
@@ -159,7 +195,9 @@ export default function ImageUploader({ onImageAdd }) {
               {isDragActive ? 'Drop image here' : 'Drag & drop an image'}
             </p>
             <p className="text-xs text-gray-400 mt-1">or click to browse</p>
-            <p className="text-[10px] text-gray-400 mt-2">JPG, PNG, SVG, WebP · Max 10MB</p>
+            <p className="text-[10px] text-gray-400 mt-2">
+              {formats.join(', ')} · Max {maxFileSize}MB
+            </p>
           </>
         )}
       </div>
