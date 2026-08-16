@@ -190,24 +190,6 @@
   transform-box: view-box;
 }
 
-.clock-second-hand {
-  animation: clockTick 60s steps(60) infinite;
-}
-
-.clock-minute-hand {
-  animation: clockMinuteTick 3600s linear infinite;
-}
-
-@keyframes clockTick {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes clockMinuteTick {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
 .clock-fab-glow {
   animation: clockGlow 2.5s ease-in-out infinite;
 }

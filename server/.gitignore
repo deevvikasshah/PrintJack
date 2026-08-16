@@ -26,3 +26,5 @@ set.json
 sotp.json
 val.json
 server.err
+.vercel
+.env*

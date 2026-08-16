@@ -855,6 +855,25 @@ export default function ProductConfiguratorPage() {
 
   const basePrice = product?.basePrice || product?.price || 299;
   const bulkTiers = Array.isArray(product?.bulkPricing) && product.bulkPricing.length > 0 ? product.bulkPricing : null;
+  const quantityOptions = useMemo(() => {
+    const min = product?.minimumOrderQuantity || 1;
+    const opts = new Set([min]);
+    if (bulkTiers) {
+      bulkTiers.forEach((t) => {
+        if (t.minQty >= min) opts.add(t.minQty);
+        if (t.maxQty && t.maxQty >= min) opts.add(t.maxQty);
+      });
+    } else {
+      QUANTITY_TIERS.forEach((t) => {
+        if (t.min >= min) opts.add(t.min);
+      });
+    }
+    [50, 100, 250, 500, 1000, 2000, 5000, 10000].forEach((n) => {
+      if (n >= min) opts.add(n);
+    });
+    if (quantity >= min) opts.add(quantity);
+    return [...opts].sort((a, b) => a - b);
+  }, [bulkTiers, quantity, product?.minimumOrderQuantity]);
   const pricingTier = useMemo(
     () => {
       if (bulkTiers) {
@@ -1270,26 +1289,18 @@ export default function ProductConfiguratorPage() {
                     <h3 className="font-display font-semibold text-ink">Quantity</h3>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setQuantity(Math.max(product.minimumOrderQuantity || 1, quantity - 1))}
-                      className="w-10 h-10 rounded-full border-2 border-paper-300 flex items-center justify-center hover:border-ink/40 transition-colors"
-                    >
-                      <Minus className="w-4 h-4 text-ink" />
-                    </button>
-                    <input
-                      type="number"
-                      min={product.minimumOrderQuantity || 1}
-                      max={10000}
+                    <select
                       value={quantity}
-                      onChange={(e) => setQuantity(Math.max(product.minimumOrderQuantity || 1, parseInt(e.target.value) || 1))}
-                      className="w-24 text-center px-3 py-2 border-2 border-paper-300 rounded-xl text-lg font-bold text-ink outline-none focus:border-pj-green"
-                    />
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="w-10 h-10 rounded-full border-2 border-paper-300 flex items-center justify-center hover:border-ink/40 transition-colors"
+                      onChange={(e) => setQuantity(Number(e.target.value))}
+                      className="w-full px-4 py-3 border-2 border-paper-300 rounded-xl text-lg font-bold text-ink outline-none focus:border-pj-green bg-white cursor-pointer"
+                      aria-label="Select quantity"
                     >
-                      <Plus className="w-4 h-4 text-ink" />
-                    </button>
+                      {quantityOptions.map((q) => (
+                        <option key={q} value={q}>
+                          {q} {q === 1 ? 'unit' : 'units'}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="mt-5 space-y-2">
@@ -1655,30 +1666,18 @@ export default function ProductConfiguratorPage() {
                         <span className="text-xs font-semibold text-ink/60 uppercase tracking-wider">Quantity</span>
                         <span className="text-xs text-ink/40">{quantity} cards</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => setQuantity(Math.max(product.minimumOrderQuantity || 1, quantity - 1))}
-                          className="w-9 h-9 rounded-full border-2 border-paper-300 flex items-center justify-center hover:border-ink/40 transition-colors"
-                          aria-label="Decrease quantity"
-                        >
-                          <Minus className="w-4 h-4 text-ink" />
-                        </button>
-                        <input
-                          type="number"
-                          min={product.minimumOrderQuantity || 1}
-                          max={10000}
-                          value={quantity}
-                          onChange={(e) => setQuantity(Math.max(product.minimumOrderQuantity || 1, parseInt(e.target.value) || 1))}
-                          className="w-full text-center px-3 py-2 border-2 border-paper-300 rounded-xl text-lg font-bold text-ink outline-none focus:border-pj-green"
-                        />
-                        <button
-                          onClick={() => setQuantity(quantity + 1)}
-                          className="w-9 h-9 rounded-full border-2 border-paper-300 flex items-center justify-center hover:border-ink/40 transition-colors"
-                          aria-label="Increase quantity"
-                        >
-                          <Plus className="w-4 h-4 text-ink" />
-                        </button>
-                      </div>
+                      <select
+                        value={quantity}
+                        onChange={(e) => setQuantity(Number(e.target.value))}
+                        className="w-full px-3 py-2.5 border-2 border-paper-300 rounded-xl text-base font-bold text-ink outline-none focus:border-pj-green bg-white cursor-pointer"
+                        aria-label="Select quantity"
+                      >
+                        {quantityOptions.map((q) => (
+                          <option key={q} value={q}>
+                            {q} {q === 1 ? 'unit' : 'units'}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   )}
 
