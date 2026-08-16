@@ -231,28 +231,74 @@ function SideCard({ side, selected, onClick }) {
 
 /* ---------- Quantity list ---------- */
 function QuantityList({ quantity, setQuantity, perCard }) {
+  const [isCustom, setIsCustom] = useState(false);
+  const handleType = (e) => {
+    const raw = e.target.value.replace(/\D/g, '');
+    setQuantity(raw === '' ? '' : Math.max(1, Number(raw)));
+  };
+
   return (
-    <div className="space-y-2">
-      {QUICK_QTYS.map((q) => (
-        <button
-          key={q}
-          type="button"
-          onClick={() => setQuantity(q)}
-          className={clsx(
-            'flex w-full items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition-all duration-150',
-            quantity === q
-              ? 'border-[#EAB308] bg-[#FDFBF3]'
-              : 'border-[#E3DBD1] bg-white hover:border-[#D5A62E]/60'
+    <div className="space-y-3">
+      <div>
+        <span className="mb-1.5 block text-xs font-semibold text-[#8a7870]">Quick select</span>
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <select
+              value={isCustom ? 'custom' : Number(quantity) || 0}
+              onChange={(e) => {
+                if (e.target.value === 'custom') {
+                  setIsCustom(true);
+                  return;
+                }
+                setIsCustom(false);
+                setQuantity(Number(e.target.value));
+              }}
+              className="w-full appearance-none rounded-xl border border-[#ded3c5] bg-[#fcfaf7] px-4 py-3 pr-10 text-sm font-semibold text-[#4b2822] transition focus:border-[#d5a62e] focus:outline-none focus:ring-2 focus:ring-[#f1d18a]/60"
+            >
+              {QUICK_QTYS.map((q) => (
+                <option key={q} value={q}>
+                  {q.toLocaleString('en-IN')} cards — ₹{currency(perCard * q)}
+                </option>
+              ))}
+              <option value="custom">Custom quantity…</option>
+            </select>
+            <ChevronDown
+              size={16}
+              className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9b6a09]"
+            />
+          </div>
+          <span className="shrink-0 text-sm text-[#8a7870]">per card</span>
+        </div>
+      </div>
+
+      <div className="rounded-xl border-2 border-[#ded3c5] bg-[#fcfaf7] px-4 py-3 transition focus-within:border-[#d5a62e] focus-within:ring-2 focus-within:ring-[#f1d18a]/60">
+        <label htmlFor="qty-custom" className="mb-1 block text-xs font-semibold text-[#8a7870]">
+          Or type your quantity
+        </label>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <input
+              id="qty-custom"
+              type="number"
+              min={1}
+              value={quantity}
+              onChange={(e) => {
+                handleType(e);
+                setIsCustom(true);
+              }}
+              className="w-[110px] rounded-lg border border-[#eee5da] bg-white px-3 py-2 text-center font-semibold text-[#4b2822] outline-none"
+            />
+            <span className="text-sm text-[#8a7870]">cards</span>
+          </div>
+          {quantity !== '' && Number(quantity) > 0 && (
+            <span className="text-sm font-semibold text-[#5d2c24]">₹{currency(perCard * (Number(quantity) || 0))}</span>
           )}
-        >
-          <span className="text-sm font-bold text-[#4b2822]">{q.toLocaleString('en-IN')} cards</span>
-          <span className="text-sm font-semibold text-[#5d2c24]">₹{currency(perCard * q)}</span>
-        </button>
-      ))}
-      <p className="pt-2 text-xs text-[#8a7870]">
-        Bulk pricing applies automatically. Need more?{' '}
-        <span className="font-medium text-[#9b6a09]">Contact us for large-order quotes.</span>
-      </p>
+        </div>
+        <p className="mt-2 text-xs text-[#8a7870]">
+          Bulk pricing applies automatically. Need more?{' '}
+          <span className="font-medium text-[#9b6a09]">Contact us for large-order quotes.</span>
+        </p>
+      </div>
     </div>
   );
 }
