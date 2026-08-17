@@ -606,34 +606,6 @@ export default function ProductConfiguratorPage() {
     [canvasWidth, canvasHeight, saveCanvasState, refreshObjects]
   );
 
-  const addImageToCanvas = useCallback(
-    async (dataUrl, name) => {
-      const canvas = canvasRef.current?.getCanvas?.();
-      if (!canvas) return;
-
-      // Vector/print formats (PDF, AI, EPS, TIFF, PSD) arrive as a raw file.
-      // Upload the original to the server and use its rendered preview.
-      if (dataUrl && typeof dataUrl === 'object' && dataUrl.kind === 'print-file') {
-        try {
-          const { uploadPrintFile } = await import('../../utils/fileUtils');
-          const { data } = await uploadPrintFile(dataUrl.file);
-          const preview = data.file?.preview?.url;
-          if (!preview) {
-            toast.error('Preview unavailable for this file type');
-            return;
-          }
-          placeImageOnCanvas(preview, name || dataUrl.file.name);
-        } catch (err) {
-          toast.error(err.response?.data?.message || 'Failed to upload print file');
-        }
-        return;
-      }
-
-      placeImageOnCanvas(dataUrl, name);
-    },
-    [placeImageOnCanvas]
-  );
-
   const placeImageOnCanvas = useCallback(
     (dataUrl, name) => {
       const canvas = canvasRef.current?.getCanvas?.();
@@ -663,6 +635,34 @@ export default function ProductConfiguratorPage() {
       });
     },
     [canvasWidth, canvasHeight, saveCanvasState, refreshObjects]
+  );
+
+  const addImageToCanvas = useCallback(
+    async (dataUrl, name) => {
+      const canvas = canvasRef.current?.getCanvas?.();
+      if (!canvas) return;
+
+      // Vector/print formats (PDF, AI, EPS, TIFF, PSD) arrive as a raw file.
+      // Upload the original to the server and use its rendered preview.
+      if (dataUrl && typeof dataUrl === 'object' && dataUrl.kind === 'print-file') {
+        try {
+          const { uploadPrintFile } = await import('../../utils/fileUtils');
+          const { data } = await uploadPrintFile(dataUrl.file);
+          const preview = data.file?.preview?.url;
+          if (!preview) {
+            toast.error('Preview unavailable for this file type');
+            return;
+          }
+          placeImageOnCanvas(preview, name || dataUrl.file.name);
+        } catch (err) {
+          toast.error(err.response?.data?.message || 'Failed to upload print file');
+        }
+        return;
+      }
+
+      placeImageOnCanvas(dataUrl, name);
+    },
+    [placeImageOnCanvas]
   );
 
   const addClipart = useCallback(
